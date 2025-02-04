@@ -5,204 +5,205 @@
     <title>CSES课程表编辑器</title>
     <script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/js-yaml/4.1.0/js-yaml.min.js" type="application/javascript"></script>
     <script src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/Sortable/1.14.0/Sortable.min.js" type="application/javascript"></script>
+    <!-- <script type="module" src="https://unpkg.com/@fluentui/web-components"></script> -->
     <style>
       :root {
-        --bg-color: #1e1e1e;
-        --sidebar-bg: #252526;
-        --border-color: #3c3c3c;
-        --text-color: #cccccc;
+      --bg-color: #1e1e1e;
+      --sidebar-bg: #252526;
+      --border-color: #3c3c3c;
+      --text-color: #cccccc;
       }
 
       * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
-        background: var(--bg-color);
-        color: var(--text-color);
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
       }
 
       /* 顶部菜单栏 */
       .menu-bar {
-        height: 30px;
-        background: var(--sidebar-bg);
-        display: flex;
-        align-items: center;
-        padding: 0 1rem;
-        border-bottom: 1px solid var(--border-color);
+      height: 30px;
+      background: var(--sidebar-bg);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      border-bottom: 1px solid var(--border-color);
       }
 
       .menu-bar button {
-        background: none;
-        border: none;
-        color: var(--text-color);
-        padding: 4px 8px;
-        cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--text-color);
+      padding: 4px 8px;
+      cursor: pointer;
       }
 
       .menu-bar button:hover {
-        background: #2a2d2e;
+      background: #2a2d2e;
       }
 
       /* 主容器 */
       .container {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
+      display: flex;
+      flex: 1;
+      overflow: hidden;
       }
 
       /* 左侧功能栏 */
       .activity-bar {
-        width: 48px;
-        background: var(--sidebar-bg);
-        border-right: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 1rem;
+      width: 48px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 1rem;
       }
 
       .activity-item {
-        width: 32px;
-        height: 32px;
-        margin-bottom: 1rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        font-size: 20px;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 20px;
       }
 
       .activity-item.active {
-        background: #37373d;
+      background: #37373d;
       }
 
       /* 资源管理器 */
       .explorer {
-        width: 250px;
-        background: var(--sidebar-bg);
-        border-right: 1px solid var(--border-color);
-        overflow-y: auto;
+      width: 250px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
       }
 
       .explorer-item {
-        padding: 8px 16px;
-        cursor: pointer;
+      padding: 8px 16px;
+      cursor: pointer;
       }
 
       .explorer-item:hover {
-        background: #2a2d2e;
+      background: #2a2d2e;
       }
 
       .explorer-item.active {
-        background: #37373d;
+      background: #37373d;
       }
 
       /* 编辑区域 */
       .editor-area {
-        flex: 1;
-        padding: 1rem;
-        overflow-y: auto;
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
       }
 
       /* 课程卡片 */
       .class-card {
-        background: #2d2d2d;
-        padding: 1rem;
-        margin-bottom: 8px;
-        border-radius: 4px;
-        cursor: move;
+      background: #2d2d2d;
+      padding: 1rem;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      cursor: move;
       }
 
       .time-input {
-        background: #3c3c3c;
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        padding: 4px;
-        margin: 0 4px;
+      background: #3c3c3c;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 4px;
+      margin: 0 4px;
       }
 
       /* 拖拽区域 */
       #class-list {
-        min-height: 300px;
-        padding: 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
+      min-height: 300px;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
       }
 
       /* YAML编辑器 */
       #yaml-editor {
-        width: 100%;
-        height: 500px;
-        background: var(--bg-color);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        padding: 1rem;
-        font-family: monospace;
+      width: 100%;
+      height: 500px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      padding: 1rem;
+      font-family: monospace;
       }
 
       button,
       input,
       select,
       textarea {
-        background: var(--bg-color);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 14px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 14px;
       }
 
       button:hover,
       input:hover,
       select:hover,
       textarea:hover {
-        border-color: #007acc;
+      border-color: #007acc;
       }
 
       button:active,
       input:active,
       select:active,
       textarea:active {
-        border-color: #005a9e;
+      border-color: #005a9e;
       }
 
       button:focus,
       input:focus,
       select:focus,
       textarea:focus {
-        outline: none;
-        border-color: #007acc;
-        box-shadow: 0 0 0 1px #007acc;
+      outline: none;
+      border-color: #007acc;
+      box-shadow: 0 0 0 1px #007acc;
       }
 
       button {
-        cursor: pointer;
+      cursor: pointer;
       }
 
       button:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
+      cursor: not-allowed;
+      opacity: 0.6;
       }
 
       #subject-form {
-        display: flex;
-        flex-direction: column;
+      display: flex;
+      flex-direction: column;
       }
 
       #subject-form input {
-        width: 100%;
-        padding: 0.5rem;
-        font-size: 1rem;
-        margin: 0.5rem 0;
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin: 0.5rem 0;
       }
     </style>
     <link href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css" type="text/css" rel="stylesheet" />
