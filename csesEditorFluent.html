@@ -3,210 +3,221 @@
   <head>
     <meta charset="UTF-8" />
     <title>CSES课程表编辑器</title>
-    <script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/js-yaml/4.1.0/js-yaml.min.js" type="application/javascript"></script>
-    <script src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/Sortable/1.14.0/Sortable.min.js" type="application/javascript"></script>
-    <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
+    <script
+      src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/js-yaml/4.1.0/js-yaml.min.js"
+      type="application/javascript"
+    ></script>
+    <script
+      src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/Sortable/1.14.0/Sortable.min.js"
+      type="application/javascript"
+    ></script>
+    <script
+      type="module"
+      src="https://unpkg.com/@fluentui/web-components"
+    ></script>
     <style>
       :root {
-      --bg-color: #1e1e1e;
-      --sidebar-bg: #252526;
-      --border-color: #3c3c3c;
-      --text-color: #cccccc;
+        --bg-color: #ffffff;
+        --sidebar-bg: #ffffff;
+        --border-color: #e3e3e3;
+        --text-color: #000000;
       }
 
       * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
 
       body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
       }
 
       /* 顶部菜单栏 */
       .menu-bar {
-      height: 30px;
-      background: var(--sidebar-bg);
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      border-bottom: 1px solid var(--border-color);
+        height: 30px;
+        background: var(--sidebar-bg);
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        border-bottom: 1px solid var(--border-color);
       }
 
       .menu-bar button {
-      background: none;
-      border: none;
-      color: var(--text-color);
-      padding: 4px 8px;
-      cursor: pointer;
+        background: none;
+        border: none;
+        color: var(--text-color);
+        padding: 4px 8px;
+        cursor: pointer;
       }
 
       .menu-bar button:hover {
-      background: #2a2d2e;
+        background: #2a2d2e;
       }
 
       /* 主容器 */
       .container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
+        display: flex;
+        flex: 1;
+        overflow: hidden;
       }
 
       /* 左侧功能栏 */
       .activity-bar {
-      width: 48px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 1rem;
+        width: 48px;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 1rem;
       }
 
       .activity-item {
-      width: 32px;
-      height: 32px;
-      margin-bottom: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      font-size: 20px;
-      }
-
-      .activity-item.active {
-      background: #37373d;
+        width: 32px;
+        height: 32px;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        font-size: 18px;
+        padding-left: 8px;
+        padding-right: 3px;
       }
 
       /* 资源管理器 */
       .explorer {
-      width: 250px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--border-color);
-      overflow-y: auto;
+        width: 250px;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--border-color);
+        overflow-y: auto;
       }
 
       .explorer-item {
-      padding: 8px 16px;
-      cursor: pointer;
-      }
-
-      .explorer-item:hover {
-      background: #2a2d2e;
-      }
-
-      .explorer-item.active {
-      background: #37373d;
+        padding: 8px 16px;
+        cursor: pointer;
+        width: 100%;
       }
 
       /* 编辑区域 */
       .editor-area {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
       }
 
       /* 课程卡片 */
       .class-card {
-      /* background: #2d2d2d; */
-      padding: 1rem;
-      margin-bottom: 8px;
-      border-radius: 4px;
-      cursor: move;
+        /* background: #2d2d2d; */
+        padding: 1rem;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        cursor: move;
       }
 
       .time-input {
-      background: #3c3c3c;
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      padding: 4px;
-      margin: 0 4px;
+        background: #3c3c3c;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        padding: 4px;
+        margin: 0 4px;
       }
 
       /* 拖拽区域 */
       #class-list {
-      min-height: 300px;
-      padding: 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
+        min-height: 300px;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
       }
 
       /* YAML编辑器 */
       #yaml-editor {
-      width: 100%;
-      height: 500px;
-      background: var(--bg-color);
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      padding: 1rem;
-      font-family: monospace;
+        width: 100%;
+        height: 500px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        padding: 1rem;
+        font-family: monospace;
       }
 
       button,
       input,
       select,
       textarea {
-      background: var(--bg-color);
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 14px;
-      }
-
-      button:hover,
-      input:hover,
-      select:hover,
-      textarea:hover {
-      border-color: #007acc;
-      }
-
-      button:active,
-      input:active,
-      select:active,
-      textarea:active {
-      border-color: #005a9e;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
       }
 
       button:focus,
       input:focus,
       select:focus,
       textarea:focus {
-      outline: none;
-      border-color: #007acc;
-      box-shadow: 0 0 0 1px #007acc;
+        outline: none;
+        border-color: #007acc;
+        box-shadow: 0 0 0 1px #007acc;
       }
 
       button {
-      cursor: pointer;
+        cursor: pointer;
       }
 
       button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
+        cursor: not-allowed;
+        opacity: 0.6;
       }
 
       #subject-form {
-      display: flex;
-      flex-direction: column;
+        display: flex;
+        flex-direction: column;
       }
 
       #subject-form input {
-      width: 100%;
-      padding: 0.5rem;
-      font-size: 1rem;
-      margin: 0.5rem 0;
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        margin: 0.5rem 0;
+      }
+
+      #subject-list,
+      #schedule-list {
+        width: 100%;
+      }
+
+      fluent-listbox {
+        border: none;
+      }
+
+      .activity-bar {
+        border: none;
+      }
+
+      fluent-option {
+        border-radius: 0;
+      }
+
+      fluent-combobox fluent-option {
+        padding-left: 10px;
       }
     </style>
-    <link href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css"
+      type="text/css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="menu-bar">
@@ -220,21 +231,26 @@
     </div>
 
     <div class="container">
-      <div class="activity-bar">
-        <div class="activity-item active" data-view="schedule">
+      <fluent-listbox class="activity-bar">
+        <fluent-option class="activity-item selected" aria-selected="true" data-view="schedule">
           <i class="bi bi-calendar"></i>
-        </div>
-        <div class="activity-item" data-view="subject">
+        </fluent-option>
+        <fluent-option class="activity-item" data-view="subject">
           <i class="bi bi-journal-bookmark"></i>
-        </div>
-        <div class="activity-item" data-view="source">
+        </fluent-option>
+        <fluent-option class="activity-item" data-view="source">
           <i class="bi bi-file-earmark-text"></i>
-        </div>
-      </div>
+        </fluent-option>
+      </fluent-listbox>
 
       <div class="explorer">
-        <div id="schedule-list"></div>
-        <div id="subject-list" style="display: none"></div>
+        <fluent-listbox
+          id="schedule-list"
+        ></fluent-listbox>
+        <fluent-listbox
+          id="subject-list"
+          style="display: none"
+        ></fluent-listbox>
         <div
           id="add-schedule-btn"
           class="explorer-item"
@@ -254,14 +270,21 @@
 
       <div class="editor-area">
         <div id="schedule-editor" style="display: none">
-          <h2>课程计划编辑</h2><br>
+          <h2>课程计划编辑</h2>
+          <br />
           <div class="schedule-header">
-            课程模式:&nbsp;<fluent-combobox id="week-mode" onchange="updateSchedule()">
+            课程模式:&nbsp;<fluent-combobox
+              id="week-mode"
+              onchange="updateSchedule()"
+            >
               <fluent-option value="odd">单周</fluent-option>
               <fluent-option value="even">双周</fluent-option>
-              <fluent-option value="all">通用</fluent-option>
-            </fluent-combobox><br><br>
-            启用星期:&nbsp;<fluent-combobox id="day-mode" onchange="updateSchedule()">
+              <fluent-option value="all">通用</fluent-option> </fluent-combobox
+            ><br /><br />
+            启用星期:&nbsp;<fluent-combobox
+              id="day-mode"
+              onchange="updateSchedule()"
+            >
               <fluent-option value="mon">星期一</fluent-option>
               <fluent-option value="tue">星期二</fluent-option>
               <fluent-option value="wed">星期三</fluent-option>
@@ -270,12 +293,21 @@
               <fluent-option value="sat">星期六</fluent-option>
               <fluent-option value="sun">星期日</fluent-option>
             </fluent-combobox>
-          </div><br>
+          </div>
+          <br />
           <div id="class-list"></div>
-          <fluent-button appearance="accent" onclick="addNewClassTime()" style="margin-top: 1rem">
+          <fluent-button
+            appearance="accent"
+            onclick="addNewClassTime()"
+            style="margin-top: 1rem"
+          >
             + 添加课时
           </fluent-button>
-          <fluent-button appearance="accent" onclick="copySchdule()" style="margin-top: 1rem">
+          <fluent-button
+            appearance="accent"
+            onclick="copySchdule()"
+            style="margin-top: 1rem"
+          >
             复制副本
           </fluent-button>
         </div>
@@ -286,16 +318,30 @@
         </div>
 
         <div id="subject-editor" style="display: none">
-          <h2>科目信息管理</h2><br>
+          <h2>科目信息管理</h2>
+          <br />
           <div id="subject-form">
-            科目名称:<input type="text" id="subject-name" placeholder="科目名称" />
-            科目简写:<input type="text" id="subject-simple" placeholder="简称" />
-            任课教师:<input type="text" id="subject-teacher" placeholder="任课教师" />
+            科目名称:<input
+              type="text"
+              id="subject-name"
+              placeholder="科目名称"
+            />
+            科目简写:<input
+              type="text"
+              id="subject-simple"
+              placeholder="简称"
+            />
+            任课教师:<input
+              type="text"
+              id="subject-teacher"
+              placeholder="任课教师"
+            />
             教学教室:<input type="text" id="subject-room" placeholder="教室" />
-            <br>
-            <fluent-button appearance="accent"
+            <br />
+            <fluent-button
+              appearance="accent"
               onclick="saveSubject()"
-              style="padding: 0.5rem; font-size: 1rem"
+              style="font-size: 1rem"
             >
               保存
             </fluent-button>
@@ -333,8 +379,8 @@
           item.addEventListener("click", () => {
             document
               .querySelectorAll(".activity-item")
-              .forEach((i) => i.classList.remove("active"));
-            item.classList.add("active");
+              .forEach((i) => i.classList.remove("selected"));
+            item.classList.add("selected");
             showView(item.dataset.view);
           });
         });
@@ -376,21 +422,28 @@
         const container = document.getElementById("schedule-list");
         container.innerHTML = "";
         currentData.schedules.forEach((schedule, index) => {
-          const div = document.createElement("div");
+          const div = document.createElement("fluent-option");
           div.className = "explorer-item";
           const [weekMode, dayMode] = schedule.name.split("_");
-          div.textContent = (weekMap[weekMode] && dayMap[dayMode]) ? weekMap[weekMode]+"_"+dayMap[dayMode] : `无规则计划 ${index + 1}`;
-            div.addEventListener("click", () => {
+          div.textContent =
+            weekMap[weekMode] && dayMap[dayMode]
+              ? weekMap[weekMode] + "_" + dayMap[dayMode]
+              : `无规则计划 ${index + 1}`;
+          div.addEventListener("click", () => {
             loadSchedule(index);
-            document.querySelectorAll(".explorer-item").forEach((item) => item.classList.remove("active"));
-            div.classList.add("active");
-            });
+            document
+              .querySelectorAll(".explorer-item")
+              .forEach((item) => item.classList.remove("selected"));
+            div.classList.add("selected");
+          });
           div.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             if (
               confirm(
                 `确定要删除计划 ${
-                  (weekMap[weekMode] && dayMap[dayMode]) ? weekMap[weekMode]+"_"+dayMap[dayMode] : `无规则计划 ${index + 1}`
+                  weekMap[weekMode] && dayMap[dayMode]
+                    ? weekMap[weekMode] + "_" + dayMap[dayMode]
+                    : `无规则计划 ${index + 1}`
                 } 吗？`
               )
             ) {
@@ -408,7 +461,7 @@
         const container = document.getElementById("subject-list");
         container.innerHTML = "";
         currentData.subjects.forEach((subject, index) => {
-          const div = document.createElement("div");
+          const div = document.createElement("fluent-option");
           div.className = "explorer-item";
           div.textContent = subject.name;
           div.addEventListener("click", () => loadSubject(index));
@@ -448,14 +501,16 @@
           const div = document.createElement("div");
           div.className = "explorer-item";
           div.textContent = subject.name;
-            div.addEventListener("click", () => {
-            document.querySelectorAll(".explorer-item").forEach((item) => item.classList.remove("active"));
-            div.classList.add("active");
+          div.addEventListener("click", () => {
+            document
+              .querySelectorAll(".explorer-item")
+              .forEach((item) => item.classList.remove("selected"));
+            div.classList.add("selected");
             loadSubject(index);
-            });
-            if (index === 0) {
-            div.classList.add("active");
-            }
+          });
+          if (index === 0) {
+            div.classList.add("selected");
+          }
           div.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             if (confirm(`确定要删除科目 ${subject.name} 吗？`)) {
@@ -474,8 +529,8 @@
         document.getElementById("schedule-editor").style.display = "block";
         const schedule = currentData.schedules[index];
         const [weekMode, dayMode] = schedule.name.split("_");
-        document.getElementById("week-mode").value = weekMode
-        document.getElementById("day-mode").value =  dayMode
+        document.getElementById("week-mode").value = weekMode;
+        document.getElementById("day-mode").value = dayMode;
         refreshClassList();
       }
 
@@ -683,19 +738,21 @@
         const room = document.getElementById("subject-room").value;
         const teacher = document.getElementById("subject-teacher").value;
         if (name) {
-          let subjectIndex = currentData.subjects.findIndex(subject => subject.name === name);
+          let subjectIndex = currentData.subjects.findIndex(
+            (subject) => subject.name === name
+          );
           if (subjectIndex !== -1) {
-        currentData.subjects[subjectIndex].simple = simple;
-        currentData.subjects[subjectIndex].room = room;
-        currentData.subjects[subjectIndex].teacher = teacher;
+            currentData.subjects[subjectIndex].simple = simple;
+            currentData.subjects[subjectIndex].room = room;
+            currentData.subjects[subjectIndex].teacher = teacher;
           } else {
-        currentData.subjects.push({ name, simple, room, teacher });
-        subjectIndex = currentData.subjects.length - 1;
+            currentData.subjects.push({ name, simple, room, teacher });
+            subjectIndex = currentData.subjects.length - 1;
           }
           saveSchedule();
           refreshSubjectList();
           document.querySelectorAll(".explorer-item").forEach((item, index) => {
-        item.classList.toggle("active", index === subjectIndex);
+            item.classList.toggle("selected", index === subjectIndex);
           });
         } else {
           alert("请填写完整的科目信息");
@@ -703,7 +760,9 @@
       }
 
       function copySchdule() {
-        const newSchedule = JSON.parse(JSON.stringify(currentData.schedules[currentScheduleIndex]));
+        const newSchedule = JSON.parse(
+          JSON.stringify(currentData.schedules[currentScheduleIndex])
+        );
         newSchedule.name = "无规则计划";
         currentData.schedules.push(newSchedule);
         saveSchedule();
@@ -722,18 +781,23 @@
         // 删除当前选中的项目
         else if (e.key === "Delete") {
           e.preventDefault();
-          const activeItem = document.querySelector(".explorer-item.active");
+          const activeItem = document.querySelector(".explorer-item.selected");
           if (activeItem) {
-            const currentView = document.querySelector(".activity-item.active").dataset.view;
+            const currentView = document.querySelector(".activity-item.selected")
+              .dataset.view;
             if (currentView === "schedule") {
-              const index = Array.from(document.querySelectorAll("#schedule-list .explorer-item")).indexOf(activeItem);
+              const index = Array.from(
+                document.querySelectorAll("#schedule-list .explorer-item")
+              ).indexOf(activeItem);
               if (index !== -1) {
                 currentData.schedules.splice(index, 1);
                 saveSchedule();
                 refreshScheduleList();
               }
             } else if (currentView === "subject") {
-              const index = Array.from(document.querySelectorAll("#subject-list .explorer-item")).indexOf(activeItem);
+              const index = Array.from(
+                document.querySelectorAll("#subject-list .explorer-item")
+              ).indexOf(activeItem);
               if (index !== -1) {
                 currentData.subjects.splice(index, 1);
                 saveSchedule();
@@ -746,7 +810,8 @@
         // 新增课程或科目
         else if (e.altKey && e.key === "n") {
           e.preventDefault();
-          const currentView = document.querySelector(".activity-item.active").dataset.view;
+          const currentView = document.querySelector(".activity-item.selected")
+            .dataset.view;
           if (currentView === "schedule") {
             addNewClass();
           } else if (currentView === "subject") {
@@ -757,29 +822,32 @@
 
       // 在资源管理器中移动项目
       function moveExplorerItem(direction) {
-        const activeItem = document.querySelector(".explorer-item.active");
+        const activeItem = document.querySelector(".explorer-item.selected");
         if (!activeItem) return;
-        const currentView = document.querySelector(".activity-item.active").dataset.view;
-        const items = Array.from(document.querySelectorAll(`#${currentView}-list .explorer-item`));
+        const currentView = document.querySelector(".activity-item.selected")
+          .dataset.view;
+        const items = Array.from(
+          document.querySelectorAll(`#${currentView}-list .explorer-item`)
+        );
         const currentIndex = items.indexOf(activeItem);
         const newIndex = currentIndex + direction;
         if (newIndex >= 0 && newIndex < items.length) {
-          items[currentIndex].classList.remove("active");
-          items[newIndex].classList.add("active");
+          items[currentIndex].classList.remove("selected");
+          items[newIndex].classList.add("selected");
           items[newIndex].click();
         }
       }
 
       // 在活动栏中移动项目
       function moveActivityItem(direction) {
-        const activeItem = document.querySelector(".activity-item.active");
+        const activeItem = document.querySelector(".activity-item.selected");
         if (!activeItem) return;
         const items = Array.from(document.querySelectorAll(".activity-item"));
         const currentIndex = items.indexOf(activeItem);
         const newIndex = currentIndex + direction;
         if (newIndex >= 0 && newIndex < items.length) {
-          items[currentIndex].classList.remove("active");
-          items[newIndex].classList.add("active");
+          items[currentIndex].classList.remove("selected");
+          items[newIndex].classList.add("selected");
           items[newIndex].click();
         }
       }
@@ -804,24 +872,18 @@
       }
 
       function showModal(content) {
-        const modal = document.createElement("div");
+        const modal = document.createElement("fluent-dialog");
         modal.style.position = "fixed";
         modal.style.top = "50%";
         modal.style.left = "50%";
         modal.style.transform = "translate(-50%, -50%)";
-        modal.style.background = "var(--bg-color)";
-        modal.style.color = "var(--text-color)";
-        modal.style.padding = "1rem";
-        modal.style.border = "1px solid var(--border-color)";
-        modal.style.borderRadius = "4px";
         modal.style.zIndex = "1000";
         modal.innerHTML = `
           <div>${content.replace(/\n/g, "<br>")}</div>
-          <fluent-button appearance="accent" onclick="this.parentElement.remove()" style="margin-top: 1rem;width:100%">关闭</fluent-button>
+          <button onclick="this.parentElement.remove()" style="margin-top: 1rem;width:100%">关闭</button>
         `;
         document.body.appendChild(modal);
       }
-      
 
       // 启动应用
       init();
