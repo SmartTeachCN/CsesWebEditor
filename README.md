@@ -69,7 +69,7 @@ schedules:
 
 ## 许可证
 
-MIT License © 2024 CSES-org
+MIT License © 2025 CSES-org
 
 ## 注意事项
 
