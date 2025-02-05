@@ -338,6 +338,14 @@
           + 添加课程
         </fluent-button>
         <fluent-button
+        id="auto-fill-btn"
+        class="explorer-item"
+        onclick="autoFillClass()"
+        style="display: flex; margin-top: 5px"
+            >
+        <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
+            </fluent-button>
+        <fluent-button
           id="add-subject-btn"
           class="explorer-item"
           style="display: none; margin-top: 5px"
@@ -369,13 +377,13 @@
           >
             启用星期:&nbsp;
             <fluent-combobox id="day-mode" onchange="updateSchedule()">
-              <fluent-option value="mon">星期一</fluent-option>
-              <fluent-option value="tue">星期二</fluent-option>
-              <fluent-option value="wed">星期三</fluent-option>
-              <fluent-option value="thu">星期四</fluent-option>
-              <fluent-option value="fri">星期五</fluent-option>
-              <fluent-option value="sat">星期六</fluent-option>
-              <fluent-option value="sun">星期日</fluent-option>
+              <fluent-option value="1">星期一</fluent-option>
+              <fluent-option value="2">星期二</fluent-option>
+              <fluent-option value="3">星期三</fluent-option>
+              <fluent-option value="4">星期四</fluent-option>
+              <fluent-option value="5">星期五</fluent-option>
+              <fluent-option value="6">星期六</fluent-option>
+              <fluent-option value="7">星期日</fluent-option>
             </fluent-combobox>
           </div>
           <br />
@@ -524,6 +532,7 @@
           document.getElementById("schedule-list").style.display = "block";
           document.getElementById("subject-list").style.display = "none";
           document.getElementById("add-subject-btn").style.display = "none";
+          document.getElementById("auto-fill-btn").style.display = "flex";
           document.getElementById("add-schedule-btn").style.display = "flex";
           refreshScheduleList();
         } else if (view === "source") {
@@ -531,6 +540,7 @@
           document.getElementById("subject-list").style.display = "none";
           document.getElementsByClassName("explorer")[0].style.display = "none";
           document.getElementById("add-subject-btn").style.display = "none";
+          document.getElementById("auto-fill-btn").style.display = "none";
           document.getElementById("add-schedule-btn").style.display = "none";
           document.getElementById(`${view}-editor`).style.display = "block";
           document.getElementById("yaml-editor").value =
@@ -539,6 +549,7 @@
           document.getElementById("schedule-list").style.display = "none";
           document.getElementById("subject-list").style.display = "block";
           document.getElementById("add-subject-btn").style.display = "flex";
+          document.getElementById("auto-fill-btn").style.display = "none";
           document.getElementById("add-schedule-btn").style.display = "none";
           refreshSubjectList();
         }
@@ -551,7 +562,8 @@
         currentData.schedules.forEach((schedule, index) => {
           const div = document.createElement("fluent-option");
           div.className = "explorer-item";
-          const [weekMode, dayMode] = schedule.name.split("_");
+            const weekMode = schedule.weeks;
+            const dayMode = schedule.enable_day;
           div.textContent =
             weekMap[weekMode] && dayMap[dayMode]
               ? weekMap[weekMode] + "_" + dayMap[dayMode]
@@ -565,19 +577,20 @@
           });
           div.addEventListener("contextmenu", (e) => {
             e.preventDefault();
-            if (
-              confirm(
-                `确定要删除计划 ${
-                  weekMap[weekMode] && dayMap[dayMode]
-                    ? weekMap[weekMode] + "_" + dayMap[dayMode]
-                    : `无规则计划 ${index + 1}`
-                } 吗？`
-              )
-            ) {
-              currentData.schedules.splice(index, 1);
-              saveSchedule();
-              refreshScheduleList();
-            }
+            confirm(
+              `确定要删除计划 ${
+              weekMap[weekMode] && dayMap[dayMode]
+                ? weekMap[weekMode] + "_" + dayMap[dayMode]
+                : `无规则计划 ${index + 1}`
+              } 吗？`,
+              (result) => {
+              if (result) {
+                currentData.schedules.splice(index, 1);
+                saveSchedule();
+                refreshScheduleList();
+              }
+              }
+            );
           });
           container.appendChild(div);
         });
@@ -594,11 +607,13 @@
           div.addEventListener("click", () => loadSubject(index));
           div.addEventListener("contextmenu", (e) => {
             e.preventDefault();
-            if (confirm(`确定要删除科目 ${subject.name} 吗？`)) {
+            confirm(`确定要删除科目 ${subject.name} 吗？`, (result) => {
+              if (result) {
               currentData.subjects.splice(index, 1);
               saveSchedule();
               refreshSubjectList();
-            }
+              }
+            });
           });
           container.appendChild(div);
         });
@@ -640,11 +655,13 @@
           }
           div.addEventListener("contextmenu", (e) => {
             e.preventDefault();
-            if (confirm(`确定要删除科目 ${subject.name} 吗？`)) {
+            confirm(`确定要删除科目 ${subject.name} 吗？`, (result) => {
+              if (result) {
               currentData.subjects.splice(index, 1);
               saveSchedule();
               refreshSubjectList();
-            }
+              }
+            });
           });
           container.appendChild(div);
         });
@@ -655,7 +672,8 @@
         currentScheduleIndex = index;
         document.getElementById("schedule-editor").style.display = "block";
         const schedule = currentData.schedules[index];
-        const [weekMode, dayMode] = schedule.name.split("_");
+        const weekMode = schedule.weeks;
+        const dayMode = schedule.enable_day;
         const selectedWeekMode = weekMap[weekMode];
         const selectedDayMode = dayMap[dayMode];
         document.getElementById("week-mode").value = selectedWeekMode;
@@ -783,11 +801,13 @@
 
       // 清空数据
       function clearData() {
-        if (confirm("确定要清空所有数据吗？")) {
-          localStorage.clear();
-          currentData = { version: 1, subjects: [], schedules: [] };
-          location.reload();
-        }
+        confirm("确定要清空所有数据吗？", (result) => {
+          if (result) {
+            localStorage.clear();
+            currentData = { version: 1, subjects: [], schedules: [] };
+            location.reload();
+          }
+        });
       }
 
       // 初始化拖拽导入
@@ -824,12 +844,13 @@
 
       // 添加新科目
       function addNewSubject() {
-        const name = prompt("请输入科目名称:");
-        if (name) {
-          currentData.subjects.push({ name });
-          saveSchedule();
-          refreshSubjectList();
-        }
+        prompt("请输入科目名称:", (name) => {
+          if (name) {
+            currentData.subjects.push({ name });
+            saveSchedule();
+            refreshSubjectList();
+          }
+        });
       }
 
       const weekMap = {
@@ -839,13 +860,23 @@
       };
 
       const dayMap = {
-        mon: "星期一",
-        tue: "星期二",
-        wed: "星期三",
-        thu: "星期四",
-        fri: "星期五",
-        sat: "星期六",
-        sun: "星期日",
+        1: "星期一",
+        2: "星期二",
+        3: "星期三",
+        4: "星期四",
+        5: "星期五",
+        6: "星期六",
+        7: "星期日",
+      };
+
+      const dayMap_Full = {
+        1: "Monday",
+        2: "Tuesday",
+        3: "Wednesday",
+        4: "Thursday",
+        5: "Friday",
+        6: "Saturday",
+        7: "Sunday",
       };
 
       // 更新计划名称
@@ -858,10 +889,10 @@
         const selectedDayMode = Object.keys(dayMap).find(
           (key) => dayMap[key] === dayMode
         );
-        const scheduleName = `${selectedWeekMode}_${selectedDayMode}`;
+        const scheduleName = `${selectedWeekMode.charAt(0).toUpperCase() + selectedWeekMode.slice(1)}_${dayMap_Full[selectedDayMode]}`;
         currentData.schedules[currentScheduleIndex].name = scheduleName;
         currentData.schedules[currentScheduleIndex].enable_day =
-          selectedDayMode;
+          parseInt(selectedDayMode, 10);
         currentData.schedules[currentScheduleIndex].weeks = selectedWeekMode;
         saveSchedule();
         refreshScheduleList();
@@ -1010,6 +1041,35 @@
          <b>开放许可:</b>MIT License`);
       }
 
+      function autoFillClass() {
+        showModal(`<h2>快速填充课程表</h2>
+        <b>提示:</b> 本功能将会自动填充当前课程表中的所有课程，您可以在下方选择填充的科目。
+        <br>
+        <fluent-button appearance="accent" onclick="autoFill()">批量添加通用周星期一~星期日</fluent-button>
+        `);
+      }
+      function autoFill() {
+        const subjects = currentData.subjects;
+        if (subjects.length === 0) {
+          alert("请先添加科目");
+          return;
+        }
+
+        const days = ["1", "2", "3", "4", "5", "6", "7"];
+        days.forEach((day) => {
+          const newSchedule = {
+            name: `all_${day}`,
+            classes: [],
+          };
+
+          currentData.schedules.push(newSchedule);
+        });
+
+        saveSchedule();
+        refreshScheduleList();
+        alert("快速创建周一~周日通用周成功");
+      }
+
       function showModal(content) {
         const modal = document.createElement("fluent-dialog");
         modal.style.setProperty("--dialog-height", "auto");
@@ -1023,6 +1083,58 @@
         `;
         document.body.appendChild(modal);
         modal.hidden = false;
+      }
+
+      function alert(message) {
+        showModal(`<h2>提示</h2><p>${message}</p>`);
+      }
+
+      function confirm(message, callback) {
+        const modal = document.createElement("fluent-dialog");
+        modal.style.setProperty("--dialog-height", "auto");
+        modal.setAttribute("trap-focus", "");
+        modal.setAttribute("modal", "");
+        modal.innerHTML = `
+          <div style="margin: 20px;">
+        <h2>确认</h2>
+        <p>${message}</p>
+        <fluent-button appearance="accent" onclick="confirmAction(true, this.closest('fluent-dialog'), ${callback})" style="margin-top: 1rem;width:49%">确定</fluent-button>
+        <fluent-button onclick="confirmAction(false, this.closest('fluent-dialog'), ${callback})" style="margin-top: 1rem;width:49%">取消</fluent-button>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.hidden = false;
+      }
+
+      function confirmAction(result, modal, callback) {
+        modal.hidden = true;
+        document.body.removeChild(modal);
+        callback(result);
+      }
+
+      function prompt(message, callback) {
+        const modal = document.createElement("fluent-dialog");
+        modal.style.setProperty("--dialog-height", "auto");
+        modal.setAttribute("trap-focus", "");
+        modal.setAttribute("modal", "");
+        modal.innerHTML = `
+          <div style="margin: 20px;">
+        <h2>${message}</h2>
+        <p>在下方编辑框输入文本以继续响应</p>
+        <fluent-text-field id="prompt-input" style="width: 100%;"></fluent-text-field>
+        <fluent-button appearance="accent" onclick="promptAction(true, this.closest('fluent-dialog'), ${callback})" style="margin-top: 1rem;width:49%">确定</fluent-button>
+        <fluent-button onclick="promptAction(false, this.closest('fluent-dialog'), ${callback})" style="margin-top: 1rem;width:49%">取消</fluent-button>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.hidden = false;
+      }
+
+      function promptAction(result, modal, callback) {
+        const input = document.getElementById("prompt-input").value;
+        modal.hidden = true;
+        document.body.removeChild(modal);
+        callback(result ? input : null);
       }
 
       // 启动应用
