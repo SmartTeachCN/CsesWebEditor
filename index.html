@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CSES课程表编辑器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css"
+      type="text/css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/js-yaml/4.1.0/js-yaml.min.js"
+      type="application/javascript"
+    ></script>
+    <script
+      src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/Sortable/1.14.0/Sortable.min.js"
+      type="application/javascript"
+    ></script>
+    <!-- <script
+      type="module"
+      src="https://unpkg.com/@fluentui/web-components"
+    ></script> -->
+    <script
+      type="module"
+      src="https://npm.elemecdn.com/@fluentui/web-components"
+    ></script>
+    <link rel="stylesheet" href="style.css" />
+    <script src="scripts/device.js" defer></script>
+    <script src="scripts/ui.js" defer></script>
+    <script src="scripts/storage.js" defer></script>
+    <script src="scripts/schedule.js" defer></script>
+    <script src="scripts/subject.js" defer></script>
+    <script src="scripts/main.js" defer></script>
+  </head>
+  <body>
+    <div class="menu-bar">
+      <h2 onclick="about()">CSES Editor&nbsp;</h2>
+      <button class="desktop-only" onclick="keyHelp()">快捷键</button>
+      <button class="desktop-only" onclick="about()">关于</button>
+      <span style="flex: 1"></span>
+      <button onclick="clearData()">清空</button>
+      <fluent-button style="margin-right: 10px" onclick="importFile()">
+        导入文件
+      </fluent-button>
+      <fluent-button appearance="accent" onclick="exportFile()">
+        导出文件
+      </fluent-button>
+      <input type="file" id="file-input" hidden accept=".yaml,.yml" />
+    </div>
+
+    <div class="container">
+      <div
+        class="mobile-only-flex"
+        style="
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+          background: rgb(243, 243, 243);
+          border-top: 1px solid var(--border-color);
+          justify-content: space-around;
+          padding: 10px 0;
+        "
+      >
+        <button style="padding: 10px 42px" onclick="toggleExplorer()">
+          列表
+        </button>
+        <button style="padding: 10px 42px" onclick="toggleEditor()">
+          编辑
+        </button>
+      </div>
+      <fluent-listbox class="activity-bar">
+        <fluent-option
+          class="activity-item selected"
+          aria-selected="true"
+          data-view="schedule"
+        >
+          <i class="bi bi-calendar"></i>&nbsp;课表编辑
+        </fluent-option>
+        <fluent-option class="activity-item" data-view="subject">
+          <i class="bi bi-journal-bookmark"></i>&nbsp;科目管理
+        </fluent-option>
+        <fluent-option class="activity-item" data-view="source">
+          <i class="bi bi-file-earmark-text"></i>&nbsp;导出预览
+        </fluent-option>
+      </fluent-listbox>
+
+      <div class="explorer">
+        <fluent-listbox
+          id="schedule-list"
+          style="display: block"
+        ></fluent-listbox>
+        <fluent-listbox
+          id="subject-list"
+          style="display: none"
+        ></fluent-listbox>
+        <fluent-button
+          id="add-schedule-btn"
+          class="explorer-item"
+          onclick="addNewClass()"
+          style="display: flex; margin-top: 5px"
+        >
+          + 添加课程
+        </fluent-button>
+        <fluent-button
+          id="auto-fill-btn"
+          class="explorer-item"
+          onclick="autoFillClass()"
+          style="display: flex; margin-top: 5px"
+        >
+          <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
+        </fluent-button>
+        <fluent-button
+          id="add-subject-btn"
+          class="explorer-item"
+          style="display: none; margin-top: 5px"
+          onclick="addNewSubject()"
+        >
+          + 添加科目
+        </fluent-button>
+      </div>
+
+      <div class="editor-area">
+        <div id="schedule-editor" style="display: none">
+          <h2>课程计划编辑</h2>
+          <br />
+          <div
+            class="schedule-header"
+            style="display: flex; align-items: center"
+          >
+            课程模式:&nbsp;
+            <fluent-combobox id="week-mode" onchange="updateSchedule()">
+              <fluent-option value="odd">单周</fluent-option>
+              <fluent-option value="even">双周</fluent-option>
+              <fluent-option value="all">通用</fluent-option>
+            </fluent-combobox>
+          </div>
+          <br />
+          <div
+            class="schedule-header"
+            style="display: flex; align-items: center"
+          >
+            启用星期:&nbsp;
+            <fluent-combobox id="day-mode" onchange="updateSchedule()">
+              <fluent-option value="1">星期一</fluent-option>
+              <fluent-option value="2">星期二</fluent-option>
+              <fluent-option value="3">星期三</fluent-option>
+              <fluent-option value="4">星期四</fluent-option>
+              <fluent-option value="5">星期五</fluent-option>
+              <fluent-option value="6">星期六</fluent-option>
+              <fluent-option value="7">星期日</fluent-option>
+            </fluent-combobox>
+          </div>
+          <br />
+          <div id="class-list"></div>
+          <fluent-button
+            appearance="accent"
+            onclick="addNewClassTime()"
+            style="margin-top: 1rem"
+          >
+            + 添加课时
+          </fluent-button>
+          <fluent-button
+            appearance="accent"
+            onclick="copySchdule()"
+            style="margin-top: 1rem"
+          >
+            复制副本
+          </fluent-button>
+          <fluent-button
+            appearance="accent"
+            onclick="autoFillClass()"
+            `style="margin-top: 1rem"
+          >
+            <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
+          </fluent-button>
+        </div>
+
+        <div id="source-editor" style="display: none">
+          <h3>YAML预览</h3>
+          <textarea id="yaml-editor"></textarea>
+        </div>
+
+        <div id="subject-editor" style="display: none">
+          <h2>科目信息管理</h2>
+          <br />
+          <div id="subject-form">
+            科目名称:<fluent-text-field
+              type="text"
+              id="subject-name"
+              placeholder="科目名称"
+            >
+            </fluent-text-field>
+            科目简写:<fluent-text-field
+              type="text"
+              id="subject-simple"
+              placeholder="简称"
+            >
+            </fluent-text-field>
+            任课教师:<fluent-text-field
+              type="text"
+              id="subject-teacher"
+              placeholder="任课教师"
+            >
+            </fluent-text-field>
+            教学教室:<fluent-text-field
+              type="text"
+              id="subject-room"
+              placeholder="教室"
+            >
+            </fluent-text-field>
+            <br />
+            <fluent-button
+              appearance="accent"
+              onclick="saveSubject()"
+              style="font-size: 1rem"
+            >
+              保存
+            </fluent-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
