@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>CSES课程表编辑器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css"
       type="text/css"
@@ -22,7 +23,7 @@
     ></script> -->
     <script
       type="module"
-      src="https://github.elemecdn.com/@fluentui/web-components"
+      src="https://npm.elemecdn.com/@fluentui/web-components"
     ></script>
     <style>
       :root {
@@ -36,6 +37,7 @@
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        -webkit-tap-highlight-color: transparent;
       }
 
       body {
@@ -233,13 +235,44 @@
         width: 100%;
         margin-bottom: 10px;
       }
+
+      .desktop-only {
+        display: block;
+      }
+      .mobile-only {
+        display: none;
+      }
+      .mobile-only-flex {
+        display: none;
+      }
+
+      @media (max-width: 768px) {
+        .desktop-only {
+          display: none;
+        }
+        .mobile-only {
+          display: block;
+        }
+        .mobile-only-flex {
+          display: flex;
+        }
+        .explorer {
+          width: 100vw;
+        }
+        .activity-bar {
+          width: 100vw;
+        }
+        .editor-area {
+          width: 100vw;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="menu-bar">
-      <h2>CSES Editor&nbsp;</h2>
-      <button onclick="keyHelp()">快捷键</button>
-      <button onclick="about()">关于</button>
+      <h2 onclick="about()">CSES Editor&nbsp;</h2>
+      <button class="desktop-only" onclick="keyHelp()">快捷键</button>
+      <button class="desktop-only" onclick="about()">关于</button>
       <span style="flex: 1"></span>
       <button onclick="clearData()">清空</button>
       <fluent-button style="margin-right: 10px" onclick="importFile()">
@@ -252,6 +285,25 @@
     </div>
 
     <div class="container">
+      <div
+        class="mobile-only-flex"
+        style="
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+          background: rgb(243, 243, 243);
+          border-top: 1px solid var(--border-color);
+          justify-content: space-around;
+          padding: 10px 0;
+        "
+      >
+        <button style="padding: 10px 42px" onclick="toggleExplorer()">
+          列表
+        </button>
+        <button style="padding: 10px 42px" onclick="toggleEditor()">
+          编辑
+        </button>
+      </div>
       <fluent-listbox class="activity-bar">
         <fluent-option
           class="activity-item selected"
@@ -397,6 +449,41 @@
         schedules: [],
       };
       let currentScheduleIndex = -1;
+
+      // 检查设备类型并设置显示状态
+      function checkDeviceType() {
+        if (window.innerWidth <= 768) {
+          document.querySelector(".explorer").style.display = "none";
+          document.querySelector(".editor-area").style.display = "none";
+        } else {
+          document.querySelector(".explorer").style.display = "block";
+          document.querySelector(".editor-area").style.display = "block";
+        }
+      }
+
+      // 监听窗口大小变化
+      window.addEventListener("resize", checkDeviceType);
+
+      // 初始检查设备类型
+      checkDeviceType();
+
+      function toggleEditor() {
+        const editorArea = document.querySelector(".editor-area");
+        const explorer = document.querySelector(".explorer");
+        const activityBar = document.querySelector(".activity-bar");
+        editorArea.style.display = "block";
+        explorer.style.display = "none";
+        activityBar.style.display = "none";
+      }
+
+      function toggleExplorer() {
+        const explorer = document.querySelector(".explorer");
+        const editorArea = document.querySelector(".editor-area");
+        const activityBar = document.querySelector(".activity-bar");
+        explorer.style.display = "block";
+        editorArea.style.display = "none";
+        activityBar.style.display = "block";
+      }
 
       // 初始化
       function init() {
