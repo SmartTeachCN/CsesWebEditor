@@ -1,4 +1,5 @@
 # CSES课程表编辑器
+
 FluentUI版本:
 ![image](https://github.com/user-attachments/assets/1cb389a6-4004-4c04-9dbf-0c9aafc888a3)
 
@@ -19,7 +20,7 @@ FluentUI版本:
 
 ## 快速开始
 
-1. 直接使用浏览器打开`index.html`
+1. 直接使用浏览器打开`csesEditor.html` 或 `csesEditorFluent.html`
 2. 通过左侧导航切换功能：
    - **课程计划**：管理每周课程安排
    - **科目管理**：维护科目详细信息
@@ -35,6 +36,7 @@ FluentUI版本:
 - [Sortable.js](https://sortablejs.github.io/Sortable/) - 拖拽排序功能
 - [js-yaml](https://github.com/nodeca/js-yaml) - YAML解析/序列化
 - [Bootstrap Icons](https://icons.getbootstrap.com/) - 界面图标
+- [FluentUI](https://learn.microsoft.com/en-us/fluent-ui/web-components/) - FluentUI版本界面
 - 原生JavaScript实现核心逻辑
 
 ## 数据格式说明
