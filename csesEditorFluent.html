@@ -76,6 +76,7 @@
         flex-direction: column;
         outline: none;
         padding: 5px;
+        gap: 2px;
       }
 
       .activity-item {
@@ -93,10 +94,10 @@
         overflow-y: auto;
         border-radius: 10px 0 0 0;
         padding: 5px;
+        gap: 2px;
       }
 
       .explorer-item {
-        padding: 8px 16px;
         cursor: pointer;
         width: 100%;
       }
@@ -120,7 +121,7 @@
       }
 
       .time-input {
-        background: #3c3c3c;
+        background: #ffffff;
         border: 1px solid var(--border-color);
         color: var(--text-color);
         padding: 4px;
@@ -204,17 +205,26 @@
 
       fluent-option {
         padding-left: 10px;
+      }
+
+      fluent-listbox fluent-option {
+        padding-left: 10px;
         background-color: transparent
       }
 
-      fluent-option:hover {
+      fluent-listbox fluent-option:hover {
         background-color: rgba(223, 223, 223, 0.445)
       }
 
-      fluent-option.selected {
+      fluent-listbox fluent-option.selected {
         background-color: rgb(223, 223, 223)
       }
       
+      fluent-text-field {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
     </style>
     <link
       href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css"
@@ -259,37 +269,43 @@
           id="subject-list"
           style="display: none"
         ></fluent-listbox>
-        <div
+        <fluent-button
           id="add-schedule-btn"
           class="explorer-item"
           onclick="addNewClass()"
+          style="display: flex;margin-top: 5px;"
         >
           + 添加课程
-        </div>
-        <div
+        </fluent-button>
+        <fluent-button
           id="add-subject-btn"
           class="explorer-item"
-          style="display: none"
+          style="display: none;margin-top: 5px;"
           onclick="addNewSubject()"
         >
           + 添加科目
-        </div>
+        </fluent-button>
       </div>
 
       <div class="editor-area">
         <div id="schedule-editor" style="display: none">
           <h2>课程计划编辑</h2>
           <br />
-          <div class="schedule-header">
-            课程模式:&nbsp;<fluent-combobox
+            <div class="schedule-header" style="display: flex; align-items: center;">
+            课程模式:&nbsp;
+            <fluent-combobox
               id="week-mode"
               onchange="updateSchedule()"
             >
               <fluent-option value="odd">单周</fluent-option>
               <fluent-option value="even">双周</fluent-option>
-              <fluent-option value="all">通用</fluent-option> </fluent-combobox
-            ><br /><br />
-            启用星期:&nbsp;<fluent-combobox
+              <fluent-option value="all">通用</fluent-option>
+            </fluent-combobox>
+            </div>
+            <br />
+            <div class="schedule-header" style="display: flex; align-items: center;">
+            启用星期:&nbsp;
+            <fluent-combobox
               id="day-mode"
               onchange="updateSchedule()"
             >
@@ -301,7 +317,7 @@
               <fluent-option value="sat">星期六</fluent-option>
               <fluent-option value="sun">星期日</fluent-option>
             </fluent-combobox>
-          </div>
+            </div>
           <br />
           <div id="class-list"></div>
           <fluent-button
@@ -329,22 +345,26 @@
           <h2>科目信息管理</h2>
           <br />
           <div id="subject-form">
-            科目名称:<input
+            科目名称:<fluent-text-field
               type="text"
               id="subject-name"
               placeholder="科目名称"
-            />
-            科目简写:<input
+            >
+          </fluent-text-field>
+            科目简写:<fluent-text-field
               type="text"
               id="subject-simple"
               placeholder="简称"
-            />
-            任课教师:<input
+            >
+          </fluent-text-field>
+            任课教师:<fluent-text-field
               type="text"
               id="subject-teacher"
               placeholder="任课教师"
-            />
-            教学教室:<input type="text" id="subject-room" placeholder="教室" />
+            >
+            </fluent-text-field>
+            教学教室:<fluent-text-field type="text" id="subject-room" placeholder="教室">
+          </fluent-text-field>
             <br />
             <fluent-button
               appearance="accent"
@@ -405,7 +425,7 @@
           document.getElementById("schedule-list").style.display = "block";
           document.getElementById("subject-list").style.display = "none";
           document.getElementById("add-subject-btn").style.display = "none";
-          document.getElementById("add-schedule-btn").style.display = "block";
+          document.getElementById("add-schedule-btn").style.display = "flex";
           refreshScheduleList();
         } else if (view === "source") {
           document.getElementById("schedule-list").style.display = "none";
@@ -419,7 +439,7 @@
         } else if (view === "subject") {
           document.getElementById("schedule-list").style.display = "none";
           document.getElementById("subject-list").style.display = "block";
-          document.getElementById("add-subject-btn").style.display = "block";
+          document.getElementById("add-subject-btn").style.display = "flex";
           document.getElementById("add-schedule-btn").style.display = "none";
           refreshSubjectList();
         }
@@ -506,7 +526,7 @@
           saveSchedule();
         }
         currentData.subjects.forEach((subject, index) => {
-          const div = document.createElement("div");
+          const div = document.createElement("fluent-option");
           div.className = "explorer-item";
           div.textContent = subject.name;
           div.addEventListener("click", () => {
@@ -537,8 +557,10 @@
         document.getElementById("schedule-editor").style.display = "block";
         const schedule = currentData.schedules[index];
         const [weekMode, dayMode] = schedule.name.split("_");
-        document.getElementById("week-mode").value = weekMode;
-        document.getElementById("day-mode").value = dayMode;
+        const selectedWeekMode = weekMap[weekMode];
+        const selectedDayMode = dayMap[dayMode];
+        document.getElementById("week-mode").value = selectedWeekMode;
+        document.getElementById("day-mode").value = selectedDayMode;
         refreshClassList();
       }
 
@@ -731,10 +753,12 @@
       function updateSchedule() {
         const weekMode = document.getElementById("week-mode").value;
         const dayMode = document.getElementById("day-mode").value;
-        const scheduleName = `${weekMode}_${dayMode}`;
+        const selectedWeekMode = Object.keys(weekMap).find(key => weekMap[key] === weekMode);
+        const selectedDayMode = Object.keys(dayMap).find(key => dayMap[key] === dayMode);
+        const scheduleName = `${selectedWeekMode}_${selectedDayMode}`;
         currentData.schedules[currentScheduleIndex].name = scheduleName;
-        currentData.schedules[currentScheduleIndex].enable_day = dayMode;
-        currentData.schedules[currentScheduleIndex].weeks = weekMode;
+        currentData.schedules[currentScheduleIndex].enable_day =selectedDayMode;
+        currentData.schedules[currentScheduleIndex].weeks = selectedWeekMode;
         saveSchedule();
         refreshScheduleList();
       }
@@ -871,27 +895,29 @@
       }
 
       function about() {
-        showModal(`<h2>CSES课程表编辑器 v1.0</h1>
+        showModal(`<h2>CSES课程表编辑器 v1.0 FluentUI</h2>
         <i>CSES是指The Course Schedule Exchange Schema，
         是一种用于课程表交换的数据格式。
         本工具旨在帮助用户快速编辑CSES格式的课程表。</i>
-        <br>
-        作者: PYLXU(CSES-org)
-        许可: MIT`);
+
+          <b>开发人员:</b>PYLXU、RinLit
+          <b>项目地址:</b><a href="https://github.com/CSES-org/CsesWebEditor">GitHub</a>
+         <b>开放许可:</b>MIT License`);
       }
 
       function showModal(content) {
         const modal = document.createElement("fluent-dialog");
-        modal.style.position = "fixed";
-        modal.style.top = "50%";
-        modal.style.left = "50%";
-        modal.style.transform = "translate(-50%, -50%)";
-        modal.style.zIndex = "1000";
+        modal.style.setProperty("--dialog-height", "auto");
+        modal.setAttribute("trap-focus", "");
+        modal.setAttribute("modal", "");
         modal.innerHTML = `
-          <div>${content.replace(/\n/g, "<br>")}</div>
-          <button onclick="this.parentElement.remove()" style="margin-top: 1rem;width:100%">关闭</button>
+          <div style="margin: 20px;">
+        ${content.replace(/\n/g, "<br>")}
+        <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="margin-top: 1rem;width:100%">关闭</fluent-button>
+          </div>
         `;
         document.body.appendChild(modal);
+        modal.hidden = false;
       }
 
       // 启动应用
