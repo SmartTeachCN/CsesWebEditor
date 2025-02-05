@@ -622,18 +622,18 @@
         container.innerHTML = "";
         if (currentData.subjects.length === 0) {
           currentData.subjects = [
-            { name: "语文", simple: "语", teacher: "老师", room: "" },
-            { name: "数学", simple: "数", teacher: "", room: "" },
-            { name: "英语", simple: "英", teacher: "", room: "" },
-            { name: "物理", simple: "物", teacher: "", room: "" },
-            { name: "化学", simple: "化", teacher: "", room: "" },
-            { name: "生物", simple: "生", teacher: "", room: "" },
-            { name: "历史", simple: "历", teacher: "", room: "" },
-            { name: "地理", simple: "地", teacher: "", room: "" },
-            { name: "政治", simple: "政", teacher: "", room: "" },
-            { name: "信息技术", simple: "信", teacher: "", room: "" },
-            { name: "通用技术", simple: "通", teacher: "", room: "" },
-            { name: "班会", simple: "班", teacher: "", room: "" },
+            { name: "语文", simplified_name: "语", teacher: "老师", room: "" },
+            { name: "数学", simplified_name: "数", teacher: "", room: "" },
+            { name: "英语", simplified_name: "英", teacher: "", room: "" },
+            { name: "物理", simplified_name: "物", teacher: "", room: "" },
+            { name: "化学", simplified_name: "化", teacher: "", room: "" },
+            { name: "生物", simplified_name: "生", teacher: "", room: "" },
+            { name: "历史", simplified_name: "历", teacher: "", room: "" },
+            { name: "地理", simplified_name: "地", teacher: "", room: "" },
+            { name: "政治", simplified_name: "政", teacher: "", room: "" },
+            { name: "信息技术", simplified_name: "信", teacher: "", room: "" },
+            { name: "通用技术", simplified_name: "通", teacher: "", room: "" },
+            { name: "班会", simplified_name: "班", teacher: "", room: "" },
           ];
           saveSchedule();
         }
@@ -687,7 +687,7 @@
       function loadSubject(index) {
         const subject = currentData.subjects[index];
         document.getElementById("subject-name").value = subject.name;
-        document.getElementById("subject-simple").value = subject.simple || "";
+        document.getElementById("subject-simple").value = subject.simplified_name || "";
         document.getElementById("subject-teacher").value =
           subject.teacher || "";
         document.getElementById("subject-room").value = subject.room || "";
@@ -907,7 +907,7 @@
       // 保存科目
       function saveSubject() {
         const name = document.getElementById("subject-name").value;
-        const simple = document.getElementById("subject-simple").value;
+        const simplified_name = document.getElementById("subject-simple").value;
         const room = document.getElementById("subject-room").value;
         const teacher = document.getElementById("subject-teacher").value;
         if (name) {
@@ -915,11 +915,11 @@
             (subject) => subject.name === name
           );
           if (subjectIndex !== -1) {
-            currentData.subjects[subjectIndex].simple = simple;
+            currentData.subjects[subjectIndex].simplified_name = simplified_name;
             currentData.subjects[subjectIndex].room = room;
             currentData.subjects[subjectIndex].teacher = teacher;
           } else {
-            currentData.subjects.push({ name, simple, room, teacher });
+            currentData.subjects.push({ name, simplified_name, room, teacher });
             subjectIndex = currentData.subjects.length - 1;
           }
           saveSchedule();
@@ -1040,7 +1040,7 @@
         是一种用于课程表交换的数据格式。
         本工具旨在帮助用户快速编辑CSES格式的课程表。</i>
 
-        <b>当前版本:</b>1.1[250205]
+        <b>当前版本:</b>1.1[25020502]
           <b>开发人员:</b>PYLXU、RinLit
           <b>项目地址:</b><a href="https://github.com/CSES-org/CsesWebEditor">GitHub</a>
          <b>开放许可:</b>MIT License`);
