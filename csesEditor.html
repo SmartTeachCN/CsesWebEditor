@@ -402,6 +402,13 @@
           >
             复制副本
           </fluent-button>
+          <fluent-button
+            appearance="accent"
+            onclick="autoFillClass()"
+            `style="margin-top: 1rem"
+          >
+            <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
+          </fluent-button>
         </div>
 
         <div id="source-editor" style="display: none">
@@ -1020,12 +1027,11 @@
       }
 
       function keyHelp() {
-        showModal(`<h2>快捷键帮助</h2>
-          <b>Ctrl + ↑/↓:</b> 移动偏左栏中的项目
+        alert(`<b>Ctrl + ↑/↓:</b> 移动偏左栏中的项目
           <b>Alt + ↑/↓:</b> 移动左栏中的项目
           <b>Alt + N:</b> 新增课程或科目
           <b>Delete:</b> 删除当前选中的项目
-        `);
+        `,"快捷键帮助");
       }
 
       function about() {
@@ -1041,11 +1047,10 @@
       }
 
       function autoFillClass() {
-        showModal(`<h2>快速填充课程表</h2>
-        <b>提示:</b> 本功能将会自动填充当前课程表中的所有课程，您可以在下方选择填充的科目。
+        alert(`<b>提示:</b> 本功能将会自动填充当前课程表中的所有课程，您可以在下方选择填充的科目。
         <br>
         <fluent-button appearance="accent" onclick="autoFill()">批量添加通用周星期一~星期日</fluent-button>
-        `);
+        `,"快速填充课程表");
       }
       function autoFill() {
         const subjects = currentData.subjects;
@@ -1070,39 +1075,53 @@
         refreshScheduleList();
         alert("快速创建周一~周日通用周成功");
       }
-
       function showModal(content) {
         const modal = document.createElement("fluent-dialog");
-        modal.style.setProperty("--dialog-height", "auto");
         modal.setAttribute("trap-focus", "");
+        modal.style.setProperty("--dialog-height", "auto");
         modal.setAttribute("modal", "");
         modal.innerHTML = `
-          <div style="margin: 20px;">
-        ${content.replace(/\n/g, "<br>")}
-        <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="margin-top: 1rem;width:100%">关闭</fluent-button>
+          <div style="margin: 20px;">${content.replace(/\n/g, "<br>")}</div>
+          <div style="display: flex; justify-content: center; margin-top: 1rem;">
+        <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="width: 100px;margin-bottom:10px">关闭</fluent-button>
           </div>
         `;
         document.body.appendChild(modal);
         modal.hidden = false;
       }
 
-      function alert(message) {
-        showModal(`<h2>提示</h2><p>${message}</p>`);
+      function alert(message, title) {
+        const modal = document.createElement("fluent-dialog");
+        modal.style.setProperty("--dialog-height", "200px");
+        modal.setAttribute("trap-focus", "");
+        modal.setAttribute("modal", "");
+        modal.innerHTML = `
+          <div style="margin: 20px">
+        <h2>${title ?? "提示"}</h2>
+        <p style="height:90px">${message}</p>
+          <div style="display: flex; justify-content: center; margin-top: 0.4rem;">
+        <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="width: 100%;">关闭</fluent-button>
+          </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.hidden = false;
       }
 
       function confirm(message, callback, args) {
         const modal = document.createElement("fluent-dialog");
-        modal.style.setProperty("--dialog-height", "auto");
+        modal.style.setProperty("--dialog-height", "200px");
         modal.setAttribute("trap-focus", "");
         modal.setAttribute("modal", "");
         modal.innerHTML = `
-          <div style="margin: 20px;">
-        <h2>确认</h2>
-        <p>${message}</p>
-        <fluent-button appearance="accent" onclick="confirmAction(true, this.closest('fluent-dialog'), ${callback}, ${args})" style="margin-top: 1rem;width:49%">确定</fluent-button>
-        <fluent-button onclick="confirmAction(false, this.closest('fluent-dialog'), ${callback}, ${args})" style="margin-top: 1rem;width:49%">取消</fluent-button>
-          </div>
-        `;
+        <div style="margin: 20px">
+        <h2>确认您的操作</h2>
+        <p style="height: 90px; overflow-y: auto;">${message}</p>
+        <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
+          <fluent-button appearance="accent" onclick="confirmAction(true, this.closest('fluent-dialog'), ${callback}, ${args})" style="width: 100%;">确定</fluent-button>
+          <fluent-button onclick="confirmAction(false, this.closest('fluent-dialog'), ${callback}, ${args})" style="width: 100%;margin-left: 5px;">取消</fluent-button>
+        </div>
+        </div>`;
         document.body.appendChild(modal);
         modal.hidden = false;
       }
@@ -1115,18 +1134,21 @@
 
       function prompt(message, callback) {
         const modal = document.createElement("fluent-dialog");
-        modal.style.setProperty("--dialog-height", "auto");
+        modal.style.setProperty("--dialog-height", "200px");
         modal.setAttribute("trap-focus", "");
         modal.setAttribute("modal", "");
         modal.innerHTML = `
-          <div style="margin: 20px;">
+        <div style="margin: 20px">
         <h2>${message}</h2>
+        <span style="height: 90px;">
         <p>在下方编辑框输入文本以继续响应</p><br>
         <fluent-text-field id="prompt-input" style="width: 100%;"></fluent-text-field>
-        <fluent-button appearance="accent" onclick="promptAction(true, this.closest('fluent-dialog'), ${callback})" style="margin-top: 1rem;width:49%">确定</fluent-button>
-        <fluent-button onclick="promptAction(false, this.closest('fluent-dialog'), ${callback})" style="margin-top: 1rem;width:49%">取消</fluent-button>
-          </div>
-        `;
+        </span>
+        <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
+          <fluent-button appearance="accent" onclick="promptAction(true, this.closest('fluent-dialog'), ${callback})" style="width: 100%">确定</fluent-button>
+          <fluent-button onclick="promptAction(false, this.closest('fluent-dialog'), ${callback})" style="width: 100%;margin-left: 5px;">取消</fluent-button>
+        </div>
+        </div>`;
         document.body.appendChild(modal);
         modal.hidden = false;
       }
