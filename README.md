@@ -1,5 +1,8 @@
 # CSES课程表编辑器
+FluentUI版本:
+![image](https://github.com/user-attachments/assets/1cb389a6-4004-4c04-9dbf-0c9aafc888a3)
 
+经典版本:
 ![image](https://github.com/user-attachments/assets/e836c27b-3243-4bb7-bc10-dbfea6285fe8)
 
 一个基于Web的课程表编辑器，支持CSES（Course Schedule Exchange Schema）格式的课程表创建、管理和导出。
