@@ -1035,7 +1035,7 @@
       }
 
       function about() {
-        showModal(`<h2>CSES课程表编辑器 v1.1 FluentUI</h2>
+        showModal(`<h2 style="margin-bottom:6px">CSES课程表编辑器 v1.1 FluentUI</h2>
         <i>CSES是指The Course Schedule Exchange Schema，
         是一种用于课程表交换的数据格式。
         本工具旨在帮助用户快速编辑CSES格式的课程表。</i>
@@ -1097,7 +1097,7 @@
         modal.setAttribute("modal", "");
         modal.innerHTML = `
           <div style="margin: 20px">
-        <h2>${title ?? "提示"}</h2>
+        <h2 style="margin-bottom:6px">${title ?? "提示"}</h2>
         <p style="height:90px">${message}</p>
           <div style="display: flex; justify-content: center; margin-top: 0.4rem;">
         <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="width: 100%;">关闭</fluent-button>
@@ -1115,7 +1115,7 @@
         modal.setAttribute("modal", "");
         modal.innerHTML = `
         <div style="margin: 20px">
-        <h2>确认您的操作</h2>
+        <h2 style="margin-bottom:6px">确认您的操作</h2>
         <p style="height: 90px; overflow-y: auto;">${message}</p>
         <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
           <fluent-button appearance="accent" onclick="confirmAction(true, this.closest('fluent-dialog'), ${callback}, ${args})" style="width: 100%;">确定</fluent-button>
@@ -1139,7 +1139,7 @@
         modal.setAttribute("modal", "");
         modal.innerHTML = `
         <div style="margin: 20px">
-        <h2>${message}</h2>
+        <h2 style="margin-bottom:6px">${message}</h2>
         <span style="height: 90px;">
         <p>在下方编辑框输入文本以继续响应</p><br>
         <fluent-text-field id="prompt-input" style="width: 100%;"></fluent-text-field>
