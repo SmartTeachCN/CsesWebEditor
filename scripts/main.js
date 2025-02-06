@@ -226,7 +226,7 @@ function about() {
   是一种用于课程表交换的数据格式。
   本工具旨在帮助用户快速编辑CSES格式的课程表。</i>
 
-  <b>当前版本:</b>1.2[25020600]
+  <b>当前版本:</b>1.2[25020601]
     <b>开发人员:</b>PYLXU、RinLit、MKStoler1024
     <b>项目地址:</b><a href="https://github.com/CSES-org/CsesWebEditor">GitHub</a>
    <b>开放许可:</b>MIT License`);

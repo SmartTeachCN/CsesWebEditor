@@ -238,10 +238,12 @@ fluent-text-field {
   padding: 10px;
   padding-top: 5px;
   border-radius: 7px;
+  text-align: center;
 }
 
 #mobile-bottomBar > button > i {
   font-size: 20px;
+  width: 100%;
 }
 
 #mobile-bottomBar > button:hover {
@@ -343,5 +345,10 @@ fluent-text-field {
 
   .editor-area {
     display: none;
+  }
+
+  .explorer {
+    border-radius: 0;
+    padding: 20px;
   }
 }
