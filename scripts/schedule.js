@@ -36,6 +36,10 @@ function initSchedules() {
                 index
             );
         });
+        if (index === currentScheduleIndex) {
+            div.classList.add("selected");
+            div.setAttribute("aria-selected", "true");
+        }
         container.appendChild(div);
     });
 }

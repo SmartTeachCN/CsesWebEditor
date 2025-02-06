@@ -1,9 +1,9 @@
-function initSubjects() {
+function initSubjects(currentIndex) {
   const container = document.getElementById("subject-list");
   container.innerHTML = "";
   if (currentData.subjects.length === 0) {
     currentData.subjects = [
-      { name: "语文", simplified_name: "语", teacher: "", room: "" },
+      { name: "语文", simplified_name: "语", teacher: "老师", room: "" },
       { name: "数学", simplified_name: "数", teacher: "", room: "" },
       { name: "英语", simplified_name: "英", teacher: "", room: "" },
       { name: "物理", simplified_name: "物", teacher: "", room: "" },
@@ -22,11 +22,21 @@ function initSubjects() {
     const div = document.createElement("fluent-option");
     div.className = "explorer-item";
     div.textContent = subject.name;
-    div.addEventListener("click", () => loadSubject(index));
+    div.addEventListener("click", () => {
+      document
+        .querySelectorAll(".explorer-item")
+        .forEach((item) => item.classList.remove("selected"));
+      div.classList.add("selected");
+      loadSubject(index);
+    });
+    if (index === currentIndex) {
+      div.classList.add("selected");
+      div.setAttribute("aria-selected", "true");
+    }
     div.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       confirm(
-        `确定要删除科目 ${subject.name}吗？`,
+        `确定要删除科目 ${subject.name} 吗？`,
         (result, index) => {
           if (result) {
             currentData.subjects.splice(index, 1);
@@ -69,10 +79,7 @@ function saveSubject() {
       subjectIndex = currentData.subjects.length - 1;
     }
     saveSchedule();
-    refreshSubjectList();
-    document.querySelectorAll(".explorer-item").forEach((item, index) => {
-      item.classList.toggle("selected", index === subjectIndex);
-    });
+    refreshSubjectList(subjectIndex);
   } else {
     alert("请填写完整的科目信息");
   }
@@ -88,6 +95,6 @@ function addNewSubject() {
   });
 }
 
-function refreshSubjectList() {
-  initSubjects();
+function refreshSubjectList(currentIndex) {
+  initSubjects(currentIndex);
 }
