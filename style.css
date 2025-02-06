@@ -243,4 +243,32 @@ fluent-text-field {
   .editor-area {
     width: 100vw;
   }
+
+  .menu-bar {
+    display: block;
+    height: auto;
+  }
+
+  .menu-bar #titleArea {
+    width: 100%;
+    margin: 10px;
+  }
+
+  .menu-bar #separator {
+    display: none;
+  }
+
+  .menu-bar #clearButton {
+    width: 56px;
+    margin-right: 0;
+  }
+
+  .menu-bar #fileArea {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .menu-bar #fileArea>fluent-button {
+    flex: 1;
+  }
 }

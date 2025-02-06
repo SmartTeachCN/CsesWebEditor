@@ -35,18 +35,27 @@
   </head>
   <body>
     <div class="menu-bar">
-      <h2 onclick="about()" id="webTitle">CSES Editor&nbsp;</h2>
-      <button class="desktop-only" onclick="keyHelp()">快捷键</button>
-      <button class="desktop-only" onclick="about()">关于</button>
-      <span style="flex: 1"></span>
-      <button onclick="clearData()">清空</button>
-      <fluent-button style="margin-right: 10px" onclick="importFile()">
-        导入文件
-      </fluent-button>
-      <fluent-button appearance="accent" onclick="exportFile()">
-        导出文件
-      </fluent-button>
-      <input type="file" id="file-input" hidden accept=".yaml,.yml" />
+      <span
+        id="leftArea"
+        style="display: flex; align-items: center; flex: auto"
+      >
+        <span id="titleArea" style="display: flex; align-items: center">
+          <h2 onclick="about()" id="webTitle">CSES Editor&nbsp;</h2>
+          <button class="desktop-only" onclick="keyHelp()">快捷键</button>
+          <button class="desktop-only" onclick="about()">关于</button>
+        </span>
+        <span id="separator" style="flex: 1"></span>
+        <button id="clearButton" onclick="clearData()">清空</button>
+      </span>
+      <span id="fileArea" style="display: flex; align-items: center">
+        <fluent-button style="margin-right: 10px" onclick="importFile()">
+          导入文件
+        </fluent-button>
+        <fluent-button appearance="accent" onclick="exportFile()">
+          导出文件
+        </fluent-button>
+        <input type="file" id="file-input" hidden accept=".yaml,.yml" />
+      </span>
     </div>
 
     <div class="container">
