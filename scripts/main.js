@@ -211,10 +211,10 @@ function moveActivityItem(direction) {
 
 function keyHelp() {
   alert(
-    `<b>Ctrl + ↑/↓:</b> 移动偏左栏中的项目
-    <b>Alt + ↑/↓:</b> 移动左栏中的项目
-    <b>Alt + N:</b> 新增课程或科目
-    <b>Delete:</b> 删除当前选中的项目
+    `<b>Ctrl + ↑/↓:</b> 移动偏左栏中的项目<br>
+    <b>Alt + ↑/↓:</b> 移动左栏中的项目<br>
+    <b>Alt + N:</b> 新增课程或科目<br>
+    <b>Delete:</b> 删除当前选中的项目<br>
   `,
     "快捷键帮助"
   );
