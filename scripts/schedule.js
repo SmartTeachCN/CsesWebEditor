@@ -45,6 +45,12 @@ function initSchedules() {
 }
 
 function loadSchedule(index) {
+    if (checkDeviceType()) {
+        location.href = "#schedule-editor";
+        document.getElementById("schedule-editor").style.display = "block";
+        document.getElementsByClassName("explorer")[0].style.display = "none";
+        document.getElementsByClassName("editor-area")[0].style.display = "block";
+    }
     currentScheduleIndex = index;
     document.getElementById("schedule-editor").style.display = "block";
     const schedule = currentData.schedules[index];

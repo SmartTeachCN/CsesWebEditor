@@ -219,6 +219,67 @@ fluent-text-field {
   display: none;
 }
 
+#mobile-bottomBar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgb(243, 243, 243);
+  border-top: 1px solid var(--border-color);
+  justify-content: space-around;
+  padding: 10px 0;
+  z-index: 0.5;
+}
+
+#mobile-bottomBar > button {
+  display: flex;
+  background-color: transparent;
+  flex-direction: column;
+  border: none;
+  padding: 10px;
+  padding-top: 5px;
+  border-radius: 7px;
+}
+
+#mobile-bottomBar > button > i {
+  font-size: 20px;
+}
+
+#mobile-bottomBar > button:hover {
+  background-color: #dadadab4;
+}
+
+#mobile-bottomBar > button.selected {
+  background-color: #dadada8f;
+}
+
+#mobile-bottomBar .selected::before {
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: 15px;
+  width: 30px;
+  height: 4px;
+  background: rgb(3, 106, 196);
+  border-radius: 20px;
+  margin-left: 13.5px;
+}
+
+#mobile-bottomBar > button:active::before {
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: 15px;
+  width: 22px;
+  height: 4px;
+  background: rgb(3, 106, 196);
+  border-radius: 20px;
+  margin-left: 17px;
+}
+
+#mobile-bottomBar > button:focus {
+  box-shadow: none;
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none;
@@ -268,7 +329,19 @@ fluent-text-field {
     margin-bottom: 10px;
   }
 
-  .menu-bar #fileArea>fluent-button {
+  .menu-bar #fileArea > fluent-button {
     flex: 1;
+  }
+
+  .activity-bar {
+    display: none;
+  }
+
+  .container {
+    margin-bottom: 80px;
+  }
+
+  .editor-area {
+    display: none;
   }
 }

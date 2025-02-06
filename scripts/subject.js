@@ -52,6 +52,12 @@ function initSubjects(currentIndex) {
 }
 
 function loadSubject(index) {
+  if (checkDeviceType()) {
+    location.href = "#subject-editor";
+    document.getElementById("subject-editor").style.display = "block";
+    document.getElementsByClassName("explorer")[0].style.display = "none";
+    document.getElementsByClassName("editor-area")[0].style.display = "block";
+}
   const subject = currentData.subjects[index];
   document.getElementById("subject-name").value = subject.name;
   document.getElementById("subject-simple").value =
