@@ -19,6 +19,7 @@ function toggleExplorer() {
 function showModal(content) {
     const modal = document.createElement("fluent-dialog");
     modal.setAttribute("trap-focus", "");
+    modal.style.setProperty("z-index", "1000");
     modal.style.setProperty("--dialog-height", "auto");
     modal.setAttribute("modal", "");
     modal.innerHTML = `
@@ -34,6 +35,7 @@ function showModal(content) {
 function alert(message, title) {
     const modal = document.createElement("fluent-dialog");
     modal.style.setProperty("--dialog-height", "200px");
+    modal.style.setProperty("z-index", "1000");
     modal.setAttribute("trap-focus", "");
     modal.setAttribute("modal", "");
     modal.innerHTML = `
@@ -52,6 +54,7 @@ function alert(message, title) {
 function confirm(message, callback, args) {
     const modal = document.createElement("fluent-dialog");
     modal.style.setProperty("--dialog-height", "200px");
+    modal.style.setProperty("z-index", "1000");
     modal.setAttribute("trap-focus", "");
     modal.setAttribute("modal", "");
     modal.innerHTML = `
@@ -76,6 +79,7 @@ function confirmAction(result, modal, callback, args) {
 function prompt(message, callback) {
     const modal = document.createElement("fluent-dialog");
     modal.style.setProperty("--dialog-height", "200px");
+    modal.style.setProperty("z-index", "1000");
     modal.setAttribute("trap-focus", "");
     modal.setAttribute("modal", "");
     modal.innerHTML = `

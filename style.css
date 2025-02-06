@@ -220,14 +220,14 @@ fluent-text-field {
 }
 
 #mobile-bottomBar {
-  position: fixed;
+  position: relative;
   bottom: 0;
   width: 100%;
   background: rgb(243, 243, 243);
   border-top: 1px solid var(--border-color);
   justify-content: space-around;
   padding: 10px 0;
-  z-index: 0.5;
+  z-index: 1;
 }
 
 #mobile-bottomBar > button {
@@ -340,15 +340,17 @@ fluent-text-field {
   }
 
   .container {
-    margin-bottom: 80px;
+    flex-direction: column;
   }
 
   .editor-area {
     display: none;
+    flex: 1;
   }
 
   .explorer {
     border-radius: 0;
     padding: 20px;
+    flex: 1;
   }
 }
