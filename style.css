@@ -19,6 +19,11 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  user-select: none;
+}
+
+.allowS{
+  user-select: all;
 }
 
 /* 顶部菜单栏 */
