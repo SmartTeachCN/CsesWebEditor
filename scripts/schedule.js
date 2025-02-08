@@ -160,14 +160,14 @@ function updateSchedule() {
     const selectedDayMode = Object.keys(dayMap).find(
         (key) => dayMap[key] === dayMode
     );
-    const scheduleName = `${selectedWeekMode.charAt(0).toUpperCase() + selectedWeekMode.slice(1)
-        }_${dayMap_Full[selectedDayMode]}`;
+    const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
+        }_${dayMap_Full[dayMode]}`;
     currentData.schedules[currentScheduleIndex].name = scheduleName;
     currentData.schedules[currentScheduleIndex].enable_day = parseInt(
-        selectedDayMode,
+        dayMode,
         10
     );
-    currentData.schedules[currentScheduleIndex].weeks = selectedWeekMode;
+    currentData.schedules[currentScheduleIndex].weeks = weekMode;
     saveSchedule();
     refreshScheduleList();
 }

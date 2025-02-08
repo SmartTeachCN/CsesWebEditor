@@ -34,7 +34,7 @@ function isYaml(text) {
 }
 
 document.getElementById("output-mode").value =
-  localStorage.getItem("output-mode");
+  localStorage.getItem("output-mode") ?? 'cy';
 function outputSet() {
   const mode = document.getElementById("output-mode").value;
   localStorage.setItem("output-mode", mode);
