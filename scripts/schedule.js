@@ -56,10 +56,10 @@ function loadSchedule(index) {
     const schedule = currentData.schedules[index];
     const weekMode = schedule.weeks;
     const dayMode = schedule.enable_day;
-    const selectedWeekMode = weekMap[weekMode];
-    const selectedDayMode = dayMap[dayMode];
-    document.getElementById("week-mode").value = selectedWeekMode;
-    document.getElementById("day-mode").value = selectedDayMode;
+    // const selectedWeekMode = weekMap[weekMode];
+    // const selectedDayMode = dayMap[dayMode];
+    document.getElementById("week-mode").value = weekMode;
+    document.getElementById("day-mode").value = `${dayMode}`;
     refreshClassList();
 }
 
