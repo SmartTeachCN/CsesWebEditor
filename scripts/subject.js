@@ -1,9 +1,14 @@
+let edited = false;
+function subjectSaveControl() {
+  edited = true;
+}
+
 function initSubjects(currentIndex) {
   const container = document.getElementById("subject-list");
   container.innerHTML = "";
   if (currentData.subjects.length === 0) {
     currentData.subjects = [
-      { name: "语文", simplified_name: "语", teacher: "老师", room: "" },
+      { name: "语文", simplified_name: "语", teacher: "", room: "" },
       { name: "数学", simplified_name: "数", teacher: "", room: "" },
       { name: "英语", simplified_name: "英", teacher: "", room: "" },
       { name: "物理", simplified_name: "物", teacher: "", room: "" },
@@ -27,7 +32,13 @@ function initSubjects(currentIndex) {
         .querySelectorAll(".explorer-item")
         .forEach((item) => item.classList.remove("selected"));
       div.classList.add("selected");
-      loadSubject(index);
+      if (edited) {
+        confirm("您已对当前科目变更且未保存,是否继续切换页面?", (r) => {
+          if (r) loadSubject(index);
+        });
+      } else {
+        loadSubject(index);
+      }
     });
     if (index === currentIndex) {
       div.classList.add("selected");
@@ -57,7 +68,7 @@ function loadSubject(index) {
     document.getElementById("subject-editor").style.display = "block";
     document.getElementsByClassName("explorer")[0].style.display = "none";
     document.getElementsByClassName("editor-area")[0].style.display = "block";
-}
+  }
   const subject = currentData.subjects[index];
   document.getElementById("subject-name").value = subject.name;
   document.getElementById("subject-simple").value =
@@ -65,6 +76,7 @@ function loadSubject(index) {
   document.getElementById("subject-teacher").value = subject.teacher || "";
   document.getElementById("subject-room").value = subject.room || "";
   document.getElementById("subject-editor").style.display = "block";
+  edited = false;
 }
 
 function saveSubject() {
@@ -84,6 +96,7 @@ function saveSubject() {
       currentData.subjects.push({ name, simplified_name, room, teacher });
       subjectIndex = currentData.subjects.length - 1;
     }
+    edited = false;
     saveSchedule();
     refreshSubjectList(subjectIndex);
   } else {

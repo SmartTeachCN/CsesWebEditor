@@ -34,7 +34,7 @@ function isYaml(text) {
 }
 
 document.getElementById("output-mode").value =
-  localStorage.getItem("output-mode") ?? 'cy';
+  localStorage.getItem("output-mode") ?? "cy";
 function outputSet() {
   const mode = document.getElementById("output-mode").value;
   localStorage.setItem("output-mode", mode);
@@ -46,6 +46,12 @@ function outputSet() {
   } else if (localStorage.getItem("output-mode") == "cj") {
     document.getElementById("yaml-editor").value = JSON.stringify(
       currentData,
+      null,
+      2
+    );
+  } else if (localStorage.getItem("output-mode") == "ci") {
+    document.getElementById("yaml-editor").value = JSON.stringify(
+      CsestoCiFromat(currentData),
       null,
       2
     );
@@ -66,6 +72,13 @@ function exportFile() {
     link.click();
   } else if (localStorage.getItem("output-mode") == "cj") {
     const jsonStr = JSON.stringify(currentData, null, 2);
+    const blob = new Blob([jsonStr], { type: "text/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "schedule.json";
+    link.click();
+  } else if (localStorage.getItem("output-mode") == "ci") {
+    const jsonStr = JSON.stringify(CsestoCiFromat(currentData), null, 2);
     const blob = new Blob([jsonStr], { type: "text/json" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -107,8 +120,11 @@ async function importFile() {
       try {
         data = [];
         const source = e.target.result;
-        format = "JSON";
-        if (isJson(source)) {
+        format = "";
+        if (isJson(source) && isCiFormat(JSON.parse(source))) {
+          data = CiToCsesFromat(JSON.parse(source));
+          format = "ClassIsland课表档案";
+        } else if (isJson(source)) {
           data = JSON.parse(source);
           format = "JSON";
         } else if (isYaml(source)) {
@@ -117,6 +133,9 @@ async function importFile() {
         } else {
           throw new Error("解析失败:未知的文件类型");
         }
+
+        console.log(data);
+        console.log("导入格式:" + format);
 
         tempData = data;
         let unknownSubjects = [];
@@ -144,10 +163,10 @@ async function importFile() {
               throw new Error(
                 `解析出错:课程${schedule.name}中节次${index2}缺少结束时间`
               );
+            if (classe.subject == "") classe.subject = "-";
             if (
               !knownSubjects.includes(classe.subject) &&
-              !unknownSubjects.includes(classe.subject) &&
-              classe.subject !== ""
+              !unknownSubjects.includes(classe.subject)
             ) {
               unknownSubjects.push(classe.subject);
               tempData.subjects.push({ name: classe.subject });

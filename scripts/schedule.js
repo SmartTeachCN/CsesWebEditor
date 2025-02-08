@@ -101,8 +101,8 @@ function refreshClassList() {
 function saveClass(index) {
     const container = document.getElementById("class-list").children[index];
     const subject = container.querySelector(".subject-select").value;
-    const start_time = container.querySelector(".time-input").value;
-    const end_time = container.querySelector(".time-input").value;
+    const start_time = container.querySelectorAll(".time-input")[0].value;
+    const end_time = container.querySelectorAll(".time-input")[1].value;
     currentData.schedules[currentScheduleIndex].classes[index] = {
         subject,
         start_time,

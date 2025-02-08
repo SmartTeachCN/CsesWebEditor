@@ -1,5 +1,5 @@
 // 初始化
-const version = "1.5";
+const version = "1.6";
 function init() {
   loadFromStorage();
   initActivityBar();
@@ -16,7 +16,13 @@ function initActivityBar() {
         .querySelectorAll(".activity-item")
         .forEach((i) => i.classList.remove("selected"));
       item.classList.add("selected");
-      showView(item.dataset.view);
+      if (edited) {
+        confirm("您已对当前科目变更且未保存,是否继续切换页面?", (r) => {
+          if (r) showView(item.dataset.view);
+        });
+      } else {
+        showView(item.dataset.view);
+      }
     });
   });
   document.querySelectorAll("#mobile-bottomBar > button").forEach((item) => {
@@ -25,7 +31,13 @@ function initActivityBar() {
         .querySelectorAll("#mobile-bottomBar > button")
         .forEach((i) => i.classList.remove("selected"));
       item.classList.add("selected");
-      showView(item.dataset.view, true);
+      if (edited) {
+        confirm("您已对当前科目变更且未保存,是否继续切换页面?", (r) => {
+          if (r) showView(item.dataset.view);
+        });
+      } else {
+        showView(item.dataset.view);
+      }
     });
   });
 }
@@ -64,6 +76,12 @@ function showView(view) {
     } else if (localStorage.getItem("output-mode") == "cj") {
       document.getElementById("yaml-editor").value = JSON.stringify(
         currentData,
+        null,
+        2
+      );
+    } else if (localStorage.getItem("output-mode") == "ci") {
+      document.getElementById("yaml-editor").value = JSON.stringify(
+        CsestoCiFromat(currentData),
         null,
         2
       );
