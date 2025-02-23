@@ -12,6 +12,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+h2 {
+  margin-bottom: 10px;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: rgb(243, 243, 243);
@@ -22,7 +26,7 @@ body {
   user-select: none;
 }
 
-.allowS{
+.allowS {
   user-select: all;
 }
 
@@ -118,8 +122,8 @@ body {
 /* 拖拽区域 */
 #class-list {
   min-height: 300px;
-  padding: 1rem;
-  border: 1px solid var(--border-color);
+  padding: 10px;
+  /* border: 1px solid var(--border-color); */
   border-radius: 4px;
 }
 
@@ -128,7 +132,9 @@ body {
   width: 100%;
 }
 
-#yaml-editor::part(control){ height:500px; }
+#yaml-editor::part(control) {
+  height: 500px;
+}
 
 button,
 input,
@@ -161,15 +167,13 @@ button:disabled {
 }
 
 #subject-form {
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
 #subject-form input {
   width: 100%;
   padding: 0.5rem;
   font-size: 1rem;
-  margin: 0.5rem 0;
 }
 
 #subject-list,
@@ -283,6 +287,43 @@ fluent-text-field {
   box-shadow: none;
 }
 
+.settings-card {
+  display: flex;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  background-color: #fff;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.settings-card i {
+  font-size: 22px;
+  margin: auto 14px;
+  margin-left: 5px;
+}
+.settings-card .left-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.settings-card .title {
+  font-size: 15px;
+  color: #000;
+}
+
+.settings-card .description {
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
+  line-height: 1.5;
+}
+.settings-card .right-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none;
@@ -345,7 +386,7 @@ fluent-text-field {
   }
 
   .editor-area {
-    display: none;
+    /* display: none; */
     flex: 1;
   }
 
@@ -354,4 +395,34 @@ fluent-text-field {
     padding: 20px;
     flex: 1;
   }
+}
+
+.editor-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.editor-left {
+  flex: 1;
+  max-width: 50%;
+}
+
+.quick-add-panel {
+  flex: 1;
+  border-left: 1px solid #eee;
+  padding-left: 20px;
+}
+
+.subject-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.class-controls {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }

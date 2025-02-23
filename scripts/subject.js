@@ -1,8 +1,3 @@
-let edited = false;
-function subjectSaveControl() {
-  edited = true;
-}
-
 function initSubjects(currentIndex) {
   const container = document.getElementById("subject-list");
   container.innerHTML = "";
@@ -17,6 +12,12 @@ function initSubjects(currentIndex) {
       { name: "历史", simplified_name: "历", teacher: "", room: "" },
       { name: "地理", simplified_name: "地", teacher: "", room: "" },
       { name: "政治", simplified_name: "政", teacher: "", room: "" },
+      { name: "体育", simplified_name: "体", teacher: "", room: "" },
+      { name: "早读", simplified_name: "早", teacher: "", room: "" },
+      { name: "晚读", simplified_name: "晚", teacher: "", room: "" },
+      { name: "听力", simplified_name: "听", teacher: "", room: "" },
+      { name: "美术", simplified_name: "美", teacher: "", room: "" },
+      { name: "音乐", simplified_name: "音", teacher: "", room: "" },
       { name: "信息技术", simplified_name: "信", teacher: "", room: "" },
       { name: "通用技术", simplified_name: "通", teacher: "", room: "" },
       { name: "班会", simplified_name: "班", teacher: "", room: "" },
@@ -32,13 +33,7 @@ function initSubjects(currentIndex) {
         .querySelectorAll(".explorer-item")
         .forEach((item) => item.classList.remove("selected"));
       div.classList.add("selected");
-      if (edited) {
-        confirm("您已对当前科目变更且未保存,是否继续切换页面?", (r) => {
-          if (r) loadSubject(index);
-        });
-      } else {
-        loadSubject(index);
-      }
+      loadSubject(index);
     });
     if (index === currentIndex) {
       div.classList.add("selected");
@@ -63,6 +58,9 @@ function initSubjects(currentIndex) {
 }
 
 function loadSubject(index) {
+  document.getElementById(`schedule-editor`).style.display = "none";
+  document.getElementById(`subject-editor`).style.display = "block";
+  document.getElementById(`source-editor`).style.display = "none";
   if (checkDeviceType()) {
     location.href = "#subject-editor";
     document.getElementById("subject-editor").style.display = "block";
@@ -76,7 +74,7 @@ function loadSubject(index) {
   document.getElementById("subject-teacher").value = subject.teacher || "";
   document.getElementById("subject-room").value = subject.room || "";
   document.getElementById("subject-editor").style.display = "block";
-  edited = false;
+  trickAnimation();
 }
 
 function saveSubject() {
@@ -96,7 +94,6 @@ function saveSubject() {
       currentData.subjects.push({ name, simplified_name, room, teacher });
       subjectIndex = currentData.subjects.length - 1;
     }
-    edited = false;
     saveSchedule();
     refreshSubjectList(subjectIndex);
   } else {
