@@ -60,6 +60,10 @@ $output = [
     "SubjectsSource" => [
         "Value" => "https://cses.3r60.top/classisland/file.php?id=".$_GET['id']."/{id}&key=Subjects",
         "Version" => $latest_mtime
+    ],
+    "PolicySource" => [
+        "Value" => "https://cses.3r60.top/classisland/file.php?id=".$_GET['id']."/{id}&key=Policy",
+        "Version" => $latest_mtime
     ]
 ];
 

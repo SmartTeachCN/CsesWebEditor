@@ -27,13 +27,13 @@ $jsonData = json_decode($fileContent, true);
 $requestedKey = isset($_GET['key']) ? $_GET['key'] : null;
 
 // 检查请求的键是否有效
-$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts'];
+$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts', 'Policy'];
 if ($requestedKey && !in_array($requestedKey, $validKeys)) {
     die(json_encode(['error' => 'Invalid key parameter. Valid keys are: Subjects, ClassPlans, TimeLayouts'], JSON_PRETTY_PRINT));
 }
 
 // 构建输出数据
-$output = [
+$output = $requestedKey == "Policy" ? [] : [
     "Name" => "",
     "TimeLayouts" => new stdClass(),
     "ClassPlans" => new stdClass(),
@@ -42,20 +42,25 @@ $output = [
 
 // 如果请求了特定的键，仅保留该键
 if ($requestedKey) {
+    // 确保 $jsonData 是数组
+    if (!is_array($jsonData)) {
+        die(json_encode(['error' => "Invalid JSON data format"], JSON_PRETTY_PRINT));
+    }
+
+    // 尝试获取请求的键
     if (isset($jsonData[$requestedKey])) {
         $output[$requestedKey] = $jsonData[$requestedKey];
+    } elseif (isset($jsonData['extraKey']) && is_array($jsonData['extraKey'])) {
+        if (isset($jsonData['extraKey'][$requestedKey])) {
+            $output = $jsonData['extraKey'][$requestedKey];
+        }
     } else {
+        // 返回错误信息而不是直接终止脚本
         die(json_encode(['error' => "The requested key '$requestedKey' is not found in the JSON data"], JSON_PRETTY_PRINT));
     }
 } else {
-    // 如果没有请求特定键，保留所有键
-    foreach ($validKeys as $key) {
-        if (isset($jsonData[$key])) {
-            $output[$key] = $jsonData[$key];
-        }
-    }
+    $output = $jsonData;
 }
-
 // 输出格式化的JSON
 header('Content-Type: application/json');
 echo json_encode($output, JSON_PRETTY_PRINT);

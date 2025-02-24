@@ -1,11 +1,36 @@
 // 初始化
-const version = "1.6";
+const version = "2.1";
 function init() {
   loadFromStorage();
   initActivityBar();
   initSchedules();
   initSubjects();
   initDragDrop();
+}
+
+// 文本成员路径
+function setNestedValue(obj, path, value) {
+  const keys = path.split('.');
+  const lastKeyIndex = keys.length - 1;
+  for (let i = 0; i < lastKeyIndex; i++) {
+      const key = keys[i];
+      if (!obj[key]) {
+          obj[key] = {};
+      }
+      obj = obj[key];
+  }
+  obj[keys[lastKeyIndex]] = value;
+}
+function getNestedValue(obj, path) {
+  const keys = path.split('.');
+
+  for (let key of keys) {
+      if (!obj || typeof obj !== 'object' || !obj.hasOwnProperty(key)) {
+          return undefined;
+      }
+      obj = obj[key];
+  }
+  return obj;
 }
 
 // 初始化功能切换栏
@@ -16,13 +41,7 @@ function initActivityBar() {
         .querySelectorAll(".activity-item")
         .forEach((i) => i.classList.remove("selected"));
       item.classList.add("selected");
-      if (edited) {
-        confirm("您已对当前科目变更且未保存,是否继续切换页面?", (r) => {
-          if (r) showView(item.dataset.view);
-        });
-      } else {
-        showView(item.dataset.view);
-      }
+      showView(item.dataset.view);
     });
   });
   document.querySelectorAll("#mobile-bottomBar > button").forEach((item) => {
@@ -31,13 +50,7 @@ function initActivityBar() {
         .querySelectorAll("#mobile-bottomBar > button")
         .forEach((i) => i.classList.remove("selected"));
       item.classList.add("selected");
-      if (edited) {
-        confirm("您已对当前科目变更且未保存,是否继续切换页面?", (r) => {
-          if (r) showView(item.dataset.view);
-        });
-      } else {
-        showView(item.dataset.view);
-      }
+      showView(item.dataset.view, true);
     });
   });
 }
@@ -49,25 +62,24 @@ function showView(view) {
   });
   document.getElementsByClassName("explorer")[0].style.display = "block";
   document.getElementById(`${view}-editor`).style.display = "none";
+  document.getElementsByClassName(`editor-area`)[0].style.borderRadius = "0px";
   if (view === "schedule") {
-    document.getElementById("schedule-list").style.display = "block";
-    document.getElementById("subject-list").style.display = "none";
-    document.getElementById("add-subject-btn").style.display = "none";
-    document.getElementById("auto-fill-btn").style.display = "flex";
+    document.getElementById("explorerB").style.display = "block";
+    document.getElementById("cloud-list").style.display = "none";
+    document.getElementById("add-cloud-btn").style.display = "none";
     document.getElementById("add-schedule-btn").style.display = "flex";
     if (checkDeviceType()) {
       location.href = "#";
       document.getElementsByClassName("editor-area")[0].style.display = "none";
     }
     refreshScheduleList();
+    refreshSubjectList();
   } else if (view === "source") {
-    document.getElementById("schedule-list").style.display = "none";
-    document.getElementById("subject-list").style.display = "none";
+    document.getElementById("explorerB").style.display = "none";
+    document.getElementById("cloud-list").style.display = "none";
     document.getElementsByClassName("explorer")[0].style.display = "none";
-    document.getElementById("add-subject-btn").style.display = "none";
-    document.getElementById("auto-fill-btn").style.display = "none";
-    document.getElementById("add-schedule-btn").style.display = "none";
     document.getElementById(`${view}-editor`).style.display = "block";
+    document.getElementsByClassName(`editor-area`)[0].style.borderRadius = "10px 0px 0px 0px";
     if (
       localStorage.getItem("output-mode") == "cy" ||
       localStorage.getItem("output-mode") == undefined
@@ -90,25 +102,47 @@ function showView(view) {
       location.href = "#";
       document.getElementsByClassName("editor-area")[0].style.display = "block";
     }
-  } else if (view === "subject") {
-    document.getElementById("schedule-list").style.display = "none";
-    document.getElementById("subject-list").style.display = "block";
-    document.getElementById("add-subject-btn").style.display = "flex";
-    document.getElementById("auto-fill-btn").style.display = "none";
-    document.getElementById("add-schedule-btn").style.display = "none";
-    refreshSubjectList();
+  } else if (view === "cloud") {
+    if (!hasLogin) {
+      showView("schedule");
+      return;
+    }
+    document.getElementById("explorerB").style.display = "none";
+    document.getElementById("cloud-list").style.display = "block";
+    document.getElementById("add-cloud-btn").style.display = "flex";
+    document.getElementsByClassName("editor-area")[0].style.display = "block";
+    document.getElementById(`${view}-editor`).style.display = "block";
+  } else if (view === "control") {
+    if (!hasLogin) {
+      showView("schedule");
+      return;
+    }
+    document.getElementsByClassName(`editor-area`)[0].style.borderRadius = "10px 0px 0px 0px";
+    document.getElementById("explorerB").style.display = "none";
+    document.getElementById("cloud-list").style.display = "none";
+    document.getElementsByClassName("explorer")[0].style.display = "none";
+    document.getElementById(`${view}-editor`).style.display = "block";
+    if (
+      localStorage.getItem("output-mode") == "cy" ||
+      localStorage.getItem("output-mode") == undefined
+    ) {
+    } else if (localStorage.getItem("output-mode") == "cj") {
+    } else if (localStorage.getItem("output-mode") == "ci") {
+    }
     if (checkDeviceType()) {
       location.href = "#";
-      document.getElementsByClassName("editor-area")[0].style.display = "none";
+      document.getElementsByClassName("editor-area")[0].style.display = "block";
     }
   }
+  trickAnimation();
 }
 
 function about() {
-  showModal(`<h2 style="margin-bottom:6px">CSES课程表编辑器 v${version} FluentUI</h2>
+  showModal(`<h2 style="margin-bottom:6px">CSES Cloud</h2>
+  <i>这是一款为集控平台统一而诞生的云平台 基于CSES Editor</i>
+
   <i>CSES是指The Course Schedule Exchange Schema，
-  是一种用于课程表交换的数据格式。
-  本工具旨在帮助用户快速编辑CSES格式的课程表。</i>
+  是一种用于课程表交换的数据格式。</i>
 
   <b>当前版本:</b>${version}
     <b>开发人员:</b>PYLXU、RinLit、MKStoler1024

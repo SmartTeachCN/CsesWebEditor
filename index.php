@@ -346,16 +346,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       src="https://unpkg.com/@fluentui/web-components"
     ></script> -->
   <script type="module" src="https://npm.elemecdn.com/@fluentui/web-components"></script>
-  <link rel="stylesheet" href="style.css" />
-  <script src="scripts/device.js?ver=250223" defer></script>
-  <script src="scripts/ui.js?ver=250223" defer></script>
-  <script src="scripts/storage.js?ver=250223" defer></script>
-  <script src="scripts/schedule.js?ver=250223" defer></script>
-  <script src="scripts/subject.js?ver=250223" defer></script>
-  <script src="scripts/classisland.js?ver=250223" defer></script>
-  <script src="scripts/loading.js?ver=250223" defer></script>
-  <script src="scripts/main.js?ver=250223" defer></script>
-  <script src="scripts/cloud.js?ver=250223" defer></script>
+  <link rel="stylesheet" href="style.css?ver=250222" />
+  <script src="scripts/device.js" defer></script>
+  <script src="scripts/ui.js" defer></script>
+  <script src="scripts/storage.js" defer></script>
+  <script src="scripts/schedule.js" defer></script>
+  <script src="scripts/subject.js" defer></script>
+  <script src="scripts/classisland.js" defer></script>
+  <script src="scripts/loading.js" defer></script>
+  <script src="scripts/shortcut.js" defer></script>
+  <script src="scripts/main.js" defer></script>
+  <script src="scripts/cloud.js" defer></script>
+  <script src="scripts/control.js" defer></script>
 </head>
 
 <body>
@@ -378,7 +380,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <i class="bi bi-box-arrow-in-right"></i>&nbsp;导入文件
       </fluent-button>
       <fluent-button appearance="accent" onclick="exportFile()" class="online">
-        <i class="bi bi-cloud-upload-fill"></i>&nbsp;保存到云
+        <i class="bi bi-cloud-upload"></i>&nbsp;保存到云
       </fluent-button>
       <input type="file" id="file-input" hidden accept=".yaml,.yml,.json" />
     </span>
@@ -470,7 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="description">可以通过此链接访问此终端的完整配置</div>
           </div>
           <div class="right-section">
-          <fluent-button onclick="copyUrl()">
+            <fluent-button onclick="copyUrl()">
               复制
             </fluent-button>
             <span style="user-select:text;display:none" id="url2">https://cses.3r60.top/user/<span
@@ -486,7 +488,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
           </script>
         </div>
-        </div>
         <h4>终端配置</h4>
         <div class="settings-card">
           <i class="bi bi-code-slash"></i>
@@ -501,6 +502,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <fluent-option value="cy">通用CSES</fluent-option>
               <fluent-option value="cj">通用CSES(JSON)</fluent-option>
             </fluent-select>
+          </div>
+        </div>
+        <h4>操作空间</h4>
+        <div class="settings-card">
+          <i class="bi bi-bookmark"></i>
+          <div class="left-section">
+            <div class="title">空间名称</div>
+            <div class="description">填写学校名称或其他名称帮助他人识别</div>
+          </div>
+          <div class="right-section">
+
+          </div>
+        </div>
+        <div class="settings-card">
+          <i class="bi bi-box-arrow-in-right"></i>
+          <div class="left-section">
+            <div class="title">加入空间</div>
+            <div class="description">当其他人允许时加入他人的编辑空间</div>
+          </div>
+          <div class="right-section">
+
+          </div>
+        </div>
+        <div class="settings-card">
+          <i class="bi bi-list-ul"></i>
+          <div class="left-section">
+            <div class="title">空间白名单</div>
+            <div class="description">按逗号分隔用户ID,填写后他人可以直接将空间绑定到您的空间（移除后他人将失去权利）</div>
+          </div>
+          <div class="right-section">
+
           </div>
         </div>
 
@@ -571,7 +603,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <br />
         <div class="editor-layout">
           <div class="editor-left">
-            <fluent-listbox id="class-list" style="height: 300px; overflow-y: auto;width: 100%;"></fluent-listbox>
+            <span style="height: 300px; overflow-y: auto;display: block;">
+              <fluent-listbox id="class-list" style="width: 100%;"></fluent-listbox>
+            </span>
 
             <div class="class-controls">
               <fluent-button appearance="accent" onclick="addNewClassTime()">
@@ -604,13 +638,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div id="source-editor" style="display: none">
         <h3 class="offline">本地导出</h3>
-        <span class="offline">导出格式:</span><br>
+        <span class="offline">导出格式:</span><br class="offline">
         <fluent-select class="offline" id="output-mode2" onchange="outputSet()" title="选择导出格式">
           <fluent-option value="ci">ClassIsland课表档案</fluent-option>
           <fluent-option value="cy">通用CSES</fluent-option>
           <fluent-option value="cj">通用CSES(JSON)</fluent-option>
         </fluent-select>
-        <br>
+        <br class="offline">
         <h3>导出预览</h3><br>
         <fluent-text-area readonly="true" aria-placeholder="生产文件的内容将在这里显示" id="yaml-editor"></fluent-text-area>
       </div>
@@ -618,6 +652,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div id="control-editor" style="display: none">
         <h3>集控选项</h3>
         <span>此处设置项内容取决于您设定的终端类型</span>
+        <div id="settingsTabs">
+          <!-- 动态生成的tab和tab-panel -->
+        </div>
+        <div id="settingsContainer"></div>
       </div>
 
       <div id="subject-editor" style="display: none">
@@ -683,6 +721,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button data-view="cloud" class="selected online">
         <i class="bi bi-cloud"></i><span>终端管理</span>
       </button>
+      <button data-view="control">
+        <i class="bi bi-gear-wide-connected"></i><span>集控管理</span>
+      </button>
       <button data-view="schedule">
         <i class="bi bi-calendar"></i><span>课程档案</span>
       </button>
@@ -706,7 +747,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ;
     }
 
-    async function saveToCloud(config, format) {
+    async function saveToCloud(config, format, noNotice) {
       try {
         const response = await fetch('', {
           method: 'POST',
@@ -717,6 +758,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
 
         const result = await response.json();
+        if (noNotice) return;
         if (result.success) {
           alert('配置保存成功！');
         } else {

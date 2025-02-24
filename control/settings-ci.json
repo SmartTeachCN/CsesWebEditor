@@ -1,0 +1,342 @@
+{
+  "tabs": [
+    {
+      "name": "策略设置",
+      "eng_name": "Policy",
+      "icon": "bi-lock",
+      "settings": [
+        "Policy.DisableProfileClassPlanEditing",
+        "Policy.DisableProfileTimeLayoutEditing",
+        "Policy.DisableProfileSubjectsEditing",
+        "Policy.DisableProfileEditing",
+        "Policy.DisableSettingsEditing",
+        "Policy.DisableSplashCustomize",
+        "Policy.DisableDebugMenu",
+        "Policy.AllowExitManagement"
+      ]
+    },
+    {
+      "name": "常规设置",
+      "eng_name": "basic",
+      "icon": "bi-gear-wide-connected",
+      "settings": [
+        "settings.SelectedProfile",
+        "settings.IsMainWindowVisible",
+        "settings.IsWelcomeWindowShowed"
+      ]
+    },
+    {
+      "name": "通知设置",
+      "eng_name": "not",
+      "icon": "bi-bell",
+      "settings": [
+        "settings.ClassPrepareNotifySeconds",
+        "settings.IsClassPrepareNotificationEnabled",
+        "settings.IsClassChangingNotificationEnabled",
+        "settings.IsClassOffNotificationEnabled"
+      ]
+    },
+    {
+      "name": "外观与布局",
+      "eng_name": "ui",
+      "icon": "bi-palette",
+      "settings": [
+        "settings.Theme",
+        "settings.MainWindowFont",
+        "settings.MainWindowBodyFontSize",
+        "settings.MainWindowEmphasizedFontSize"
+      ]
+    },
+    {
+      "name": "高级选项",
+      "eng_name": "adv",
+      "icon": "bi-cpu",
+      "settings": [
+        "settings.HideMode",
+        "settings.HiedRules",
+        "settings.HideOnFullscreen",
+        "settings.ExcludedFullscreenWindow"
+      ]
+    },
+    {
+      "name": "更新与维护",
+      "eng_name": "update",
+      "icon": "bi-cloud-arrow-down",
+      "settings": [
+        "settings.UpdateMode",
+        "settings.LastCheckUpdateTime",
+        "settings.AutoInstallUpdateNextStartup"
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "keyPath": "settings.SelectedProfile",
+      "name": "选择配置文件",
+      "description": "选择当前使用的配置文件",
+      "icon": "bi-file-earmark-text",
+      "default": "schedule.json",
+      "options": [
+        {
+          "value": "schedule.json",
+          "label": "默认配置"
+        }
+      ]
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.IsMainWindowVisible",
+      "name": "主窗口可见",
+      "description": "是否显示主窗口",
+      "icon": "bi-window",
+      "default": true
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.IsWelcomeWindowShowed",
+      "name": "显示欢迎窗口",
+      "description": "是否显示欢迎窗口",
+      "icon": "bi-box-arrow-in-right",
+      "default": true
+    },
+    {
+      "type": "number",
+      "keyPath": "settings.ClassPrepareNotifySeconds",
+      "name": "课前通知时间",
+      "description": "课前通知的时间（秒）",
+      "icon": "bi-alarm",
+      "default": 60,
+      "min": 10,
+      "max": 3600,
+      "step": 10,
+      "validation": {
+        "required": true
+      }
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.IsClassPrepareNotificationEnabled",
+      "name": "启用课前通知",
+      "description": "是否启用课前通知",
+      "icon": "bi-bell",
+      "default": true
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.IsClassChangingNotificationEnabled",
+      "name": "启用换课通知",
+      "description": "是否启用换课通知",
+      "icon": "bi-bell",
+      "default": true
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.IsClassOffNotificationEnabled",
+      "name": "启用下课通知",
+      "description": "是否启用下课通知",
+      "icon": "bi-bell",
+      "default": true
+    },
+    {
+      "type": "select",
+      "keyPath": "settings.Theme",
+      "name": "主题",
+      "description": "选择应用的主题",
+      "icon": "bi-palette",
+      "default": 2,
+      "options": [
+        {
+          "value": 0,
+          "label": "浅色主题"
+        },
+        {
+          "value": 1,
+          "label": "深色主题"
+        },
+        {
+          "value": 2,
+          "label": "系统默认"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "keyPath": "settings.MainWindowFont",
+      "name": "主窗口字体",
+      "description": "设置主窗口的字体",
+      "icon": "bi-type-bold",
+      "default": "/ClassIsland;component/Assets/Fonts/#HarmonyOS Sans SC",
+      "placeholder": "请输入字体路径"
+    },
+    {
+      "type": "number",
+      "keyPath": "settings.MainWindowBodyFontSize",
+      "name": "正文字体大小",
+      "description": "设置正文的字体大小",
+      "icon": "bi-fonts",
+      "default": 16,
+      "min": 10,
+      "max": 32,
+      "step": 1,
+      "validation": {
+        "required": true
+      }
+    },
+    {
+      "type": "number",
+      "keyPath": "settings.MainWindowEmphasizedFontSize",
+      "name": "强调字体大小",
+      "description": "设置强调文本的字体大小",
+      "icon": "bi-fonts",
+      "default": 18,
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "validation": {
+        "required": true
+      }
+    },
+    {
+      "type": "select",
+      "keyPath": "settings.HideMode",
+      "name": "隐藏模式",
+      "description": "选择隐藏窗口的模式",
+      "icon": "bi-eye-slash",
+      "default": 0,
+      "options": [
+        {
+          "value": 0,
+          "label": "不隐藏"
+        },
+        {
+          "value": 1,
+          "label": "隐藏到托盘"
+        }
+      ]
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.HideOnFullscreen",
+      "name": "全屏时隐藏",
+      "description": "是否在全屏时隐藏窗口",
+      "icon": "bi-fullscreen",
+      "default": false
+    },
+    {
+      "type": "text",
+      "keyPath": "settings.ExcludedFullscreenWindow",
+      "name": "排除全屏窗口",
+      "description": "输入需要排除的全屏窗口名称（逗号分隔）",
+      "icon": "bi-window-minus",
+      "default": "explorer",
+      "placeholder": "请输入窗口名称"
+    },
+    {
+      "type": "select",
+      "keyPath": "settings.UpdateMode",
+      "name": "更新模式",
+      "description": "选择更新模式",
+      "icon": "bi-cloud-arrow-down",
+      "default": 3,
+      "options": [
+        {
+          "value": 0,
+          "label": "手动更新"
+        },
+        {
+          "value": 1,
+          "label": "自动下载更新"
+        },
+        {
+          "value": 2,
+          "label": "自动安装更新"
+        },
+        {
+          "value": 3,
+          "label": "自动安装更新并重启"
+        }
+      ]
+    },
+    {
+      "type": "html",
+      "keyPath": "settings.LastCheckUpdateTime",
+      "name": "上次检查更新时间",
+      "description": "上次检查更新的时间",
+      "icon": "bi-clock",
+      "default": "2025-02-15T12:32:32.4151199+08:00"
+    },
+    {
+      "type": "bool",
+      "keyPath": "settings.AutoInstallUpdateNextStartup",
+      "name": "下次启动时自动安装更新",
+      "description": "是否在下次启动时自动安装更新",
+      "icon": "bi-cloud-download",
+      "default": true
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableProfileClassPlanEditing",
+      "name": "禁止编辑课表",
+      "description": "禁止编辑课表",
+      "icon": "bi-calendar-x",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableProfileTimeLayoutEditing",
+      "name": "禁止编辑时间表",
+      "description": "禁止编辑时间表",
+      "icon": "bi-clock-history",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableProfileSubjectsEditing",
+      "name": "禁止编辑科目",
+      "description": "禁止编辑科目",
+      "icon": "bi-book",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableProfileEditing",
+      "name": "禁止编辑档案",
+      "description": "禁止编辑档案",
+      "icon": "bi-archive",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableSettingsEditing",
+      "name": "禁止编辑应用设置",
+      "description": "禁止编辑应用设置",
+      "icon": "bi-gear-wide-connected",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableSplashCustomize",
+      "name": "禁止自定义启动加载界面",
+      "description": "禁止自定义启动加载界面",
+      "icon": "bi-window-dock",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.DisableDebugMenu",
+      "name": "禁用调试菜单",
+      "description": "禁用调试菜单",
+      "icon": "bi-tools",
+      "default": false
+    },
+    {
+      "type": "bool",
+      "keyPath": "Policy.AllowExitManagement",
+      "name": "允许退出集控",
+      "description": "允许退出集控",
+      "icon": "bi-door-open",
+      "default": true
+    }
+  ]
+}

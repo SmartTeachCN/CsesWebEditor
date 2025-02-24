@@ -55,9 +55,12 @@ if (
 document.getElementById("output-mode").value =
   localStorage.getItem("output-mode") ?? "cy";
 function outputSet() {
-  const mode = document.getElementById(hasLogin ? "output-mode" : "output-mode2").value;
+  const mode = document.getElementById(
+    hasLogin ? "output-mode" : "output-mode2"
+  ).value;
   document.getElementById("donwCiCB").style.display = "none";
   localStorage.setItem("output-mode", mode);
+  initializeSettings(true);
   if (
     localStorage.getItem("output-mode") == "cy" ||
     localStorage.getItem("output-mode") == undefined
@@ -80,19 +83,19 @@ function outputSet() {
 }
 
 // 文件导出
-function exportFile() {
+function exportFile(noNotice) {
   if (
     localStorage.getItem("output-mode") == "ci" ||
     localStorage.getItem("output-mode") == undefined
   ) {
     const jsonStr = JSON.stringify(CsestoCiFromat(currentData), null, 2);
-    saveToCloud(jsonStr, "JSON");
+    saveToCloud(jsonStr, "JSON", noNotice);
   } else if (localStorage.getItem("output-mode") == "cj") {
     const jsonStr = JSON.stringify(currentData, null, 2);
-    saveToCloud(jsonStr, "JSON");
+    saveToCloud(jsonStr, "JSON", noNotice);
   } else if (localStorage.getItem("output-mode") == "cy") {
     const yamlStr = jsyaml.dump(currentData);
-    saveToCloud(yamlStr, "YAML");
+    saveToCloud(yamlStr, "YAML", noNotice);
   }
 }
 

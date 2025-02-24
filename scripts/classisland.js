@@ -9,9 +9,11 @@ function guid() {
 // ClassIsland格式转CSES
 function CiToCsesFromat(target) {
   try {
+    const extraKey = target.extraKey ?? {};
     const outputJson = {
       subjects: [],
       schedules: [],
+      extraKey
     };
 
     // Subjects转换，添加uuid字段
@@ -70,10 +72,12 @@ function CiToCsesFromat(target) {
 // CSES格式转ClassIsland
 function CsestoCiFromat(target) {
   try {
+    const extraKey = target.extraKey ?? {};
     const outputJson = {
       TimeLayouts: {},
       ClassPlans: {},
       Subjects: {},
+      extraKey
     };
 
     // 处理Subjects，优先使用现有的uuid

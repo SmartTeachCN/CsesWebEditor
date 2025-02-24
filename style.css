@@ -395,6 +395,20 @@ fluent-text-field {
     padding: 20px;
     flex: 1;
   }
+
+  .settings-card {
+    display: block;
+  }
+
+  .menu-bar button {
+    padding: 4px 0px;
+  }
+  .editor-left {
+    max-width: 100% !important;
+  }
+  .quick-add-panel {
+    display: none;
+  }
 }
 
 .editor-layout {
@@ -425,4 +439,8 @@ fluent-text-field {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+#webTitle {
+  margin: 0;
 }

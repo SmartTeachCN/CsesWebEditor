@@ -120,6 +120,8 @@ async function loadCloudConfig() {
     const config = await response.text();
 
     importFileFromStr(config);
+
+    initializeSettings();
   } catch (error) {
     console.error("加载配置失败:", error);
   }

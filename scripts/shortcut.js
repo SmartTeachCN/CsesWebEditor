@@ -1,5 +1,15 @@
 // 处理快捷键
 document.addEventListener("keydown", (e) => {
+
+  // Ctrl + S
+  if (e.key.toLowerCase() === "s" && e.ctrlKey) {
+    e.preventDefault();
+    exportFile();
+  } else if (event.keyCode === 112) {
+    e.preventDefault();
+    keyHelp();
+  }
+
   if (e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
     e.preventDefault();
     moveExplorerItem(e.key === "ArrowUp" ? -1 : 1);
@@ -39,11 +49,10 @@ document.addEventListener("keydown", (e) => {
   // 新增课程或科目
   else if (e.altKey && e.key === "n") {
     e.preventDefault();
-    const currentView = document.querySelector(".activity-item.selected")
-      .dataset.view;
-    if (currentView === "schedule") {
+    const currentView = document.getElementById('explorerB').activeid;
+    if (currentView === "scheduleB") {
       addNewClass();
-    } else if (currentView === "subject") {
+    } else if (currentView === "subjectB") {
       addNewSubject();
     }
   }
@@ -51,10 +60,13 @@ document.addEventListener("keydown", (e) => {
 
 // 在资源管理器中移动项目
 function moveExplorerItem(direction) {
-  const activeItem = document.querySelector(".explorer-item.selected");
-  if (!activeItem) return;
-  const currentView = document.querySelector(".activity-item.selected").dataset
-    .view;
+  const currentView = "";
+  const currentView2 = document.getElementById('explorerB').activeid;
+  if (currentView2 === "scheduleB") {
+    currentView = "schedule";
+  } else if (currentView2 === "subjectB") {
+    currentView = "subject";
+  }
   const items = Array.from(
     document.querySelectorAll(`#${currentView}-list .explorer-item`)
   );
@@ -82,12 +94,14 @@ function moveActivityItem(direction) {
 }
 
 function keyHelp() {
-  alert(
-    `<b>Ctrl + ↑/↓:</b> 移动偏左栏中的项目<br>
-    <b>Alt + ↑/↓:</b> 移动左栏中的项目<br>
-    <b>Alt + N:</b> 新增课程或科目<br>
-    <b>Delete:</b> 删除当前选中的项目<br>
-  `,
-    "快捷键帮助"
+  showModal(
+    `<h3>快捷键帮助</h3>
+    <b>Ctrl + ↑/↓:</b> 移动偏左栏中的项目
+    <b>Ctrl + S:</b> 将现行配置保存到云端
+    <b>Alt + N:</b> 新增课程或科目
+    <b>Alt + ↑/↓:</b> 移动左栏中的项目
+    <b>Delete:</b> 删除当前选中的项目
+    <b>F1:</b> 打开本帮助菜单
+  `
   );
 }
