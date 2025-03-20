@@ -43,13 +43,41 @@ body {
   background: none;
   border: none;
   color: var(--text-color);
-  padding: 4px 8px;
+  padding: 8px;
   cursor: pointer;
-  margin: 0 15px;
 }
 
 .menu-bar button:hover {
   background: #d3d3d3;
+}
+
+.topbarBtnGroup {
+  background-color: rgb(225 225 225 / 45%);
+  margin: 10px;
+  display: flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 5px;
+}
+
+.pageTitle {
+  border-bottom: rgba(220, 220, 220, .5) solid 1px;
+  padding: 8px 10px 10px 10px;
+  margin-bottom: 5px;
+}
+
+.pageTitle_main {
+  margin-top: -11px;
+  width: calc(100vw - 328px);
+  margin-left: -12px;
+  margin-bottom: 10px;
+}
+
+.pageTitle_main2 {
+  margin-top: -11px;
+  margin-left: -12px;
+  margin-bottom: 10px;
+  width: calc(100vw - 80px);
 }
 
 /* 主容器 */
@@ -60,7 +88,7 @@ body {
 }
 
 /* 左侧功能栏 */
-.activity-bar {
+/* .activity-bar {
   width: 260px;
   background: rgb(243, 243, 243);
   display: flex;
@@ -74,6 +102,71 @@ body {
   width: 100%;
   cursor: pointer;
   display: flex;
+} */
+
+.activity-bar {
+  position: relative;
+  bottom: 0;
+  /* width: 100%; */
+  background: rgb(243, 243, 243);
+  border-top: 1px solid var(--border-color);
+  justify-content: flex-start;
+  padding: 0 2.5px;
+  z-index: 1;
+  gap: 2px;
+}
+
+.activity-bar>button {
+  display: flex;
+  background-color: transparent;
+  flex-direction: column;
+  border: none;
+  padding: 6px 18px;
+  padding-top: 5px;
+  border-radius: 5px;
+  text-align: center;
+  gap: 2px;
+}
+
+.activity-bar>button>i {
+  font-size: 20px;
+  width: 100%;
+}
+
+.activity-bar>button:hover {
+  background-color: #dadadab4;
+}
+
+.activity-bar>button.selected {
+  background-color: #dadada8f;
+}
+
+.activity-bar .selected::before {
+  content: "";
+  display: block;
+  position: absolute;
+  margin-top: 11px;
+  width: 4px;
+  height: 24px;
+  background: rgb(3, 106, 196);
+  border-radius: 20px;
+  margin-left: -16.5px;
+}
+
+.activity-bar>button:active::before {
+  content: "";
+  display: block;
+  position: absolute;
+  margin-top: 13px;
+  width: 4px;
+  height: 20px;
+  background: rgb(3, 106, 196);
+  border-radius: 20px;
+  margin-left: -16.5px;
+}
+
+.activity-bar>button:focus {
+  box-shadow: none;
 }
 
 /* 资源管理器 */
@@ -235,7 +328,7 @@ fluent-text-field {
   z-index: 1;
 }
 
-#mobile-bottomBar > button {
+#mobile-bottomBar>button {
   display: flex;
   background-color: transparent;
   flex-direction: column;
@@ -246,16 +339,16 @@ fluent-text-field {
   text-align: center;
 }
 
-#mobile-bottomBar > button > i {
+#mobile-bottomBar>button>i {
   font-size: 20px;
   width: 100%;
 }
 
-#mobile-bottomBar > button:hover {
+#mobile-bottomBar>button:hover {
   background-color: #dadadab4;
 }
 
-#mobile-bottomBar > button.selected {
+#mobile-bottomBar>button.selected {
   background-color: #dadada8f;
 }
 
@@ -271,7 +364,7 @@ fluent-text-field {
   margin-left: 13.5px;
 }
 
-#mobile-bottomBar > button:active::before {
+#mobile-bottomBar>button:active::before {
   content: "";
   display: block;
   position: absolute;
@@ -283,7 +376,7 @@ fluent-text-field {
   margin-left: 17px;
 }
 
-#mobile-bottomBar > button:focus {
+#mobile-bottomBar>button:focus {
   box-shadow: none;
 }
 
@@ -297,16 +390,19 @@ fluent-text-field {
   margin-top: 5px;
   margin-bottom: 5px;
 }
+
 .settings-card i {
   font-size: 22px;
   margin: auto 14px;
   margin-left: 5px;
 }
+
 .settings-card .left-section {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
+
 .settings-card .title {
   font-size: 15px;
   color: #000;
@@ -318,6 +414,7 @@ fluent-text-field {
   color: #666;
   line-height: 1.5;
 }
+
 .settings-card .right-section {
   display: flex;
   align-items: center;
@@ -350,7 +447,7 @@ fluent-text-field {
   }
 
   .menu-bar {
-    display: block;
+    /* display: block; */
     height: auto;
   }
 
@@ -369,12 +466,7 @@ fluent-text-field {
   }
 
   .menu-bar #fileArea {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .menu-bar #fileArea > fluent-button {
-    flex: 1;
+    margin-left: auto;
   }
 
   .activity-bar {
@@ -392,8 +484,22 @@ fluent-text-field {
 
   .explorer {
     border-radius: 0;
-    padding: 20px;
+    padding: 16px;
     flex: 1;
+  }
+
+  .pageTitle {
+    margin-top: -11px;
+    width: calc(100vw - 25px);
+    margin-left: -12px;
+  }
+
+  .pageTitle_main {
+    width: calc(100vw - 30px);
+  }
+
+  .pageTitle_main2 {
+    width: calc(100vw - 14px);
   }
 
   .settings-card {
@@ -401,11 +507,13 @@ fluent-text-field {
   }
 
   .menu-bar button {
-    padding: 4px 0px;
+    padding: 8px;
   }
+
   .editor-left {
     max-width: 100% !important;
   }
+
   .quick-add-panel {
     display: none;
   }
