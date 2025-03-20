@@ -1,6 +1,6 @@
 # CSES课程表编辑器
 
-![image](https://github.com/user-attachments/assets/1cb389a6-4004-4c04-9dbf-0c9aafc888a3)
+![image](https://github.com/user-attachments/assets/3a6e75e9-c2c6-488b-bb8b-8a17317b61d4)
 
 一个基于Web的课程表编辑器，支持CSES（Course Schedule Exchange Schema）格式的课程表创建、管理和导出。
 
