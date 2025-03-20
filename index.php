@@ -1,333 +1,5 @@
 <?php
-
-// echo '系统正在升级！';
-
-// exit;
-// 瑞思账户系统
-// $APPID = "";
-// $TOKEN = "";
-$CASDOOR_CLIENT_ID = "";
-$CASDOOR_CLIENT_SECRET = "";
-$CASDOOR_ENDPOINT = "";
-$REDIRECT_URI = "";
-$ENCYC = ""; // 加密名称
-
-session_start();
-
-// 获取 X-Real-IP
-// $xRealIp = isset($_SERVER['HTTP_X_REAL_IP']) ? $_SERVER['HTTP_X_REAL_IP'] : $_SERVER['REMOTE_ADDR'] ?? '未知';
-
-// 处理认证回调
-if (isset($_GET['code'])) {
-  // 获取回调请求中的token参数
-  $token = isset($_GET['code']) ? $_GET['code'] : '';
-
-  // 目标URL
-  $url = "$CASDOOR_ENDPOINT/api/login/oauth/access_token";
-
-  // 要发送的POST数据
-  $data = [
-    "client_id" => $CASDOOR_CLIENT_ID,
-    "client_secret" => $CASDOOR_CLIENT_SECRET,
-    "code" => $token,
-    "grant_type" => "authorization_code",
-    "redirect_uri" => $REDIRECT_URI
-  ];
-
-  // 初始化cURL会话
-  $ch = curl_init($url);
-
-  // 设置cURL选项
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 返回结果而不是直接输出
-  curl_setopt($ch, CURLOPT_POST, true);           // 指定使用POST方法
-  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data)); // 设置POST数据
-
-  // 执行cURL请求
-  $response = curl_exec($ch);
-
-  // 检查是否有错误发生
-  if (curl_errno($ch)) {
-    echo 'cURL error: ' . curl_error($ch);
-    exit;
-  }
-
-  // 关闭cURL会话
-  curl_close($ch);
-
-  // echo $response;
-
-
-  $result = json_decode($response);
-
-  setcookie('accessToken', $result->access_token, time() + 3600 * 24 * 10, '/');
-
-
-  // 重定向回主页
-  header('Location: /');
-  exit;
-}
-
-
-// Casdoor的API URL
-$url = "$CASDOOR_ENDPOINT/api/userinfo";
-
-// 访问令牌
-$accessToken = $_COOKIE['accessToken'];
-
-// 初始化cURL会话
-$ch = curl_init($url);
-
-// 设置cURL选项
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 返回结果而不是直接输出
-curl_setopt($ch, CURLOPT_HTTPGET, true);        // 指定使用GET方法
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-  "Authorization: Bearer $accessToken" // 设置Authorization头
-]);
-
-// 执行cURL请求
-$response = curl_exec($ch);
-
-// 检查是否有错误发生
-if (curl_errno($ch)) {
-  echo 'cURL error: ' . curl_error($ch);
-  exit;
-}
-
-$userData = json_decode($response, true);
-
-// 关闭cURL会话
-curl_close($ch);
-
-// 处理用户信息
-$_SESSION['user'] = [
-  'id' => $userData['sub'],
-  'name' => $userData['name'],
-  'email' => $userData['email'],
-  'preferred_username' => $userData['preferred_username']
-];
-
-// echo json_encode($_SESSION['user']);
-
-// 处理API请求
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  header('Content-Type: application/json');
-  if (!isset($_SESSION['user'])) {
-    echo json_encode(['success' => false, 'error' => '未登录']);
-    exit;
-  }
-
-  // 保存配置处理
-  // $deviceId = $_POST['deviceId'] ?? '';
-  $config = $_POST['config'] ?? '';
-  $terminalId = $_POST['terminalId'] ?? '';
-  if (empty($terminalId)) {
-    echo json_encode(['success' => false, 'error' => '终端ID不能为空']);
-    exit;
-  }
-
-  // 获取用户信息
-  // $userInfo = json_decode(file_get_contents("https://api.3r60.top/v2/account/getUserInfo.php?token=" . $TOKEN . "&deviceId=" . $deviceId), true);
-
-  // if ($userInfo['code'] !== 200) {
-  //   echo json_encode(['success' => false, 'error' => '无效设备ID']);
-  //   exit;
-  // }
-
-  if (mb_strlen($config) >= 250000) {
-    echo json_encode(['success' => false, 'error' => '当前终端配置长度超过最大限制(250000)']);
-    exit;
-  }
-
-  $userId = $_SESSION['user']['id'];
-
-  // 创建用户目录
-  $mappingFile = __DIR__ . '/user/' . $ENCYC . '.json';
-  $mappings = [];
-
-  if (file_exists($mappingFile)) {
-    $mappings = json_decode(file_get_contents($mappingFile), true);
-  }
-
-  if (!isset($mappings[$userId])) {
-    $randomDir = substr(str_shuffle(str_repeat('abcdefghijklmnopqrstuvwxyz0123456789', 10)), 0, 10);
-    $mappings[$userId] = $randomDir;
-    file_put_contents($mappingFile, json_encode($mappings));
-    mkdir(__DIR__ . '/user/' . $randomDir, 0755, true); // 创建目录
-  }
-
-  $userDir = __DIR__ . '/user/' . $mappings[$userId];
-
-  // 保存配置文件
-  $configPath = $userDir . '/' . $terminalId . '.cses';
-  file_put_contents($configPath, $config);
-  echo json_encode(['success' => true]);
-  exit;
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
-  switch ($_GET['action']) {
-    case 'load':
-      // 加载配置处理
-      // $deviceId = $_GET['deviceId'] ?? '';
-      $terminalId = $_GET['terminalId'] ?? '';
-
-      // $userInfo = json_decode(file_get_contents("https://api.3r60.top/v2/account/getUserInfo.php?token=" . $TOKEN . "&deviceId=" . $deviceId), true);
-
-      // if ($userInfo['code'] !== 200) {
-      //   echo json_encode(['success' => false, 'error' => '无效设备ID']);
-      //   exit;
-      // }
-
-      $userId = $_SESSION['user']['id'];
-      $mappingFile = __DIR__ . '/user/' . $ENCYC . '.json';
-
-      if (!file_exists($mappingFile)) {
-        echo json_encode([]);
-        exit;
-      }
-
-      $mappings = json_decode(file_get_contents($mappingFile), true);
-      if (!isset($mappings[$userId])) {
-        echo json_encode([]);
-        exit;
-      }
-
-      $userDir = __DIR__ . '/user/' . $mappings[$userId];
-      $configFile = $userDir . '/' . $terminalId . '.cses';
-
-      if (file_exists($configFile)) {
-        echo file_get_contents($configFile);
-      } else {
-        echo json_encode(['success' => false, 'error' => '配置文件不存在']);
-      }
-      exit;
-
-    case 'getNewDeviceId':
-      // echo file_get_contents("https://api.3r60.top/v2/account/spawnDeviceID.php?app_id=" . $APPID . "&token=" . $TOKEN . "&ip=" . $xRealIp);
-      exit;
-
-    case 'getId':
-      // $deviceId = $_GET['deviceId'] ?? '';
-      $terminalId = $_GET['terminalId'] ?? '';
-
-      // $userInfo = json_decode(file_get_contents("https://api.3r60.top/v2/account/getUserInfo.php?token=" . $TOKEN . "&deviceId=" . $deviceId), true);
-
-      // if ($userInfo['code'] !== 200) {
-      //   echo json_encode(['success' => false, 'error' => '无效设备ID']);
-      //   exit;
-      // }
-
-      $userId = $_SESSION['user']['id'];
-      $mappingFile = __DIR__ . '/user/' . $ENCYC . '.json';
-
-      if (!file_exists($mappingFile)) {
-        echo json_encode([]);
-        exit;
-      }
-
-      $mappings = json_decode(file_get_contents($mappingFile), true);
-      if (!isset($mappings[$userId])) {
-        echo json_encode([]);
-        exit;
-      }
-
-      echo json_encode(['success' => true, 'directoryId' => $mappings[$userId]]);
-      exit;
-
-    case 'del':
-      // $deviceId = $_GET['deviceId'] ?? '';
-      $terminalId = $_GET['terminalId'] ?? '';
-
-      // 验证设备ID和终端ID
-      if (empty($terminalId)) {
-        echo json_encode(['success' => false, 'error' => '设备ID或终端ID不能为空']);
-        exit;
-      }
-
-      // 获取用户信息
-      // $userInfo = json_decode(file_get_contents("https://api.3r60.top/v2/account/getUserInfo.php?token=" . $TOKEN . "&deviceId=" . $deviceId), true);
-
-      // if ($userInfo['code'] !== 200) {
-      //   echo json_encode(['success' => false, 'error' => '无效设备ID']);
-      //   exit;
-      // }
-
-      // $userId = $userInfo['userInfo']['basicInfo']['userId'];
-      $userId = $_SESSION['user']['id'];
-      $mappingFile = __DIR__ . '/user/' . $ENCYC . '.json';
-
-      if (!file_exists($mappingFile)) {
-        echo json_encode(['success' => false, 'error' => '用户目录映射文件不存在']);
-        exit;
-      }
-
-      $mappings = json_decode(file_get_contents($mappingFile), true);
-      if (!isset($mappings[$userId])) {
-        echo json_encode(['success' => false, 'error' => '用户ID未找到']);
-        exit;
-      }
-
-      $userDir = __DIR__ . '/user/' . $mappings[$userId];
-      $configFile = $userDir . '/' . $terminalId . '.cses';
-
-      // 检查配置文件是否存在
-      if (!file_exists($configFile)) {
-        echo json_encode(['success' => false, 'error' => '终端配置文件不存在']);
-        exit;
-      }
-
-      // 删除配置文件
-      if (unlink($configFile)) {
-        echo json_encode(['success' => true, 'message' => '终端配置删除成功']);
-      } else {
-        echo json_encode(['success' => false, 'error' => '删除终端配置失败']);
-      }
-      exit;
-    case 'listTerminals':
-      header('Content-Type: application/json');
-      // $deviceId = $_GET['deviceId'] ?? '';
-
-      // $userInfo = json_decode(file_get_contents("https://api.3r60.top/v2/account/getUserInfo.php?token=" . $TOKEN . "&deviceId=" . $deviceId), true);
-
-      // if ($userInfo['code'] !== 200) {
-      //   echo json_encode(['success' => false, 'error' => '无效设备ID']);
-      //   exit;
-      // }
-
-      $userId = $_SESSION['user']['id'];
-      // $userId = $userInfo['userInfo']['basicInfo']['userId'];
-      $mappingFile = __DIR__ . '/user/' . $ENCYC . '.json';
-
-      if (!file_exists($mappingFile)) {
-        echo json_encode([]);
-        exit;
-      }
-
-      $mappings = json_decode(file_get_contents($mappingFile), true);
-      if (!isset($mappings[$userId])) {
-        echo json_encode([]);
-        exit;
-      }
-
-      $userDir = __DIR__ . '/user/' . $mappings[$userId];
-      $terminals = [];
-
-      if (is_dir($userDir)) {
-        $files = scandir($userDir);
-        foreach ($files as $file) {
-          if (pathinfo($file, PATHINFO_EXTENSION) === 'cses') {
-            $terminals[] = pathinfo($file, PATHINFO_FILENAME);
-          }
-        }
-      }
-
-      echo json_encode(['success' => true, 'terminals' => $terminals]);
-      exit;
-    case "logout":
-      session_destroy();
-      setcookie('accessToken', "");
-      header('Location: /');
-      exit;
-  }
-}
+include('api.php');
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -346,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       src="https://unpkg.com/@fluentui/web-components"
     ></script> -->
   <script type="module" src="https://npm.elemecdn.com/@fluentui/web-components"></script>
-  <link rel="stylesheet" href="style.css?ver=250222" />
+  <link rel="stylesheet" href="style.css?ver=2503209" />
   <script src="scripts/device.js" defer></script>
   <script src="scripts/ui.js" defer></script>
   <script src="scripts/storage.js" defer></script>
@@ -355,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <script src="scripts/classisland.js" defer></script>
   <script src="scripts/loading.js" defer></script>
   <script src="scripts/shortcut.js" defer></script>
-  <script src="scripts/main.js" defer></script>
-  <script src="scripts/cloud.js" defer></script>
-  <script src="scripts/control.js" defer></script>
+  <script src="scripts/main.js?ver=250319" defer></script>
+  <script src="scripts/cloud.js?ver=25030202" defer></script>
+  <script src="scripts/control.js?ver=2503202" defer></script>
 </head>
 
 <body>
@@ -365,22 +37,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <span id="leftArea" style="display: flex; align-items: center; flex: auto">
       <span id="titleArea" style="display: flex; align-items: center">
         <h2 onclick="about()" id="webTitle">CSES Cloud&nbsp;</h2>
-        <button onclick="getUserInfo()" class="online">登录信息</button>
-        <button onclick="exportFile_Local()">导出</button>
+        <div class="topbarBtnGroup">
+        <button onclick="getUserInfo()" class="online" title="登录信息"><i class="bi bi-person-check"></i></button>
+        <button onclick="exportFile_Local()" title="导出"><i class="bi bi-box-arrow-up-right"></i></button>
         <!-- <button class="desktop-only" onclick="location.href = 'https://edit.cses-org.cn/'">本地编辑</button> -->
         <!-- <button class="desktop-only" onclick="keyHelp()">快捷键</button> -->
-        <button class="desktop-only" onclick="about()">关于</button>
+        <button onclick="about()" title="关于软件"><i class="bi bi-info-circle"></i></button>
+        </div>
       </span>
       <span id="separator" style="flex: 1"></span>
       <!-- <button id="clearButton" onclick="clearData()">清空</button> -->
     </span>
     <span id="fileArea" style="display: flex; align-items: center">
-      <span class="configId"></span>&nbsp;&nbsp;
+      <span class="configId desktop-only"></span>&nbsp;&nbsp;
       <fluent-button style="margin-right: 10px" onclick="importFile()">
-        <i class="bi bi-box-arrow-in-right"></i>&nbsp;导入文件
+        <span class="desktop-only"><i class="bi bi-box-arrow-in-right"></i>&nbsp;导入文件</span><span class="mobile-only"><i class="bi bi-box-arrow-in-right"></i></span>
       </fluent-button>
       <fluent-button appearance="accent" onclick="exportFile()" class="online">
-        <i class="bi bi-cloud-upload"></i>&nbsp;保存到云
+        <span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>
       </fluent-button>
       <input type="file" id="file-input" hidden accept=".yaml,.yml,.json" />
     </span>
@@ -388,21 +62,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <div class="container">
     <fluent-listbox class="activity-bar">
-      <fluent-option class="activity-item selected online" aria-selected="true" data-view="cloud">
-        <i class="bi bi-cloud"></i>&nbsp;终端管理
-      </fluent-option>
-      <fluent-option class="activity-item online" data-view="control">
-        <i class="bi bi-gear-wide-connected"></i>&nbsp;集控管理
-      </fluent-option>
-      <fluent-option class="activity-item" data-view="schedule">
-        <i class="bi bi-calendar"></i>&nbsp;课程档案
-      </fluent-option>
-      <fluent-option class="activity-item" data-view="source">
-        <i class="bi bi-file-earmark-text"></i>&nbsp;文件预览
-      </fluent-option>
+      <button class="activity-item selected online" aria-selected="true" data-view="cloud" data-des="终端管理">
+        <i class="bi bi-cloud"></i>终端
+      </button>
+      <button class="activity-item online" data-view="control" data-des="集控配置">
+        <i class="bi bi-gear-wide-connected"></i>配置
+      </button>
+      <button class="activity-item" data-view="schedule" data-des="课程档案">
+        <i class="bi bi-calendar"></i>档案
+      </button>
+      <button class="activity-item" data-view="source" data-des="文件预览">
+        <i class="bi bi-file-earmark-text"></i>文件
+      </button>
     </fluent-listbox>
 
     <div class="explorer">
+      <p class="pageTitle" id="explorerTitle">终端管理</p>
       <fluent-tabs activeid="scheduleB" id="explorerB" style="display: none;">
         <fluent-tab id="scheduleB"> &nbsp;&nbsp;<i class="bi bi-calendar"></i>&nbsp;课程表&nbsp;</fluent-tab>
         <fluent-tab id="timeB">&nbsp;<i class="bi bi-clock-history"></i>&nbsp;时间表&nbsp;</fluent-tab>
@@ -443,8 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="editor-area">
 
       <div id="cloud-editor" style="display: block">
-        <h2>云服务</h2>
-        <h4>终端信息</h4>
+        <p class="pageTitle pageTitle_main">终端信息</p>
+        <h4>基本</h4>
         <div class="settings-card">
           <i class="bi bi-info-circle"></i>
           <div class="left-section">
@@ -475,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <fluent-button onclick="copyUrl()">
               复制
             </fluent-button>
-            <span style="user-select:text;display:none" id="url2">https://cses.3r60.top/user/<span
+            <span style="user-select:text;display:none" id="url2">https://cloud.cses-org.cn/user/<span
                 class="directoryId"></span>/<span class="configId"></span>.cses</span>
           </div>
           <script>
@@ -488,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
           </script>
         </div>
-        <h4>终端配置</h4>
+        <h4>配置</h4>
         <div class="settings-card">
           <i class="bi bi-code-slash"></i>
           <div class="left-section">
@@ -499,53 +174,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <fluent-button id="donwCiCB" onclick="donwCiC()">下载配置清单</fluent-button>
             <fluent-select id="output-mode" onchange="outputSet()" title="选择导出格式">
               <fluent-option value="ci">ClassIsland静态集控</fluent-option>
+              <fluent-option value="ea">ExamAware云控</fluent-option>
               <fluent-option value="cy">通用CSES</fluent-option>
               <fluent-option value="cj">通用CSES(JSON)</fluent-option>
             </fluent-select>
           </div>
         </div>
-        <h4>操作空间</h4>
-        <div class="settings-card">
-          <i class="bi bi-bookmark"></i>
+        <h4 style="display:none">空间共享</h4>
+        <div class="settings-card" style="display:none">
+            <i class="bi bi-people"></i>
+            <div class="left-section">
+                <div class="title">加入其他空间</div>
+                <div class="description">输入用户ID、目标终端ID及本地终端ID</div>
+            </div>
+            <div class="right-section">
+                <fluent-text-field id="target-user" placeholder="用户ID"></fluent-text-field>
+                <fluent-text-field id="target-terminal" placeholder="目标终端ID"></fluent-text-field>
+                <fluent-text-field id="local-terminal" placeholder="本地终端ID"></fluent-text-field>
+                <fluent-button onclick="joinSpace()">加入</fluent-button>
+            </div>
+        </div>
+        <div class="settings-card" style="display:none">
+          <i class="bi bi-share"></i>
           <div class="left-section">
-            <div class="title">空间名称</div>
-            <div class="description">填写学校名称或其他名称帮助他人识别</div>
+            <div class="title">共享当前空间</div>
+            <div class="description">启用后其他用户可加入此空间</div>
           </div>
           <div class="right-section">
-
+            <fluent-switch id="share-switch" onchange="toggleShareSettings()"></fluent-switch>
           </div>
         </div>
-        <div class="settings-card">
-          <i class="bi bi-box-arrow-in-right"></i>
+        <div class="settings-card" id="share-mode-card" style="display:none">
+          <i class="bi bi-shield-lock"></i>
           <div class="left-section">
-            <div class="title">加入空间</div>
-            <div class="description">当其他人允许时加入他人的编辑空间</div>
+            <div class="title">访问控制</div>
+            <div class="description">选择加入空间的验证方式</div>
           </div>
           <div class="right-section">
-
+            <fluent-select id="share-mode" onchange="toggleAuthMethod()">
+              <fluent-option value="password">密码验证</fluent-option>
+              <fluent-option value="whitelist">白名单</fluent-option>
+            </fluent-select>
           </div>
         </div>
-        <div class="settings-card">
-          <i class="bi bi-list-ul"></i>
+        <div class="settings-card" id="password-card" style="display:none">
+          <i class="bi bi-key"></i>
           <div class="left-section">
-            <div class="title">空间白名单</div>
-            <div class="description">按逗号分隔用户ID,填写后他人可以直接将空间绑定到您的空间（移除后他人将失去权利）</div>
+            <div class="title">共享密码</div>
+            <div class="description">设置其他用户加入时需要的密码</div>
           </div>
           <div class="right-section">
-
+            <fluent-text-field type="password" id="share-password" placeholder="输入密码"></fluent-text-field>
+          </div>
+        </div>
+        <div class="settings-card" id="whitelist-card" style="display:none">
+          <i class="bi bi-person-check"></i>
+          <div class="left-section">
+            <div class="title">用户白名单</div>
+            <div class="description">输入允许的用户ID，用逗号分隔</div>
+          </div>
+          <div class="right-section">
+            <fluent-text-area id="share-whitelist" placeholder="用户ID列表"></fluent-text-area>
+          </div>
+        </div>
+        <div class="settings-card" style="display:none">
+          <div class="left-section"></div>
+          <div class="right-section">
+            <fluent-button appearance="accent" onclick="saveSpaceConfig()">
+              保存空间设置
+            </fluent-button>
           </div>
         </div>
 
 
 
         <script>
+        
           function donwCiC() {
             // 创建一个JSON对象
             const data = {
               "ManagementServerKind": 0,
               "ManagementServer": "",
               "ManagementServerGrpc": "",
-              "ManifestUrlTemplate": "https://cses.3r60.top/classisland/manifest.php?id=" + document.querySelectorAll(".directoryId")[0].innerHTML
+              "ManifestUrlTemplate": "https://cloud.cses-org.cn/classisland/manifest.php?id=" + document.querySelectorAll(".directoryId")[0].innerHTML
             };
 
             // 将JSON对象转换为字符串
@@ -567,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div id="schedule-editor" style="display: none">
-        <h2>课程计划编辑</h2>
+        <p class="pageTitle pageTitle_main">课表编辑</p>
         <div class="settings-card">
           <i class="bi bi-calendar-day"></i>
           <div class="left-section">
@@ -637,6 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div id="source-editor" style="display: none">
+      <p class="pageTitle pageTitle_main2">导出设定</p>
         <h3 class="offline">本地导出</h3>
         <span class="offline">导出格式:</span><br class="offline">
         <fluent-select class="offline" id="output-mode2" onchange="outputSet()" title="选择导出格式">
@@ -650,8 +362,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div id="control-editor" style="display: none">
-        <h3>集控选项</h3>
-        <span>此处设置项内容取决于您设定的终端类型</span>
+      <p class="pageTitle pageTitle_main2">集控选项</p>
         <div id="settingsTabs">
           <!-- 动态生成的tab和tab-panel -->
         </div>
@@ -659,7 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <div id="subject-editor" style="display: none">
-        <h2>科目信息管理</h2>
+        <p class="pageTitle pageTitle_main">科目编辑</p>
         <div id="subject-form">
           <div class="settings-card">
             <i class="bi bi-bookmark"></i>
@@ -718,16 +429,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </div>
     <div class="mobile-only-flex" id="mobile-bottomBar">
-      <button data-view="cloud" class="selected online">
+      <button data-view="cloud" class="selected online" data-des="终端管理">
         <i class="bi bi-cloud"></i><span>终端管理</span>
       </button>
-      <button data-view="control">
+      <button data-view="control" data-des="集控管理">
         <i class="bi bi-gear-wide-connected"></i><span>集控管理</span>
       </button>
-      <button data-view="schedule">
+      <button data-view="schedule" data-des="课程档案">
         <i class="bi bi-calendar"></i><span>课程档案</span>
       </button>
-      <button data-view="source">
+      <button data-view="source" data-des="文件预览">
         <i class="bi bi-file-earmark-text"></i><span>文件预览</span>
       </button>
     </div>
@@ -749,7 +460,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     async function saveToCloud(config, format, noNotice) {
       try {
-        const response = await fetch('', {
+        const response = await fetch('api.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -772,7 +483,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     document.addEventListener("DOMContentLoaded", (event) => {
       if (!"<?php echo $_SESSION['user']['id'] ?>") {
         confirm("您好，您尚未登录，云功能将不可用。如需加载云功能，请点击“确认”按钮登录", (r) => {
-          if (r) window.location.href = ''
+          if (r) window.location.href = 'https://auth.smart-teach.cn/login/oauth/authorize?client_id=&response_type=code&redirect_uri=https://cloud.cses-org.cn/&scope=openid%20profile%20email'
         })
         hasLogin = false;
         document.querySelectorAll(".online").forEach(element => {
