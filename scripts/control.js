@@ -29,23 +29,23 @@ const createControl = (setting) => {
     case "text":
       const textField = document.createElement("fluent-text-field");
       textField.value =
-        setting.default ||
-        getNestedValue(currentData, "extraKey." + setting.keyPath) ||
-        "";
+        getNestedValue(currentData, "extraKey." + setting.keyPath) ??
+        (setting.default ||
+          "");
       textField.placeholder = setting.placeholder;
       textField.onchange = handleSettingChange;
       return textField;
 
     case "bool":
       const toggle = document.createElement("fluent-switch");
-      toggle.checked = setting.default || getNestedValue(currentData, "extraKey." + setting.keyPath) || false;
+      toggle.checked = getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || false);
       toggle.onchange = handleSettingChange;
       return toggle;
 
     case "time":
       const timePicker = document.createElement("input");
       timePicker.type = "time";
-      timePicker.value = setting.default || getNestedValue(currentData, "extraKey." + setting.keyPath) || "00:00";
+      timePicker.value = getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || "00:00");
       timePicker.onchange = handleSettingChange;
       return timePicker;
 
@@ -53,18 +53,18 @@ const createControl = (setting) => {
       const select = document.createElement("fluent-select");
       setting.options.forEach((opt) => {
         const option = document.createElement("fluent-option");
-        option.value = opt.value || getNestedValue(currentData, "extraKey." + setting.keyPath);
+        option.value = opt.value;
         option.textContent = opt.label;
         select.appendChild(option);
       });
       select.onchange = handleSettingChange;
 
-      select.value = setting.default;
+      select.value = getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default);
       return select;
 
     case "number":
       const numberField = document.createElement("fluent-number-field");
-      numberField.value = setting.default || getNestedValue(currentData, "extraKey." + setting.keyPath) || 0;
+      numberField.value = getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || 0);
       numberField.min = setting.min;
       numberField.max = setting.max;
       numberField.step = setting.step;
@@ -72,9 +72,49 @@ const createControl = (setting) => {
 
       return numberField;
 
+    case "color":
+      const colorPicker = document.createElement("input");
+      colorPicker.type = "color";
+      colorPicker.id = setting.keyPath;
+      const currentValue = getNestedValue(currentData, setting.keyPath);
+      if (currentValue) {
+        const hexColor = `#${(currentValue.R).toString(16).padStart(2, '0')}${(currentValue.G).toString(16).padStart(2, '0')}${(currentValue.B).toString(16).padStart(2, '0')}`;
+        colorPicker.value = hexColor;
+      } else {
+        colorPicker.value = setting.default ? `#${(setting.default.R).toString(16).padStart(2, '0')}${(setting.default.G).toString(16).padStart(2, '0')}${(setting.default.B).toString(16).padStart(2, '0')}` : "#000000";
+      }
+      colorPicker.onchange = handleSettingChange;
+      return colorPicker;
+
+    case "object":
+      const objectContainer = document.createElement("div");
+      objectContainer.className = "object-container";
+      const currentObject = getNestedValue(currentData, setting.keyPath) ?? (setting.default || {});
+      for (const key in currentObject) {
+        const value = currentObject[key];
+        const label = document.createElement("label");
+        label.textContent = key;
+        label.htmlFor = key;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = key;
+        input.value = value || "";
+        input.onchange = () => {
+          const newValue = { ...currentObject };
+          newValue[key] = input.value;
+          setNestedValue(currentData, setting.keyPath, newValue);
+          handleSettingChange(setting.keyPath, newValue);
+        };
+        objectContainer.appendChild(label);
+        objectContainer.appendChild(input);
+        objectContainer.appendChild(document.createElement("br"));
+      }
+
+      return objectContainer;
+
     case "html":
       const textElement = document.createElement("span");
-      textElement.innerHTML = setting.default || getNestedValue(currentData, "extraKey." + setting.keyPath) || "";
+      textElement.innerHTML = getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || "");
       textElement.onchange = handleSettingChange;
       return textElement;
 
@@ -97,7 +137,7 @@ const generateTabs = (tabsData, settingsData) => {
     const tabElement = document.createElement("fluent-tab");
     tabElement.id = tab.eng_name.toLowerCase();
     tabElement.innerHTML =
-      "&nbsp;&nbsp;<i class='bi " + tab.icon + "'></i>&nbsp;" + tab.name;
+      "&nbsp;&nbsp;&nbsp;<i class='bi " + tab.icon + "'></i>&nbsp;" + tab.name;
     fluentTabs.appendChild(tabElement);
 
     // fluent-tab-panel
@@ -153,15 +193,25 @@ const generateSettingsCards = (settings, container) => {
 const handleSettingChange = (event) => {
   const control = event.target;
   const settingKey = control.id;
-  const value =
-    control.role === "switch"
-      ? !control.className.includes("checked")
-      : control.value;
-
+  let value = "";
+  if (control.type === "color") {
+    const hexColor = control.value;
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    value = { A: 255, R: r, G: g, B: b, ScA: 1, ScR: r / 255, ScG: g / 255, ScB: b / 255 };
+  } else if (control.role === "switch") {
+    value = !control.className.includes("checked")
+  } else {
+    value = control.value;
+  }
   console.log(`设置项变更: ${settingKey} = ${value}`);
   validateControl(control);
 
-  // currentData.extraKey[settingKey] = value;
+  // 纯整数文本
+  if (typeof value === "string" && /^\-?\d+$/.test(value)) {
+    value = parseInt(value, 10); // 转换为整数
+  }
   setNestedValue(currentData, "extraKey." + settingKey, value);
   exportFile(true);
 };
@@ -184,7 +234,7 @@ const initializeSettings = async (recall) => {
   try {
     const configType = document.getElementById(
       hasLogin ? "output-mode" : "output-mode2"
-    ).value;
+    ).value ?? 'ci';
     const settingsData = await loadSettingsFile(configType, recall);
     if (!settingsData) return;
 
