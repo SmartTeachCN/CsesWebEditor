@@ -1,5 +1,5 @@
 // 初始化
-const version = "2.1";
+const version = "2.2";
 function init() {
   loadFromStorage();
   initActivityBar();
@@ -42,6 +42,7 @@ function initActivityBar() {
         .forEach((i) => i.classList.remove("selected"));
       item.classList.add("selected");
       showView(item.dataset.view);
+      document.getElementById("explorerTitle").innerHTML = item.dataset.des;
     });
   });
   document.querySelectorAll("#mobile-bottomBar > button").forEach((item) => {
@@ -51,6 +52,7 @@ function initActivityBar() {
         .forEach((i) => i.classList.remove("selected"));
       item.classList.add("selected");
       showView(item.dataset.view, true);
+      document.getElementById("explorerTitle").innerHTML = item.dataset.des;
     });
   });
 }
