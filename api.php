@@ -309,7 +309,8 @@ function handleJoinSpace($params) {
 
     if ($allowed) {
         // 创建符号链接
-        $currentUserDir = getUserDir(getUserMapping($mappingFile, $_SESSION['user']['id']), $_SESSION['user']['id']);
+        $userMapping = getUserMapping($mappingFile, $_SESSION['user']['id']);
+        $currentUserDir = getUserDir($userMapping, $_SESSION['user']['id']);
         $linkPath = "$currentUserDir/{$localTerminalId}.cses";
         $targetPath = "$targetUserDir/{$targetTerminalId}.cses";
 
