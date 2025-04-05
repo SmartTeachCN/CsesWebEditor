@@ -115,6 +115,9 @@ function updateTerminalDisplay() {
 async function loadCloudConfig() {
   try {
     const terminalId = localStorage.getItem("currentTerminalId");
+    if (terminalId == null) {
+      throw new Error("您尚未选择终端，请选择/创建一个终端");
+    }
     const response = await fetch(`?action=load&terminalId=${encodeURIComponent(terminalId)}`);
     const config = await response.text();
     importFileFromStr(config);
@@ -128,7 +131,7 @@ async function loadCloudConfig() {
 
     initializeSettings();
   } catch (error) {
-    console.error("加载配置失败:", error);
+    alert("加载配置" + error);
   }
 }
 

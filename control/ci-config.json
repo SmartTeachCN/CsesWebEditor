@@ -1,0 +1,23 @@
+{
+  "manifestTemplete": {
+    "ServerKind": 0,
+    "OrganizationName": "CSES Cloud ({eid})",
+    "SubjectsSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=Subjects",
+      "Version": "{updateTime}"
+    },
+    "ClassPlansSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=ClassPlans",
+      "Version": "{updateTime}"
+    },
+    "TimeLayoutsSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=&key=TimeLayouts",
+      "Version": "{updateTime}"
+    }
+  },
+  "globalSettings": {
+    "enableDirectoryScan": true,
+    "defaultServerKind": 0,
+    "organizationNameTemplate": "CSES Cloud ({eid})"
+  }
+}

@@ -13,16 +13,38 @@ if (isset($_GET['code'])) {
   exit;
 }
 
-// 获取用户信息
-$userData = getUserInfo($CASDOOR_ENDPOINT . "/api/userinfo");
+// 检查是否启用调试模式
+$debugMode = true; // 设置为true以启用调试模式，false以禁用
 
-// 处理用户信息
-$_SESSION['user'] = [
-  'id' => $userData['sub'],
-  'name' => $userData['name'],
-  'email' => $userData['email'],
-  'preferred_username' => $userData['preferred_username']
-];
+if ($debugMode) {
+  // 使用测试用户信息
+  $_SESSION['user'] = [
+    'id' => 'test_user',
+    'name' => 'Test User',
+    'email' => 'test@example.com',
+    'preferred_username' => 'testuser'
+  ];
+} else {
+  // 获取用户信息
+  $userData = getUserInfo($CASDOOR_ENDPOINT . "/api/userinfo");
+
+  // 处理用户信息
+  $_SESSION['user'] = [
+    'id' => $userData['sub'],
+    'name' => $userData['name'],
+    'email' => $userData['email'],
+    'preferred_username' => $userData['preferred_username']
+  ];
+}
+
+// if (empty($_SESSION['user']['id'])) {
+//   echo $accessToken;
+//   exit;
+// } else {
+//   echo json_encode($_SESSION['user']);
+//   exit;
+// }
+
 
 // 处理API请求
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -309,8 +331,7 @@ function handleJoinSpace($params) {
 
     if ($allowed) {
         // 创建符号链接
-        $userMapping = getUserMapping($mappingFile, $_SESSION['user']['id']);
-        $currentUserDir = getUserDir($userMapping, $_SESSION['user']['id']);
+        $currentUserDir = getUserDir(getUserMapping($mappingFile, $_SESSION['user']['id']), $_SESSION['user']['id']);
         $linkPath = "$currentUserDir/{$localTerminalId}.cses";
         $targetPath = "$targetUserDir/{$targetTerminalId}.cses";
 

@@ -84,19 +84,20 @@ function outputSet() {
 
 // 文件导出
 function exportFile(noNotice) {
-  if (
-    localStorage.getItem("output-mode") == "ci" ||
-    localStorage.getItem("output-mode") == undefined
-  ) {
-    const jsonStr = JSON.stringify(CsestoCiFromat(currentData), null, 2);
-    saveToCloud(jsonStr, "JSON", noNotice);
-  } else if (localStorage.getItem("output-mode") == "cj") {
-    const jsonStr = JSON.stringify(currentData, null, 2);
-    saveToCloud(jsonStr, "JSON", noNotice);
-  } else if (localStorage.getItem("output-mode") == "cy") {
-    const yamlStr = jsyaml.dump(currentData);
-    saveToCloud(yamlStr, "YAML", noNotice);
+  const outputMode = localStorage.getItem("output-mode") || "cy";
+  const cloudFormat = "JSON"; // 云端上传始终使用普通 JSON 格式
+  let dataToExport;
+
+  if (outputMode === "ci") {
+    dataToExport = JSON.stringify(CsestoCiFromat(currentData), null, 2);
+  } else if (outputMode === "cj") {
+    dataToExport = JSON.stringify(currentData, null, 2);
+  } else {
+    dataToExport = jsyaml.dump(currentData);
   }
+
+  if (noNotice) return;
+  saveToCloud(dataToExport, cloudFormat, noNotice);
 }
 
 function exportFile_Local() {
@@ -180,9 +181,13 @@ function importFileFromStr(str, showNotice = false) {
       format = "YAML";
       format2 = "cy";
     } else {
-      throw new Error("解析失败:未知的文件类型");
+      throw new Error("未知的文件类型");
     }
 
+    if (data.success == false) {
+      throw new Error("当前终端可能已被移除，请重新点击左侧按钮打开");
+    }
+    
     console.log(data);
     console.log("导入格式:" + format);
 
@@ -191,12 +196,12 @@ function importFileFromStr(str, showNotice = false) {
     let knownSubjects = [];
     // 未知科目检查 + 格式检查
     tempData.subjects.forEach((s, index) => {
-      if (!s.name) throw new Error(`解析出错:科目${index}中缺少科目名称`);
+      if (!s.name) throw new Error(`科目${index}中缺少科目名称`);
       knownSubjects.push(s.name);
     });
     tempData.schedules.forEach((schedule, index) => {
       if (!schedule.name)
-        throw new Error(`解析出错:课程${index}中缺少课程名称`);
+        throw new Error(`课程${index}中缺少课程名称`);
       // if (!schedule.enable_day)
       //   throw new Error(`解析出错:课程${schedule.name}中缺少课程启用时间`);
       // if (!schedule.weeks)
@@ -258,7 +263,7 @@ function importFileFromStr(str, showNotice = false) {
     document.getElementById("donwCiCB").style.display =
       format2 == "ci" ? "inline-flex" : "none";
   } catch (error) {
-    alert(`导入失败: ${error}`);
+    alert(`数据加载${error}`);
   }
 }
 

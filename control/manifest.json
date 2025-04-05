@@ -1,0 +1,19 @@
+{
+  "formats": {
+    "ci": {
+      "name": "ClassIsland",
+      "configUrl": "./ci-config.json",
+      "conversionScript": "./scripts/format.js"
+    },
+    "cy": {
+      "name": "YAML",
+      "configUrl": null,
+      "conversionScript": null
+    },
+    "cj": {
+      "name": "JSON",
+      "configUrl": null,
+      "conversionScript": null
+    }
+  }
+}
