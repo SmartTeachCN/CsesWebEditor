@@ -1,3 +1,21 @@
+function bindDialogEvents(modal, confirmCallback, cancelCallback) {
+    function handleKeydown(event) {
+        if (event.key === "Enter") {
+            modal.removeEventListener("keydown", handleKeydown);
+            modal.hidden = true;
+            document.body.removeChild(modal);
+            confirmCallback();
+        } else if (event.key === "Escape") {
+            modal.removeEventListener("keydown", handleKeydown);
+            modal.hidden = true;
+            document.body.removeChild(modal);
+            cancelCallback();
+        }
+    }
+
+    modal.addEventListener("keydown", handleKeydown);
+}
+
 function showModal(content) {
     const modal = document.createElement("fluent-dialog");
     modal.setAttribute("trap-focus", "");
@@ -7,11 +25,22 @@ function showModal(content) {
     modal.innerHTML = `
     <div style="margin: 20px;">${content.replace(/\n/g, "<br>")}</div>
     <div style="display: flex; justify-content: center; margin-top: 1rem;">
-  <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="width: 100px;margin-bottom:10px">关闭</fluent-button>
+      <fluent-button appearance="accent" id="close-btn" style="width: 100px;margin-bottom:10px">关闭</fluent-button>
     </div>
   `;
     document.body.appendChild(modal);
     modal.hidden = false;
+
+    const closeBtn = modal.querySelector("#close-btn");
+    closeBtn.onclick = () => {
+        modal.hidden = true;
+        document.body.removeChild(modal);
+    };
+
+    bindDialogEvents(modal,
+        () => closeBtn.click(),
+        () => closeBtn.click()
+    );
 }
 
 function alert(message, title) {
@@ -22,15 +51,26 @@ function alert(message, title) {
     modal.setAttribute("modal", "");
     modal.innerHTML = `
     <div style="margin: 20px">
-  <h2 style="margin-bottom:6px">${title ?? "提示"}</h2>
-  <p style="height:90px">${message}</p>
-    <div style="display: flex; justify-content: center; margin-top: 0.4rem;">
-  <fluent-button appearance="accent" onclick="this.closest('fluent-dialog').hidden = true" style="width: 100%;">关闭</fluent-button>
-    </div>
+      <h2 style="margin-bottom:6px">${title ?? "提示"}</h2>
+      <p style="height:90px">${message}</p>
+      <div style="display: flex; justify-content: center; margin-top: 0.4rem;">
+        <fluent-button appearance="accent" id="alert-close" style="width: 100%;">关闭</fluent-button>
+      </div>
     </div>
   `;
     document.body.appendChild(modal);
     modal.hidden = false;
+
+    const closeBtn = modal.querySelector("#alert-close");
+    closeBtn.onclick = () => {
+        modal.hidden = true;
+        modal.remove();
+    };
+
+    bindDialogEvents(modal,
+        () => closeBtn.click(),
+        () => closeBtn.click()
+    );
 }
 
 function confirm(message, callback, args) {
@@ -41,21 +81,33 @@ function confirm(message, callback, args) {
     modal.setAttribute("modal", "");
     modal.innerHTML = `
   <div style="margin: 20px">
-  <h2 style="margin-bottom:6px">确认您的操作</h2>
-  <p style="height: 90px; overflow-y: auto;">${message}</p>
-  <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
-    <fluent-button appearance="accent" onclick="confirmAction(true, this.closest('fluent-dialog'), ${callback}, '${args}')" style="width: 100%;">确定</fluent-button>
-    <fluent-button onclick="confirmAction(false, this.closest('fluent-dialog'), ${callback}, '${args}')" style="width: 100%;margin-left: 5px;">取消</fluent-button>
-  </div>
+    <h2 style="margin-bottom:6px">确认您的操作</h2>
+    <p style="height: 90px; overflow-y: auto;">${message}</p>
+    <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
+      <fluent-button appearance="accent" id="confirm-yes" style="width: 100%;">确定</fluent-button>
+      <fluent-button id="confirm-no" style="width: 100%;margin-left: 5px;">取消</fluent-button>
+    </div>
   </div>`;
+
     document.body.appendChild(modal);
     modal.hidden = false;
-}
 
-function confirmAction(result, modal, callback, args) {
-    modal.hidden = true;
-    document.body.removeChild(modal);
-    callback(result, args);
+    const yesBtn = modal.querySelector("#confirm-yes");
+    const noBtn = modal.querySelector("#confirm-no");
+
+    const doConfirm = (result) => {
+        modal.hidden = true;
+        modal.remove();
+        callback(result, args);
+    };
+
+    yesBtn.onclick = () => doConfirm(true);
+    noBtn.onclick = () => doConfirm(false);
+
+    bindDialogEvents(modal,
+        () => yesBtn.click(),
+        () => noBtn.click()
+    );
 }
 
 function prompt(message, callback) {
@@ -66,23 +118,38 @@ function prompt(message, callback) {
     modal.setAttribute("modal", "");
     modal.innerHTML = `
   <div style="margin: 20px">
-  <h2 style="margin-bottom:6px">${message}</h2>
-  <span style="height: 90px;">
-  <p>在下方编辑框输入文本以继续响应</p><br>
-  <fluent-text-field id="prompt-input" style="width: 100%;"></fluent-text-field>
-  </span>
-  <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
-    <fluent-button appearance="accent" onclick="promptAction(true, this.closest('fluent-dialog'), ${callback})" style="width: 100%">确定</fluent-button>
-    <fluent-button onclick="promptAction(false, this.closest('fluent-dialog'), ${callback})" style="width: 100%;margin-left: 5px;">取消</fluent-button>
-  </div>
+    <h2 style="margin-bottom:6px">${message}</h2>
+    <span style="height: 90px;">
+      <p>在下方编辑框输入文本以继续响应</p><br>
+      <fluent-text-field id="prompt-input" style="width: 100%;"></fluent-text-field>
+    </span>
+    <div style="display: flex; justify-content: space-between; margin-top: 0.4rem;">
+      <fluent-button appearance="accent" id="prompt-confirm" style="width: 100%">确定</fluent-button>
+      <fluent-button id="prompt-cancel" style="width: 100%;margin-left: 5px;">取消</fluent-button>
+    </div>
   </div>`;
+
     document.body.appendChild(modal);
     modal.hidden = false;
-}
 
-function promptAction(result, modal, callback) {
-    const input = document.getElementById("prompt-input").value;
-    modal.hidden = true;
-    document.body.removeChild(modal);
-    callback(result ? input : null);
+    const input = modal.querySelector("#prompt-input");
+    const confirmBtn = modal.querySelector("#prompt-confirm");
+    const cancelBtn = modal.querySelector("#prompt-cancel");
+
+    const doPromptAction = (result) => {
+        modal.hidden = true;
+        modal.remove();
+        callback(result ? input.value : null);
+    };
+
+    confirmBtn.onclick = () => doPromptAction(true);
+    cancelBtn.onclick = () => doPromptAction(false);
+
+    bindDialogEvents(modal,
+        () => confirmBtn.click(),
+        () => cancelBtn.click()
+    );
+
+    // 自动聚焦到输入框
+    setTimeout(() => input.focus(), 100);
 }

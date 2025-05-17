@@ -95,7 +95,7 @@ const terminal = {
     document.querySelectorAll(".configId").forEach((el) => {
       el.textContent = currentTerminalId;
     });
-    trickAnimation();
+    // trickAnimation();
   },
   addUI() {
     prompt("输入新终端ID", (a) => {

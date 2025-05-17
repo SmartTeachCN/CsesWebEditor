@@ -28,11 +28,11 @@ const schedule = {
   init() {
     const container = document.getElementById("schedule-list");
     container.innerHTML = "";
-    currentData.schedules.forEach((schedule, index) => {
+    currentData.schedules.forEach((schedule2, index) => {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
-      const weekMode = schedule.weeks;
-      const dayMode = schedule.enable_day;
+      const weekMode = schedule2.weeks;
+      const dayMode = schedule2.enable_day;
       div.textContent =
         this.weekMap[weekMode] && this.dayMap[dayMode]
           ? this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
@@ -157,7 +157,7 @@ const schedule = {
     );
     currentData.schedules[currentScheduleIndex].weeks = weekMode;
     storage.save();
-    schedule.init();
+    this.init();
   },
   del(index) {
     currentData.schedules[currentScheduleIndex].classes.splice(index, 1);
@@ -171,7 +171,7 @@ const schedule = {
     };
     currentData.schedules.push(newSchedule);
     storage.save();
-    schedule.init();
+    this.init();
   },
   addClass() {
     currentData.schedules[currentScheduleIndex].classes.push({
@@ -202,7 +202,7 @@ const schedule = {
     newSchedule.name = "无规则计划";
     currentData.schedules.push(newSchedule);
     storage.save();
-    schedule.init();
+    this.init();
   },
   fastFillUI() {
     alert(
@@ -233,7 +233,7 @@ const schedule = {
     });
 
     storage.save();
-    schedule.init();
+    this.init();
     alert("快速创建周一~周日通用周成功");
   },
   setSubject(subject) {

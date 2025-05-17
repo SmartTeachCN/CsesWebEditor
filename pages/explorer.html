@@ -1,6 +1,13 @@
 <div class="explorer">
   <!-- 管理器标题 -->
-  <p class="pageTitle" id="explorerTitle">终端管理</p>
+  <p class="pageTitle" style="display: flex">
+    <span  id="explorerTitle" style="flex: 1">终端管理</span>
+    <button
+      onclick="handleAdd()"
+    >
+      +
+    </button>
+  </p>
   <!-- 档案编辑组 -->
   <fluent-tabs activeid="scheduleB" id="explorerB" style="display: none">
     <fluent-tab id="scheduleB">
@@ -20,14 +27,6 @@
         style="margin-top: 5px"
       ></fluent-listbox>
       <fluent-button
-        id="add-schedule-btn"
-        class="explorer-item"
-        onclick="schedule.add()"
-        style="margin-top: 5px"
-      >
-        + 添加课程
-      </fluent-button>
-      <fluent-button
         id="auto-fill-btn"
         class="explorer-item"
         onclick="schedule.fastFillUI()"
@@ -38,9 +37,7 @@
     </fluent-tab-panel>
 
     <!-- 时间表 -->
-    <fluent-tab-panel id="timeBPanel">
-
-    </fluent-tab-panel>
+    <fluent-tab-panel id="timeBPanel"> </fluent-tab-panel>
 
     <!-- 科目 -->
     <fluent-tab-panel id="subjectBPanel">
@@ -48,25 +45,8 @@
         id="subject-list"
         style="margin-top: 5px"
       ></fluent-listbox>
-      <fluent-button
-        id="add-subject-btn"
-        class="explorer-item"
-        style="margin-top: 5px"
-        onclick="subjects.add()"
-      >
-        + 添加科目
-      </fluent-button>
     </fluent-tab-panel>
   </fluent-tabs>
   <!-- 终端编辑组 -->
   <fluent-listbox id="cloud-list" style="display: block"></fluent-listbox>
-
-  <fluent-button
-    id="add-cloud-btn"
-    class="explorer-item"
-    onclick="terminal.addUI()"
-    style="display: flex; margin-top: 5px"
-  >
-    + 添加终端
-  </fluent-button>
 </div>

@@ -77,7 +77,7 @@ const subjects = {
     document.getElementById("subject-teacher").value = subject.teacher || "";
     document.getElementById("subject-room").value = subject.room || "";
     document.getElementById("subject-editor").style.display = "block";
-    trickAnimation();
+    // trickAnimation();
   },
   save() {
     const name = document.getElementById("subject-name").value;

@@ -241,7 +241,14 @@ textarea {
   font-size: 14px;
 }
 
-button:focus,
+button:hover {
+  background-color: #dadada2d;
+}
+
+button:active {
+  background-color: #dadada8f;
+}
+
 input:focus,
 select:focus,
 textarea:focus {

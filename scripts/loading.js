@@ -64,20 +64,26 @@ function createLoadingModal() {
 }
 
 function showLoading() {
-  if (!loadingInstance) {
-    // 如果实例不存在，创建并显示
-    const modal = createLoadingModal();
-    modal.style.display = 'flex';
-    loadingInstance = modal;
-  }
+  const saveButton = document.getElementById("save-button");
+  saveButton.disabled = true;
+  saveButton.innerHTML = "<i class='bi bi-arrow-clockwise' style='display: inline-block; animation: spin 1s linear infinite'></i>&nbsp;正在加载";
+  // if (!loadingInstance) {
+  //   // 如果实例不存在，创建并显示
+  //   const modal = createLoadingModal();
+  //   modal.style.display = 'flex';
+  //   loadingInstance = modal;
+  // }
 }
 
 function closeLoading() {
-  if (loadingInstance) {
-    // 关闭模态框
-    loadingInstance.style.display = 'none';
-    loadingInstance = null;
-  }
+  const saveButton = document.getElementById("save-button");
+  saveButton.disabled = false;
+    saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
+  // if (loadingInstance) {
+  //   // 关闭模态框
+  //   loadingInstance.style.display = 'none';
+  //   loadingInstance = null;
+  // }
 }
 
 // 拦截 fetch 请求
@@ -98,7 +104,10 @@ window.fetch = async function (...args) {
     return response;
   } finally {
     if (shouldShowLoading) {
-      closeLoading();
+      setTimeout(() => {
+        closeLoading();
+      }, 1000); // 延迟关闭加载动画
+      // closeLoading();
     }
   }
 };

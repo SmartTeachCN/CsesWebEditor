@@ -53,32 +53,64 @@ document.addEventListener("keydown", (e) => {
           storage.save();
           storage.init(currentIndex);
         }
+      } else if (currentView === "cloud") {
+        const index = Array.from(
+          document.querySelectorAll("#cloud-list .explorer-item")
+        ).indexOf(activeItem);
+        if (index !== -1) {
+          terminal.delUI(activeItem.value);
+        }
       }
     }
   }
 
   // 新增课程或科目
   else if (e.altKey && e.key === "n") {
-    e.preventDefault();
-    const currentView = document.getElementById('explorerB').activeid;
-    if (currentView === "scheduleB") {
-      suchedule.add();
-    } else if (currentView === "subjectB") {
-      subjects.add();
-    }
+    handleAdd();
   }
 });
 
+function handleAdd() {
+  const activeAct = document.querySelector(".activity-item.selected").getAttribute("data-view");
+  let currentView = "";
+  if (activeAct === "source") return;
+  if (activeAct === "schedule") {
+    const currentView2 = document.getElementById('explorerB').activeid;
+    console.log(currentView2);
+    if (currentView2 === "scheduleB") {
+      currentView = "schedule";
+    } else if (currentView2 === "subjectB") {
+      currentView = "subject";
+    }
+  } else if (activeAct === "cloud") {
+    currentView = "cloud";
+  }
+  if (currentView === "schedule") {
+    schedule.add();
+  } else if (currentView === "subject") {
+    subjects.add();
+  } else if (currentView === "cloud") {
+    terminal.addUI();
+  }
+}
+
 // 在资源管理器中移动项目
 function moveExplorerItem(direction) {
+  const activeAct = document.querySelector(".activity-item.selected").getAttribute("data-view");
   let currentView = "";
-  const currentView2 = document.getElementById('explorerB').activeid;
-  console.log(currentView2);
-  if (currentView2 === "scheduleB") {
-    currentView = "schedule";
-  } else if (currentView2 === "subjectB") {
-    currentView = "subject";
+  if (activeAct === "source") return;
+  if (activeAct === "schedule") {
+    const currentView2 = document.getElementById('explorerB').activeid;
+    console.log(currentView2);
+    if (currentView2 === "scheduleB") {
+      currentView = "schedule";
+    } else if (currentView2 === "subjectB") {
+      currentView = "subject";
+    }
+  } else if (activeAct === "cloud") {
+    currentView = "cloud";
   }
+
   const items = Array.from(
     document.querySelectorAll(`#${currentView}-list .explorer-item`)
   );

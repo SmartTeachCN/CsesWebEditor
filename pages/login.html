@@ -13,9 +13,12 @@
       }
     );
   }
-
+  let tid = null;
   async function saveToCloud(config, format, noNotice) {
     try {
+      const saveButton = document.getElementById("save-button");
+      if (saveButton.disabled) return;
+      saveButton.disabled = true;
       const response = await fetch("function.php", {
         method: "POST",
         headers: {
@@ -25,11 +28,17 @@
           localStorage.getItem("currentTerminalId")
         )}&config=${encodeURIComponent(config)}`,
       });
-
+      saveButton.disabled = true;
       const result = await response.json();
       if (noNotice) return;
       if (result.success) {
-        alert("配置保存成功！");
+        // alert("配置保存成功！");
+        saveButton.innerHTML = "<i class='bi bi-check-circle'></i>&nbsp;保存成功";
+        clearTimeout(tid);
+        tid = setTimeout(() => {
+          saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
+          saveButton.disabled = false;
+        }, 1000);
       } else {
         alert("保存失败: " + (result.error || "未知错误"));
       }

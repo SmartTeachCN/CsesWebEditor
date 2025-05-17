@@ -17,8 +17,8 @@ const activityBar = {
           .querySelectorAll(".activity-item")
           .forEach((i) => i.classList.remove("selected"));
         item.classList.add("selected");
-        this.toggle(item.dataset.view);
         document.getElementById("explorerTitle").innerHTML = item.dataset.des;
+        this.toggle(item.dataset.view);
       });
     });
     document.querySelectorAll("#mobile-bottomBar > button").forEach((item) => {
