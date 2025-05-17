@@ -12,6 +12,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+p.pageTitle {
+  height: 45px;
+}
+
 h2 {
   margin-bottom: 10px;
 }

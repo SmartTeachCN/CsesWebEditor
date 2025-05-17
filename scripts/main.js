@@ -42,8 +42,6 @@ const activityBar = {
     if (view === "schedule") {
       document.getElementById("explorerB").style.display = "block";
       document.getElementById("cloud-list").style.display = "none";
-      document.getElementById("add-cloud-btn").style.display = "none";
-      document.getElementById("add-schedule-btn").style.display = "flex";
       if (checkDeviceType()) {
         location.href = "#";
         document.getElementsByClassName("editor-area")[0].style.display = "none";
@@ -86,7 +84,6 @@ const activityBar = {
       }
       document.getElementById("explorerB").style.display = "none";
       document.getElementById("cloud-list").style.display = "block";
-      document.getElementById("add-cloud-btn").style.display = "flex";
       document.getElementsByClassName("editor-area")[0].style.display = "block";
       document.getElementById(`${view}-editor`).style.display = "block";
     } else if (view === "control") {

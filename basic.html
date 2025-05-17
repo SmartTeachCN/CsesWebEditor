@@ -351,23 +351,17 @@
         if (view === "schedule") {
           document.getElementById("schedule-list").style.display = "block";
           document.getElementById("subject-list").style.display = "none";
-          document.getElementById("add-subject-btn").style.display = "none";
-          document.getElementById("add-schedule-btn").style.display = "block";
           refreshScheduleList();
         } else if (view === "source") {
           document.getElementById("schedule-list").style.display = "none";
           document.getElementById("subject-list").style.display = "none";
           document.getElementsByClassName("explorer")[0].style.display = "none";
-          document.getElementById("add-subject-btn").style.display = "none";
-          document.getElementById("add-schedule-btn").style.display = "none";
           document.getElementById(`${view}-editor`).style.display = "block";
           document.getElementById("yaml-editor").value =
             jsyaml.dump(currentData);
         } else if (view === "subject") {
           document.getElementById("schedule-list").style.display = "none";
           document.getElementById("subject-list").style.display = "block";
-          document.getElementById("add-subject-btn").style.display = "block";
-          document.getElementById("add-schedule-btn").style.display = "none";
           refreshSubjectList();
         }
       }
