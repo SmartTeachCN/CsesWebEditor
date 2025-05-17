@@ -1,0 +1,97 @@
+<script>
+  var hasLogin = true;
+
+  function getUserInfo() {
+    confirm(
+      `用户标识: <?php echo $_SESSION['user']['id'] ?><br>
+                    用户名称: <?php echo $_SESSION['user']['name'] ?><br>
+                    点击“确认”清除登录痕迹`,
+      (r) => {
+        if (r) {
+          location.href = "./?action=logout";
+        }
+      }
+    );
+  }
+
+  async function saveToCloud(config, format, noNotice) {
+    try {
+      const response = await fetch("api.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `terminalId=${encodeURIComponent(
+          localStorage.getItem("currentTerminalId")
+        )}&config=${encodeURIComponent(config)}`,
+      });
+
+      const result = await response.json();
+      if (noNotice) return;
+      if (result.success) {
+        alert("配置保存成功！");
+      } else {
+        alert("保存失败: " + (result.error || "未知错误"));
+      }
+    } catch (error) {
+      console.error("保存失败:", error);
+      alert("保存配置时发生错误");
+    }
+  }
+  document.addEventListener("DOMContentLoaded", (event) => {
+    if (!"<?php echo $_SESSION['user']['id'] ?>") {
+      confirm(
+        "您好，您尚未登录，云功能将不可用。如需加载云功能，请点击“确认”按钮登录",
+        (r) => {
+          if (r)
+            window.location.href =
+              "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email";
+        }
+      );
+      hasLogin = false;
+      document.querySelectorAll(".online").forEach((element) => {
+        element.disabled = true;
+      });
+    }
+    if (hasLogin) {
+      getDirectoryAndTerminal();
+      document.querySelectorAll(".offline").forEach((element) => {
+        element.style.display = "none";
+      });
+    } else {
+      showView("schedule");
+    }
+  });
+
+  const content = document.getElementsByClassName("editor-area")[0];
+
+  function trickAnimation() {
+    let start = null;
+    const duration = 200;
+    const initialPaddingTop = 16;
+    const finalPaddingTop = 100;
+
+    function animate(timestamp) {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+
+      // 二次缓出函数（ease-out）
+      const easedProgress = 1 - (1 - progress) * (1 - progress); // t^2
+      const currentPaddingTop =
+        initialPaddingTop +
+        (finalPaddingTop - initialPaddingTop) * (1 - easedProgress);
+
+      content.style.paddingTop = `${currentPaddingTop}px`;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        content.style.paddingTop = `${initialPaddingTop}px`;
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  trickAnimation();
+</script>

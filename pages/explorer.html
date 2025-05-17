@@ -1,0 +1,61 @@
+<div class="explorer">
+  <p class="pageTitle" id="explorerTitle">终端管理</p>
+  <fluent-tabs activeid="scheduleB" id="explorerB" style="display: none">
+    <fluent-tab id="scheduleB">
+      &nbsp;&nbsp;<i class="bi bi-calendar"></i>&nbsp;课程表&nbsp;</fluent-tab
+    >
+    <fluent-tab id="timeB"
+      >&nbsp;<i class="bi bi-clock-history"></i>&nbsp;时间表&nbsp;</fluent-tab
+    >
+    <fluent-tab id="subjectB"
+      >&nbsp;<i class="bi bi-journal-bookmark"></i>&nbsp;科目&nbsp;</fluent-tab
+    >
+    <fluent-tab-panel id="scheduleBPanel">
+      <fluent-listbox
+        id="schedule-list"
+        style="margin-top: 5px"
+      ></fluent-listbox>
+      <fluent-button
+        id="add-schedule-btn"
+        class="explorer-item"
+        onclick="addNewClass()"
+        style="margin-top: 5px"
+      >
+        + 添加课程
+      </fluent-button>
+      <fluent-button
+        id="auto-fill-btn"
+        class="explorer-item"
+        onclick="autoFillClass()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
+      </fluent-button>
+    </fluent-tab-panel>
+    <fluent-tab-panel id="timeBPanel"> 本功能尚未完成。 </fluent-tab-panel>
+    <fluent-tab-panel id="subjectBPanel">
+      <fluent-listbox
+        id="subject-list"
+        style="margin-top: 5px"
+      ></fluent-listbox>
+      <fluent-button
+        id="add-subject-btn"
+        class="explorer-item"
+        style="margin-top: 5px"
+        onclick="addNewSubject()"
+      >
+        + 添加科目
+      </fluent-button>
+    </fluent-tab-panel>
+  </fluent-tabs>
+
+  <fluent-listbox id="cloud-list" style="display: block"></fluent-listbox>
+  <fluent-button
+    id="add-cloud-btn"
+    class="explorer-item"
+    onclick="addNewTerminal()"
+    style="display: flex; margin-top: 5px"
+  >
+    + 添加终端
+  </fluent-button>
+</div>
