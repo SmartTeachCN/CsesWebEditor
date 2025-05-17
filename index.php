@@ -1,5 +1,4 @@
-<?php $debug = false;
-include 'function.php'; ?>
+<?php include 'function.php'; ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 

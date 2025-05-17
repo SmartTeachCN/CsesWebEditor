@@ -123,7 +123,7 @@ async function loadCloudConfig() {
     importFileFromStr(config);
 
     // 加载共享配置
-    const shareResponse = await fetch(`api.php?action=getSpaceConfig&terminalId=${encodeURIComponent(terminalId)}`);
+    const shareResponse = await fetch(`function.php?action=getSpaceConfig&terminalId=${encodeURIComponent(terminalId)}`);
     if (shareResponse.ok) {
       const shareData = await shareResponse.json();
       updateShareUI(shareData.config);
@@ -196,7 +196,7 @@ async function saveSpaceConfig() {
   formData.append('whitelist', whitelist);
 
   try {
-    const response = await fetch('api.php?action=spaceConfig', {
+    const response = await fetch('function.php?action=spaceConfig', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData
@@ -225,7 +225,7 @@ async function joinSpace() {
   }
 
   try {
-    const response = await fetch(`api.php?action=joinSpace&targetUser=${encodeURIComponent(targetUser)}&targetTerminal=${encodeURIComponent(targetTerminal)}&localTerminal=${encodeURIComponent(localTerminal)}&password=${encodeURIComponent(password)}`);
+    const response = await fetch(`function.php?action=joinSpace&targetUser=${encodeURIComponent(targetUser)}&targetTerminal=${encodeURIComponent(targetTerminal)}&localTerminal=${encodeURIComponent(localTerminal)}&password=${encodeURIComponent(password)}`);
     const result = await response.json();
     if (result.success) {
       alert('成功加入共享空间！');

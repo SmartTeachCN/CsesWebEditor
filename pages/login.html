@@ -8,7 +8,7 @@
                     点击“确认”清除登录痕迹`,
       (r) => {
         if (r) {
-          location.href = "./?action=logout";
+          location.href = './?action=logout';
         }
       }
     );
@@ -16,7 +16,7 @@
 
   async function saveToCloud(config, format, noNotice) {
     try {
-      const response = await fetch("api.php", {
+      const response = await fetch("function.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
