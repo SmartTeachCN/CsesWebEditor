@@ -1,10 +1,21 @@
+
+// 初始化拖拽导入
+function initDragDrop() {
+  document.addEventListener("dragover", (e) => e.preventDefault());
+  document.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    const cfile = e.dataTransfer.files[0];
+    if (cfile) await file.import(cfile);
+  });
+}
+
 // 处理快捷键
 document.addEventListener("keydown", (e) => {
 
   // Ctrl + S
   if (e.key.toLowerCase() === "s" && e.ctrlKey) {
     e.preventDefault();
-    exportFile();
+    file.export();
   } else if (event.keyCode === 112) {
     e.preventDefault();
     keyHelp();
@@ -30,8 +41,8 @@ document.addEventListener("keydown", (e) => {
         ).indexOf(activeItem);
         if (index !== -1) {
           currentData.schedules.splice(index, 1);
-          saveSchedule();
-          refreshScheduleList();
+          storage.save();
+          schedule.init();
         }
       } else if (currentView === "subject") {
         const index = Array.from(
@@ -39,8 +50,8 @@ document.addEventListener("keydown", (e) => {
         ).indexOf(activeItem);
         if (index !== -1) {
           currentData.subjects.splice(index, 1);
-          saveSchedule();
-          refreshSubjectList();
+          storage.save();
+          storage.init(currentIndex);
         }
       }
     }
@@ -51,9 +62,9 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     const currentView = document.getElementById('explorerB').activeid;
     if (currentView === "scheduleB") {
-      addNewClass();
+      suchedule.add();
     } else if (currentView === "subjectB") {
-      addNewSubject();
+      subjects.add();
     }
   }
 });

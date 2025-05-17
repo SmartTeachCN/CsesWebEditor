@@ -1,5 +1,7 @@
 <div class="explorer">
+  <!-- 管理器标题 -->
   <p class="pageTitle" id="explorerTitle">终端管理</p>
+  <!-- 档案编辑组 -->
   <fluent-tabs activeid="scheduleB" id="explorerB" style="display: none">
     <fluent-tab id="scheduleB">
       &nbsp;&nbsp;<i class="bi bi-calendar"></i>&nbsp;课程表&nbsp;</fluent-tab
@@ -18,7 +20,7 @@
       <fluent-button
         id="add-schedule-btn"
         class="explorer-item"
-        onclick="addNewClass()"
+        onclick="schedule.add()"
         style="margin-top: 5px"
       >
         + 添加课程
@@ -26,7 +28,7 @@
       <fluent-button
         id="auto-fill-btn"
         class="explorer-item"
-        onclick="autoFillClass()"
+        onclick="schedule.fastFillUI()"
         style="display: flex; margin-top: 5px"
       >
         <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
@@ -42,18 +44,19 @@
         id="add-subject-btn"
         class="explorer-item"
         style="margin-top: 5px"
-        onclick="addNewSubject()"
+        onclick="subjects.add()"
       >
         + 添加科目
       </fluent-button>
     </fluent-tab-panel>
   </fluent-tabs>
-
+  <!-- 终端编辑组 -->
   <fluent-listbox id="cloud-list" style="display: block"></fluent-listbox>
+
   <fluent-button
     id="add-cloud-btn"
     class="explorer-item"
-    onclick="addNewTerminal()"
+    onclick="terminal.addUI()"
     style="display: flex; margin-top: 5px"
   >
     + 添加终端

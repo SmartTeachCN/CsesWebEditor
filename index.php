@@ -1,4 +1,4 @@
-<?php // PYLXU 5/17 因精力有限只整理了后端代码，前端仅新增内容使用规整语法 ?>
+<?php // PYLXU 5/17 ?>
 <?php include 'function.php'; ?>
 <!DOCTYPE html>
 <html lang="zh-CN">

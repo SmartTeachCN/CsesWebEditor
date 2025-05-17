@@ -14,7 +14,7 @@
       "type": "html",
       "keyPath": "Settings.Welcome",
       "name": "欢迎使用CSES Cloud",
-      "description": "您正在使用CSES-YAML格式作为云存储",
+      "description": "您正在使用CSES-JSON格式作为云存储",
       "icon": "bi-broadcast"
     }
   ]

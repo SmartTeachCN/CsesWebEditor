@@ -11,7 +11,6 @@ class request
   }
   public static function post($postData)
   {
-    echo 'hi';
     header('Content-Type: application/json');
     if (!isset($_SESSION['user'])) {
       echo json_encode(['success' => false, 'error' => '未登录']);

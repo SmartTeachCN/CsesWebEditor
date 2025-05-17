@@ -6,7 +6,7 @@
     <div class="description">选择此张课表的作用星期</div>
   </div>
   <div class="right-section">
-    <fluent-select id="day-mode" onchange="updateSchedule()">
+    <fluent-select id="day-mode" onchange="schedule.save()">
       <fluent-option value="1">星期一</fluent-option>
       <fluent-option value="2">星期二</fluent-option>
       <fluent-option value="3">星期三</fluent-option>
@@ -24,7 +24,7 @@
     <div class="description">设置该课表在哪些特定周使用</div>
   </div>
   <div class="right-section">
-    <fluent-select id="week-mode" onchange="updateSchedule()">
+    <fluent-select id="week-mode" onchange="schedule.save()">
       <fluent-option value="odd">单周</fluent-option>
       <fluent-option value="even">双周</fluent-option>
       <fluent-option value="all">通用</fluent-option>
@@ -39,7 +39,7 @@
     </span>
 
     <div class="class-controls">
-      <fluent-button appearance="accent" onclick="addNewClassTime()">
+      <fluent-button appearance="accent" onclick="schedule.addClass()">
         + 添加课时
       </fluent-button>
       <fluent-select
@@ -68,14 +68,8 @@
   </div>
 </div>
 <fluent-button
-  onclick="copySchdule()"
+  onclick="schedule.clone()"
   style="margin-top: 1rem; margin-left: 5px"
 >
-  复制副本
+  克隆
 </fluent-button>
-<!-- <fluent-button
-            onclick="autoFillClass()"
-            style="margin-top: 1rem; margin-left: 5px"
-          >
-            <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
-          </fluent-button> -->

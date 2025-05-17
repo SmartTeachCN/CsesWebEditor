@@ -1,140 +1,125 @@
-// 添加全局变量
 var currentTerminalId = localStorage.getItem("currentTerminalId");
 let directoryId = null;
 
-// 修改getCloudId函数
-function getDirectoryAndTerminal() {
-
-  // 获取目录ID
-  fetch(`./?action=getId`)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        document.querySelectorAll(".directoryId").forEach((el) => {
-          el.textContent = data.directoryId;
-        });
-        directoryId = data.directoryId;
-
-        // 获取终端列表
-        fetch(`?action=listTerminals`)
-          .then((r) => r.json())
-          .then((d) => {
-            if (d.success && d.terminals.length > 0) {
-              if (!currentTerminalId) currentTerminalId = d.terminals[0];
-              updateTerminalDisplay();
-              loadCloudConfig();
-            }
-            populateTerminalSelect(d.terminals);
+const terminal = {
+  init() {
+    fetch(`./?action=getId`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          document.querySelectorAll(".directoryId").forEach((el) => {
+            el.textContent = data.directoryId;
           });
-      } else {
-        // alert("获取目录ID失败: " + data.error);
+          directoryId = data.directoryId;
+          fetch(`?action=listTerminals`)
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.success && d.terminals.length > 0) {
+                if (!currentTerminalId) currentTerminalId = d.terminals[0];
+                this.updateTag();
+                this.controlLoad();
+              }
+              const terminals = d.terminals;
+              const select = document.getElementById("cloud-list");
+              select.innerHTML = "";
+              terminals.forEach((t) => {
+                const option = document.createElement("fluent-option");
+                option.value = t;
+                option.className = "explorer-item";
+                option.textContent = t;
+                option.onclick = () => {
+                  terminal.load(option.value);
+                };
+                option.addEventListener("contextmenu", (e) => {
+                  e.preventDefault();
+                  terminal.delUI(option.value);
+                });
+                select.appendChild(option);
+              });
+              if (terminals.length > 0) select.value = currentTerminalId;
+            });
+        }
+      });
+  },
+  load(terminalId) {
+    currentTerminalId = terminalId;
+    localStorage.setItem("currentTerminalId", terminalId);
+    this.updateTag();
+    this.controlLoad();
+  },
+  async controlLoad() {
+    try {
+      const terminalId = localStorage.getItem("currentTerminalId");
+      if (terminalId == null) {
+        throw new Error("您尚未选择终端，请选择/创建一个终端");
       }
-    });
-}
+      const response = await fetch(`?action=load&terminalId=${encodeURIComponent(terminalId)}`);
+      const config = await response.text();
+      file.importS(config);
 
-// 新增终端操作函数
-function populateTerminalSelect(terminals) {
-  const select = document.getElementById("cloud-list");
-  select.innerHTML = "";
-  terminals.forEach((t) => {
-    const option = document.createElement("fluent-option");
-    option.value = t;
-    option.className = "explorer-item";
-    option.textContent = t;
-    option.onclick = () => {
-      switchTerminal(option.value);
-    };
-    option.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-      delTerminal(option.value);
-    });
-    select.appendChild(option);
-  });
-  if (terminals.length > 0) select.value = currentTerminalId;
-}
+      // 加载共享配置
+      // const shareResponse = await fetch(`function.php?action=getSpaceConfig&terminalId=${encodeURIComponent(terminalId)}`);
+      // if (shareResponse.ok) {
+      //   const shareData = await shareResponse.json();
+      //   updateShareUI(shareData.config);
+      // }
 
-function addNewTerminal() {
-  prompt("输入新终端ID", (a) => {
-    if (a) {
-      addNewTerminalA(a);
+      controlMgr.init();
+    } catch (error) {
+      alert("加载配置" + error);
     }
-  });
-}
-
-function delTerminal(b) {
-  confirm(
-    "确认删除终端：" + b + " 吗？删除后不可恢复",
-    (a, b) => {
+  },
+  add(a) {
+    const newTerminalId = a;
+    fetch("", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `terminalId=${encodeURIComponent(newTerminalId)}&config=`,
+    }).then(() => {
+      currentTerminalId = newTerminalId;
+      localStorage.setItem("currentTerminalId", newTerminalId);
+      terminal.init();
+    });
+  },
+  del(a) {
+    try {
+      fetch(
+        `?action=del&terminalId=${encodeURIComponent(a)}`
+      );
+      terminal.init();
+    } catch (error) {
+      console.error("删除失败:", error);
+    }
+  },
+  updateTag() {
+    document.querySelectorAll(".configId").forEach((el) => {
+      el.textContent = currentTerminalId;
+    });
+    trickAnimation();
+  },
+  addUI() {
+    prompt("输入新终端ID", (a) => {
       if (a) {
-        delTerminalA(b);
+        terminal.add(a);
       }
-    },
-    b
-  );
-}
-
-function delTerminalA(a) {
-  try {
-    fetch(
-      `?action=del&terminalId=${encodeURIComponent(a)}`
+    });
+  },
+  delUI(b) {
+    confirm(
+      "确认删除终端：" + b + " 吗？删除后不可恢复",
+      (a, b) => {
+        if (a) {
+          terminal.del(b);
+        }
+      },
+      b
     );
-    getDirectoryAndTerminal();
-  } catch (error) {
-    console.error("删除失败:", error);
-  }
-}
+  },
+};
 
-function addNewTerminalA(a) {
-  const newTerminalId = a;
 
-  fetch("", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `terminalId=${encodeURIComponent(newTerminalId)}&config=`,
-  }).then(() => {
-    currentTerminalId = newTerminalId;
-    localStorage.setItem("currentTerminalId", newTerminalId);
-    getDirectoryAndTerminal();
-  });
-}
 
-function switchTerminal(terminalId) {
-  currentTerminalId = terminalId;
-  localStorage.setItem("currentTerminalId", terminalId);
-  updateTerminalDisplay();
-  loadCloudConfig();
-}
-
-function updateTerminalDisplay() {
-  document.querySelectorAll(".configId").forEach((el) => {
-    el.textContent = currentTerminalId;
-  });
-  trickAnimation();
-}
-
-async function loadCloudConfig() {
-  try {
-    const terminalId = localStorage.getItem("currentTerminalId");
-    if (terminalId == null) {
-      throw new Error("您尚未选择终端，请选择/创建一个终端");
-    }
-    const response = await fetch(`?action=load&terminalId=${encodeURIComponent(terminalId)}`);
-    const config = await response.text();
-    importFileFromStr(config);
-
-    // 加载共享配置
-    const shareResponse = await fetch(`function.php?action=getSpaceConfig&terminalId=${encodeURIComponent(terminalId)}`);
-    if (shareResponse.ok) {
-      const shareData = await shareResponse.json();
-      updateShareUI(shareData.config);
-    }
-
-    initializeSettings();
-  } catch (error) {
-    alert("加载配置" + error);
-  }
-}
-
+// 共享空间 - 尚未开始继续开发
 function updateShareUI(config) {
   return;
 
@@ -151,9 +136,6 @@ function updateShareUI(config) {
   // 更新UI显示状态
   toggleShareSettings();
 }
-
-// 共享空间
-
 // 显示/隐藏共享设置
 function toggleShareSettings() {
   const enabled = document.getElementById('share-switch').checked;

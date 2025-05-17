@@ -1,9 +1,9 @@
 <?php
 class user
 {
-    public static function getDir($userId, $recursive = true)
+    public static function getDir($userId, $recursive = true, $onlyId = false)
     {
-        $mappingFile = $GLOBALS['RUNDIR'] . '/user/' . $GLOBALS['ENCYC'] . '.json';
+        $mappingFile = $GLOBALS['RUNDIR'] . 'user/' . $GLOBALS['ENCYC'] . '.json';
         $mappings = [];
         if (file_exists($mappingFile)) {
             $mappings = json_decode(file_get_contents($mappingFile), true) ?: [];
@@ -15,10 +15,14 @@ class user
             $randomDir = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, 10);
             $mappings[$userId] = $randomDir;
             file_put_contents($mappingFile, json_encode($mappings));
-            mkdir($GLOBALS['RUNDIR'] . '/user/' . $randomDir, 0755, $recursive);
+            mkdir($GLOBALS['RUNDIR'] . 'user/' . $randomDir, 0755, $recursive);
         }
 
-        $userDir = $GLOBALS['RUNDIR'] . '/user/' . $mappings[$userId];
+        if ($onlyId) {
+            return $mappings[$userId];
+        }
+
+        $userDir = $GLOBALS['RUNDIR'] . 'user/' . $mappings[$userId];
         return $userDir;
     }
     public static function debug()
@@ -80,9 +84,9 @@ class user
     public static function getCid()
     {
         $userId = $_SESSION['user']['id'];
-        $mappings = user::getDir($userId);
+        $dir = user::getDir($userId, false, true);
 
-        echo json_encode(['success' => true, 'directoryId' => $mappings[$userId] ?? '']);
+        echo json_encode(['success' => true, 'directoryId' => $dir ?? '']);
         exit;
     }
 }

@@ -54,12 +54,12 @@
       });
     }
     if (hasLogin) {
-      getDirectoryAndTerminal();
+      terminal.init();
       document.querySelectorAll(".offline").forEach((element) => {
         element.style.display = "none";
       });
     } else {
-      showView("schedule");
+      activityBar.toggle("schedule");
     }
   });
 
