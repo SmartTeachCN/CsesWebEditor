@@ -43,7 +43,7 @@
         + 添加课时
       </fluent-button>
       <fluent-select
-        onchange="quickSetSubject(this.value)"
+        onchange="schedule.setSubject(this.value)"
         id="current-subject"
         style="width: 150px"
       ></fluent-select>
@@ -51,12 +51,12 @@
       <input
         type="time"
         class="time-input"
-        onchange="quickSetTime(currentClassIndex)"
+        onchange="schedule.setTime(currentClassIndex)"
       />
       <input
         type="time"
         class="time-input"
-        onchange="quickSetTime(currentClassIndex)"
+        onchange="schedule.setTime(currentClassIndex)"
       />
     </div>
   </div>

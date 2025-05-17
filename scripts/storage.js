@@ -169,6 +169,7 @@ const file = {
   },
   importS(str, showNotice = false) {
     if (!str) return;
+    console.log("导入数据:");
     try {
       data = [];
       let source;
@@ -195,11 +196,11 @@ const file = {
         throw new Error("未知的文件类型");
       }
 
-      if (data.success == false) {
+      if (data?.success == false) {
         throw new Error("当前终端可能已被移除，请重新点击左侧按钮打开");
       }
-
       console.log(data);
+
       console.log("导入格式:" + format);
 
       tempData = data;

@@ -39,8 +39,8 @@ function CiToCsesFromat(target) {
         time_layout_uuid: classPlan.TimeLayoutId, // 添加TimeLayout的uuid
         name: timeLayout.Name,
         enable_day: classPlan.TimeRule.WeekDay == 0 ? 7 : classPlan.TimeRule.WeekDay,
-        weeks: classPlan.TimeRule.WeekCountDiv === 2 ? "even" : 
-               classPlan.TimeRule.WeekCountDiv === 1 ? "odd" : "all",
+        weeks: classPlan.TimeRule.WeekCountDiv === 2 ? "even" :
+          classPlan.TimeRule.WeekCountDiv === 1 ? "odd" : "all",
         classes: [],
       };
 
@@ -49,8 +49,11 @@ function CiToCsesFromat(target) {
         const subjectName = subjectMap[layout.DefaultClassId];
         if (subjectName && layout.TimeType === 0) {
           // 处理时间格式并转换
-          const startTime = new Date(layout.StartSecond);
-          const endTime = new Date(layout.EndSecond);
+          const defaultTime = new Date('2025-01-01T00:00:00');
+          let startTime = new Date(layout.StartSecond || defaultTime);
+          let endTime = new Date(layout.EndSecond || defaultTime);
+          if (startTime == "Invalid Date") startTime = defaultTime;
+          if (endTime == "Invalid Date") endTime = defaultTime;
           startTime.setHours(startTime.getHours() + 8);
           endTime.setHours(endTime.getHours() + 8);
 
@@ -65,7 +68,8 @@ function CiToCsesFromat(target) {
     }
     return outputJson;
   } catch (error) {
-    alert(error);
+    console.error('Error in CiToCsesFromat:', error);
+    alert(`Error: ${error.message}\nLocation: ${error.stack}`);
   }
 }
 
@@ -109,8 +113,8 @@ function CsestoCiFromat(target) {
         TimeLayoutId: timeLayoutId,
         TimeRule: {
           WeekDay: schedule.enable_day == 7 ? 0 : schedule.enable_day,
-          WeekCountDiv: schedule.weeks === "even" ? 2 : 
-                        schedule.weeks === "odd" ? 1 : 0,
+          WeekCountDiv: schedule.weeks === "even" ? 2 :
+            schedule.weeks === "odd" ? 1 : 0,
           WeekCountDivTotal: (schedule.weeks === "even" || schedule.weeks === "odd") ? 2 : 0,
           IsActive: false,
         },
@@ -158,8 +162,9 @@ function isCiFormat(obj) {
     // 检查是否是对象
     if (typeof obj !== "object" || obj === null) false;
     // 检查 TimeLayouts
-    if (typeof obj.TimeLayouts !== "object" || obj.TimeLayouts === null)
+    if (typeof obj.TimeLayouts !== "object" || obj.TimeLayouts === null) {
       return false;
+    }
 
     for (const timeLayoutId in obj.TimeLayouts) {
       const timeLayout = obj.TimeLayouts[timeLayoutId];
@@ -173,6 +178,7 @@ function isCiFormat(obj) {
         if (typeof layout.TimeType !== "number") return false;
       }
     }
+
     // ClassPlans
     if (typeof obj.ClassPlans !== "object" || obj.ClassPlans === null)
       return false;
@@ -182,7 +188,7 @@ function isCiFormat(obj) {
       if (typeof classPlan.TimeLayoutId !== "string") return false;
       if (typeof classPlan.TimeRule !== "object" || classPlan.TimeRule === null)
         return false;
-      if (typeof classPlan.TimeRule.WeekDay !== "number") return false;
+      // if (typeof classPlan.TimeRule.WeekDay !== "number") return false;
       if (typeof classPlan.TimeRule.WeekCountDiv !== "number") return false;
       if (!Array.isArray(classPlan.Classes)) return false;
       for (const cls of classPlan.Classes) {

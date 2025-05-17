@@ -71,8 +71,9 @@ document.addEventListener("keydown", (e) => {
 
 // 在资源管理器中移动项目
 function moveExplorerItem(direction) {
-  const currentView = "";
+  let currentView = "";
   const currentView2 = document.getElementById('explorerB').activeid;
+  console.log(currentView2);
   if (currentView2 === "scheduleB") {
     currentView = "schedule";
   } else if (currentView2 === "subjectB") {
@@ -81,6 +82,7 @@ function moveExplorerItem(direction) {
   const items = Array.from(
     document.querySelectorAll(`#${currentView}-list .explorer-item`)
   );
+  const activeItem = document.querySelector(`#${currentView}-list .selected`);
   const currentIndex = items.indexOf(activeItem);
   const newIndex = currentIndex + direction;
   if (newIndex >= 0 && newIndex < items.length) {

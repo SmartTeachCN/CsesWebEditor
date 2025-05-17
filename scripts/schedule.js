@@ -135,7 +135,7 @@ const schedule = {
       const btn = document.createElement("fluent-button");
       btn.appearance = "stealth";
       btn.textContent = s.name;
-      btn.addEventListener("click", () => quickSetSubject(s.name));
+      btn.addEventListener("click", () => this.setSubject(s.name));
       grid.appendChild(btn);
     });
   },
@@ -145,7 +145,7 @@ const schedule = {
     const selectedWeekMode = Object.keys(this.weekMap).find(
       (key) => this.weekMap[key] === weekMode
     );
-    const selectedDayMode = Object.keys(dayMap).find(
+    const selectedDayMode = Object.keys(this.dayMap).find(
       (key) => this.dayMap[key] === dayMode
     );
     const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
@@ -208,7 +208,7 @@ const schedule = {
     alert(
       `<b>提示:</b> 本功能将会自动填充当前课程表中的所有课程，您可以在下方选择填充的科目。
   <br>
-  <fluent-button appearance="accent" onclick="this.fastFill()">批量添加通用周星期一~星期日</fluent-button>
+  <fluent-button appearance="accent" onclick="schedule.fastFill()">批量添加通用周星期一~星期日</fluent-button>
   `,
       "快速填充课程表"
     );

@@ -78,6 +78,7 @@ const activityBar = {
         location.href = "#";
         document.getElementsByClassName("editor-area")[0].style.display = "block";
       }
+      console.log("source" + localStorage.getItem("output-mode"));
     } else if (view === "cloud") {
       if (!hasLogin) {
         this.toggle("schedule");
