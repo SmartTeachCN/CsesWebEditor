@@ -1,21 +1,3 @@
-function toggleEditor() {
-    const editorArea = document.querySelector(".editor-area");
-    const explorer = document.querySelector(".explorer");
-    const activityBar = document.querySelector(".activity-bar");
-    editorArea.style.display = "block";
-    explorer.style.display = "none";
-    activityBar.style.display = "none";
-}
-
-function toggleExplorer() {
-    const explorer = document.querySelector(".explorer");
-    const editorArea = document.querySelector(".editor-area");
-    const activityBar = document.querySelector(".activity-bar");
-    explorer.style.display = "block";
-    editorArea.style.display = "none";
-    activityBar.style.display = "block";
-}
-
 function showModal(content) {
     const modal = document.createElement("fluent-dialog");
     modal.setAttribute("trap-focus", "");
