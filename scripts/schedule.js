@@ -191,11 +191,25 @@ const schedule = {
             subjectSelector.appendChild(button);
           });
 
-          const rect = td.getBoundingClientRect();
-          subjectSelector.style.display = 'flex';
-          subjectSelector.style.left = rect.left + 'px';
-          subjectSelector.style.top = (rect.bottom + 5) + 'px';
-          subjectSelector.style.maxWidth = '200px';
+            const rect = td.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            subjectSelector.style.display = 'flex';
+            let left = rect.left;
+            let top = rect.bottom + 5;
+            
+            if (left + 200 > viewportWidth) {
+            left = viewportWidth - 200;
+            }
+            
+            if (top + subjectSelector.offsetHeight > viewportHeight) {
+            top = rect.top - subjectSelector.offsetHeight - 5;
+            }
+            
+            subjectSelector.style.left = Math.max(0, left) + 'px';
+            subjectSelector.style.top = Math.max(0, top) + 'px';
+            subjectSelector.style.maxWidth = '200px';
         });
 
         row.appendChild(td);
