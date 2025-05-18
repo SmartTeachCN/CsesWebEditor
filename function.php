@@ -15,7 +15,7 @@ session_start();
 
 // 用户登录
 if (isset($_GET['code'])) {
-  $accessToken = user::handleLogin($$_GET['code']);
+  $accessToken = user::handleLogin($_GET['code']);
   header('Location: /');
   exit;
 }
