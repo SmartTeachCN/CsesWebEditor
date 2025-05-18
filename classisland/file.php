@@ -9,7 +9,7 @@ $filePath = "../user/" . $_GET['id'] . '.cses';
 
 // 检查文件是否存在
 if (!file_exists($filePath)) {
-    die(json_encode(['error' => 'File not found'], JSON_PRETTY_PRINT));
+    die(json_encode(['error' => 'File not found：'.$filePath], JSON_PRETTY_PRINT));
 }
 
 // 获取文件内容
@@ -27,7 +27,7 @@ $jsonData = json_decode($fileContent, true);
 $requestedKey = isset($_GET['key']) ? $_GET['key'] : null;
 
 // 检查请求的键是否有效
-$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts', 'Policy'];
+$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts', 'Policy', 'Settings'];
 if ($requestedKey && !in_array($requestedKey, $validKeys)) {
     die(json_encode(['error' => 'Invalid key parameter. Valid keys are: Subjects, ClassPlans, TimeLayouts'], JSON_PRETTY_PRINT));
 }

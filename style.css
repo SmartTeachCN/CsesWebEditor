@@ -65,7 +65,7 @@ body {
 }
 
 .pageTitle {
-  border-bottom: rgba(220, 220, 220, .5) solid 1px;
+  border-bottom: rgba(220, 220, 220, 0.5) solid 1px;
   padding: 8px 10px 10px 10px;
   margin-bottom: 5px;
 }
@@ -120,7 +120,7 @@ body {
   gap: 2px;
 }
 
-.activity-bar>button {
+.activity-bar > button {
   display: flex;
   background-color: transparent;
   flex-direction: column;
@@ -132,16 +132,16 @@ body {
   gap: 2px;
 }
 
-.activity-bar>button>i {
+.activity-bar > button > i {
   font-size: 20px;
   width: 100%;
 }
 
-.activity-bar>button:hover {
+.activity-bar > button:hover {
   background-color: #dadadab4;
 }
 
-.activity-bar>button.selected {
+.activity-bar > button.selected {
   background-color: #dadada8f;
 }
 
@@ -157,7 +157,7 @@ body {
   margin-left: -16.5px;
 }
 
-.activity-bar>button:active::before {
+.activity-bar > button:active::before {
   content: "";
   display: block;
   position: absolute;
@@ -169,7 +169,7 @@ body {
   margin-left: -16.5px;
 }
 
-.activity-bar>button:focus {
+.activity-bar > button:focus {
   box-shadow: none;
 }
 
@@ -339,7 +339,7 @@ fluent-text-field {
   z-index: 1;
 }
 
-#mobile-bottomBar>button {
+#mobile-bottomBar > button {
   display: flex;
   background-color: transparent;
   flex-direction: column;
@@ -350,16 +350,16 @@ fluent-text-field {
   text-align: center;
 }
 
-#mobile-bottomBar>button>i {
+#mobile-bottomBar > button > i {
   font-size: 20px;
   width: 100%;
 }
 
-#mobile-bottomBar>button:hover {
+#mobile-bottomBar > button:hover {
   background-color: #dadadab4;
 }
 
-#mobile-bottomBar>button.selected {
+#mobile-bottomBar > button.selected {
   background-color: #dadada8f;
 }
 
@@ -375,7 +375,7 @@ fluent-text-field {
   margin-left: 13.5px;
 }
 
-#mobile-bottomBar>button:active::before {
+#mobile-bottomBar > button:active::before {
   content: "";
   display: block;
   position: absolute;
@@ -387,7 +387,7 @@ fluent-text-field {
   margin-left: 17px;
 }
 
-#mobile-bottomBar>button:focus {
+#mobile-bottomBar > button:focus {
   box-shadow: none;
 }
 
@@ -416,7 +416,6 @@ fluent-text-field {
 
 .settings-card .title {
   font-size: 15px;
-  color: #000;
 }
 
 .settings-card .description {
@@ -562,4 +561,58 @@ fluent-text-field {
 
 #webTitle {
   margin: 0;
+}
+
+.darkmode--activated .activity-bar,
+.darkmode--activated #mobile-bottomBar {
+  background-color: #0c0c0c;
+  color: white;
+}
+
+.darkmode--activated #mobile-bottomBar {
+  border-color: #151515;
+}
+
+.darkmode--activated button,
+.darkmode--activated select,
+.darkmode--activated textarea {
+  color: white;
+}
+
+.darkmode--activated .activity-bar > button.selected,
+.darkmode--activated fluent-listbox fluent-option.selected,
+ .darkmode--activated #mobile-bottomBar > button.selected {
+  background-color: #3333338f;
+}
+
+.darkmode--activated .activity-bar > button:hover,
+.darkmode--activated fluent-listbox fluent-option:hover,
+.darkmode--activated #mobile-bottomBar > button:hover {
+  background-color: #28282863;
+}
+
+.darkmode--activated .topbarBtnGroup > button,
+.pageTitle > button {
+  color: black;
+}
+
+.darkmode--activated fluent-dialog {
+  color: white;
+}
+
+.darkmode--activated fluent-tab-panel .settings-card {
+  background-color: #000;
+  border-color: #151515;
+  color: white;
+}
+
+.darkmode--activated .activity-bar .selected::before,
+.darkmode--activated #mobile-bottomBar .selected::before {
+  background: rgb(96, 201, 252);
+}
+
+.darkmode--activated .subject-selector2 {
+  background-color: #000!important;
+  color: white;
+  border-color: #151515!important;
 }

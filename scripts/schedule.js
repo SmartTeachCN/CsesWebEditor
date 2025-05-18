@@ -28,15 +28,36 @@ const schedule = {
   init() {
     const container = document.getElementById("schedule-list");
     container.innerHTML = "";
+    const div = document.createElement("fluent-option");
+    div.className = "explorer-item";
+    div.innerHTML = `<i class="bi bi-table"></i> 表格视图`;
+    div.addEventListener("click", () => {
+      document.getElementById(`schedule-editor`).style.display = "none";
+      document.getElementById(`subject-editor`).style.display = "none";
+      document.getElementById(`source-editor`).style.display = "none";
+      document.getElementById(`change-editor`).style.display = "block";
+      if (checkDeviceType()) {
+        location.href = "#schedule-editor";
+        document.getElementById("change-editor").style.display = "block";
+        document.getElementsByClassName("explorer")[0].style.display = "none";
+        document.getElementsByClassName("editor-area")[0].style.display = "block";
+      }
+      this.view(this.viewMode);
+    });
+    if (currentScheduleIndex == -1) {
+      div.classList.add("selected");
+      div.setAttribute("aria-selected", "true");
+    }
+    container.appendChild(div);
     currentData.schedules.forEach((schedule2, index) => {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
       const weekMode = schedule2.weeks;
       const dayMode = schedule2.enable_day;
-      div.textContent =
+      div.innerHTML = 
         this.weekMap[weekMode] && this.dayMap[dayMode]
-          ? this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
-          : `无规则计划 ${index + 1}`;
+          ? `<i class="bi bi-calendar3-week"></i>&nbsp;` + this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
+          : `<i class="bi bi-calendar3-week"></i>&nbsp;` + `无规则计划 ${index + 1}`;
       div.addEventListener("click", () => {
         this.load(index);
         document
@@ -68,7 +89,184 @@ const schedule = {
       container.appendChild(div);
     });
   },
+  viewMode: "odd",
+  view(viewMode = 'odd') {
+    this.viewMode = viewMode;
+    const viewtable = document.getElementById("change-table");
+    viewtable.innerHTML = "";
+    const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const schedules = currentData.schedules;
+
+    if (!schedules || schedules.length === 0) return;
+
+    const table = document.createElement("table");
+    table.className = "preview-table";
+
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    days.forEach(day => {
+      const th = document.createElement("th");
+      th.textContent = day;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    const dailyClasses = days.map((_, dayIndex) => {
+      const matchingSchedules = schedules
+        .filter(s => s.enable_day === (dayIndex + 1))
+        .filter(schedule => {
+          if (viewMode === 'odd' && schedule.weeks === 'odd') return true;
+          if (viewMode === 'even' && schedule.weeks === 'even') return true;
+          if (schedule.weeks === 'all') return true;
+          return false;
+        });
+
+      const lastSchedule = matchingSchedules[matchingSchedules.length - 1];
+      return {
+        classes: lastSchedule ? [...lastSchedule.classes].sort((a, b) =>
+          a.start_time.localeCompare(b.start_time)) : [],
+        scheduleIndex: schedules.indexOf(lastSchedule)
+      };
+    });
+
+    const maxClassesPerDay = Math.max(...dailyClasses.map(day => day.classes.length));
+
+    const subjectSelector = document.createElement('div');
+    subjectSelector.className = 'subject-selector2';
+    subjectSelector.style.cssText = `
+      position: fixed;
+      display: none;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+    `;
+    document.body.appendChild(subjectSelector);
+
+    for (let classIndex = 0; classIndex < maxClassesPerDay; classIndex++) {
+      const row = document.createElement("tr");
+
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const td = document.createElement("td");
+        const dayData = dailyClasses[dayIndex];
+        const classData = dayData.classes[classIndex];
+
+        td.textContent = classData ? classData.subject : '';
+
+        td.addEventListener('click', (e) => {
+          e.target.style.backgroundColor = '#f0f0f0';
+          document.querySelectorAll('#selected-cell').forEach(cell => {
+            if (cell !== e.target) {
+              cell.style.backgroundColor = '';
+              cell.id = '';
+            }
+          });
+          e.target.id = 'selected-cell';
+
+          if (dayData.scheduleIndex === -1) return;
+
+          subjectSelector.innerHTML = '';
+          currentData.subjects.forEach(subject => {
+            const button = document.createElement('fluent-button');
+            button.appearance = 'stealth';
+            button.textContent = subject.name;
+            button.addEventListener('click', () => {
+              const schedule = currentData.schedules[dayData.scheduleIndex];
+              const classIndex = schedule.classes.indexOf(classData);
+              if (classIndex !== -1) {
+                schedule.classes[classIndex].subject = subject.name;
+                td.textContent = subject.name;
+                storage.save();
+              }
+              subjectSelector.style.display = 'none';
+              e.target.style.backgroundColor = '';
+            });
+            subjectSelector.appendChild(button);
+          });
+
+          const rect = td.getBoundingClientRect();
+          subjectSelector.style.display = 'flex';
+          subjectSelector.style.left = rect.left + 'px';
+          subjectSelector.style.top = (rect.bottom + 5) + 'px';
+          subjectSelector.style.maxWidth = '200px';
+        });
+
+        row.appendChild(td);
+      }
+
+      tbody.appendChild(row);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!subjectSelector.contains(e.target) && !e.target.closest('td')) {
+        subjectSelector.style.display = 'none';
+        document.querySelectorAll('#selected-cell').forEach(cell => {
+          if (cell !== e.target) {
+            cell.style.backgroundColor = '';
+            cell.id = '';
+          }
+        });
+      }
+    });
+
+    table.appendChild(tbody);
+    viewtable.appendChild(table);
+  },
+  quickPanel() {
+    const grid = document.querySelector(".subject-grid");
+    grid.innerHTML = "";
+
+    currentData.subjects.forEach((s) => {
+      const btn = document.createElement("fluent-button");
+      btn.appearance = "stealth";
+      btn.textContent = s.name;
+      btn.addEventListener("click", () => this.setSubject(s.name));
+      grid.appendChild(btn);
+    });
+  },
+  save() {
+    const weekMode = document.getElementById("week-mode").value ?? "all";
+    const dayMode = document.getElementById("day-mode").value ?? "1";
+    const selectedWeekMode = Object.keys(this.weekMap).find(
+      (key) => this.weekMap[key] === weekMode
+    );
+    const selectedDayMode = Object.keys(this.dayMap).find(
+      (key) => this.dayMap[key] === dayMode
+    );
+    const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
+      }_${this.dayMap_Full[dayMode]}`;
+    currentData.schedules[currentScheduleIndex].name = scheduleName;
+    currentData.schedules[currentScheduleIndex].enable_day = parseInt(
+      dayMode,
+      10
+    );
+    currentData.schedules[currentScheduleIndex].weeks = weekMode;
+    storage.save();
+    this.init();
+  },
+  del(index) {
+    currentData.schedules[currentScheduleIndex].classes.splice(index, 1);
+    storage.save();
+    this.refresh();
+  },
+  add() {
+    const newSchedule = {
+      name: "无规则计划",
+      classes: [],
+    };
+    currentData.schedules.push(newSchedule);
+    storage.save();
+    this.init();
+  },
   load(index) {
+    document.getElementById(`change-editor`).style.display = "none";
     document.getElementById(`schedule-editor`).style.display = "block";
     document.getElementById(`subject-editor`).style.display = "none";
     document.getElementById(`source-editor`).style.display = "none";
@@ -126,52 +324,6 @@ const schedule = {
     if (currentData.schedules[currentScheduleIndex].classes.length === 0) {
       listbox.innerHTML = "<fluent-option>暂无课程，点击下方添加</fluent-option>";
     }
-  },
-  quickPanel() {
-    const grid = document.querySelector(".subject-grid");
-    grid.innerHTML = "";
-
-    currentData.subjects.forEach((s) => {
-      const btn = document.createElement("fluent-button");
-      btn.appearance = "stealth";
-      btn.textContent = s.name;
-      btn.addEventListener("click", () => this.setSubject(s.name));
-      grid.appendChild(btn);
-    });
-  },
-  save() {
-    const weekMode = document.getElementById("week-mode").value ?? "all";
-    const dayMode = document.getElementById("day-mode").value ?? "1";
-    const selectedWeekMode = Object.keys(this.weekMap).find(
-      (key) => this.weekMap[key] === weekMode
-    );
-    const selectedDayMode = Object.keys(this.dayMap).find(
-      (key) => this.dayMap[key] === dayMode
-    );
-    const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
-      }_${this.dayMap_Full[dayMode]}`;
-    currentData.schedules[currentScheduleIndex].name = scheduleName;
-    currentData.schedules[currentScheduleIndex].enable_day = parseInt(
-      dayMode,
-      10
-    );
-    currentData.schedules[currentScheduleIndex].weeks = weekMode;
-    storage.save();
-    this.init();
-  },
-  del(index) {
-    currentData.schedules[currentScheduleIndex].classes.splice(index, 1);
-    storage.save();
-    this.refresh();
-  },
-  add() {
-    const newSchedule = {
-      name: "无规则计划",
-      classes: [],
-    };
-    currentData.schedules.push(newSchedule);
-    storage.save();
-    this.init();
   },
   addClass() {
     currentData.schedules[currentScheduleIndex].classes.push({

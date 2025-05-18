@@ -26,7 +26,7 @@ const terminal = {
                 const option = document.createElement("fluent-option");
                 option.value = t;
                 option.className = "explorer-item";
-                option.textContent = t;
+                option.innerHTML = `<i class="bi bi-terminal"></i>&nbsp;` + t;
                 option.onclick = () => {
                   terminal.load(option.value);
                 };

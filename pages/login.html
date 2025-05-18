@@ -8,7 +8,7 @@
                     点击“确认”清除登录痕迹`,
       (r) => {
         if (r) {
-          location.href = './?action=logout';
+          location.href = "./?action=logout";
         }
       }
     );
@@ -33,7 +33,8 @@
       if (noNotice) return;
       if (result.success) {
         // alert("配置保存成功！");
-        saveButton.innerHTML = "<i class='bi bi-check-circle'></i>&nbsp;保存成功";
+        saveButton.innerHTML =
+          "<i class='bi bi-check-circle'></i>&nbsp;保存成功";
         clearTimeout(tid);
         tid = setTimeout(() => {
           saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;

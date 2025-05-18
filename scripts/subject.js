@@ -31,7 +31,7 @@ const subjects = {
     currentData.subjects.forEach((subject, index) => {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
-      div.textContent = subject.name;
+      div.innerHTML = `<i class="bi bi-bookmark-dash"></i>&nbsp;` + subject.name;
       div.addEventListener("click", () => {
         document
           .querySelectorAll(".explorer-item")

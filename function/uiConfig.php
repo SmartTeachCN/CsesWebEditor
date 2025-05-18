@@ -8,7 +8,8 @@ class uiConfig
             'schedule' => ['display' => 'none'],
             'source' => ['display' => 'none'],
             'control' => ['display' => 'none'],
-            'subject' => ['display' => 'none']
+            'subject' => ['display' => 'none'],
+            'change' => ['display' => 'none']
         ];
     }
     public static function leftBar()
