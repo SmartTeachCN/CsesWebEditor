@@ -78,7 +78,7 @@ function showLoading() {
 function closeLoading() {
   const saveButton = document.getElementById("save-button");
   saveButton.disabled = false;
-    saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
+  saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
   // if (loadingInstance) {
   //   // 关闭模态框
   //   loadingInstance.style.display = 'none';
@@ -104,10 +104,10 @@ window.fetch = async function (...args) {
     return response;
   } finally {
     if (shouldShowLoading) {
-      setTimeout(() => {
-        closeLoading();
-      }, 1000); // 延迟关闭加载动画
-      // closeLoading();
+      // setTimeout(() => {
+      //   closeLoading();
+      // }, 1000); // 延迟关闭加载动画
+      closeLoading();
     }
   }
 };
