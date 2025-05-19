@@ -45,45 +45,63 @@ style.sheet.insertRule(`
 let loadingInstance = null;
 
 // 动态创建模态框
-function createLoadingModal() {
+function createLoadingModal(text) {
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'loadingModal';
 
   const modalContent = document.createElement('div');
   modalContent.className = 'modal-content';
+  modalContent.style.display = 'flex';
+  modalContent.style.flexFlow = 'column';
+  modalContent.style.gap = '12px';
 
   const spinner = document.createElement('div');
   spinner.className = 'spinner';
 
+  const loadingText = document.createElement('span');
+  loadingText.style.color = 'white';
+  loadingText.style.height = '100%';
+  loadingText.textContent = text || '正在加载...';
+
   modalContent.appendChild(spinner);
+  modalContent.appendChild(loadingText);
   modal.appendChild(modalContent);
 
   document.body.appendChild(modal);
   return modal;
 }
 
-function showLoading() {
-  const saveButton = document.getElementById("save-button");
-  saveButton.disabled = true;
-  saveButton.innerHTML = "<i class='bi bi-arrow-clockwise' style='display: inline-block; animation: spin 1s linear infinite'></i>&nbsp;正在加载";
-  // if (!loadingInstance) {
-  //   // 如果实例不存在，创建并显示
-  //   const modal = createLoadingModal();
-  //   modal.style.display = 'flex';
-  //   loadingInstance = modal;
-  // }
+function showLoading(mode = 1) {
+  if (mode === 1) {
+    const saveButton = document.getElementById("save-button");
+    saveButton.disabled = true;
+    saveButton.innerHTML = "<i class='bi bi-arrow-clockwise' style='display: inline-block; animation: spin 1s linear infinite'></i>&nbsp;正在加载";
+  } else if (mode === 2) {
+    if (!loadingInstance) {
+      // 如果实例不存在，创建并显示
+      const modal = createLoadingModal('正在下载配置');
+      modal.style.display = 'flex';
+      loadingInstance = modal;
+    }
+  }
+
 }
 
-function closeLoading() {
+function closeLoading(mode = 1) {
+  if (mode === 1) {
+    const saveButton = document.getElementById("save-button");
+    saveButton.disabled = false;
+    saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
+  } else if (mode === 2) {
+    if (loadingInstance) {
+      loadingInstance.style.display = 'none';
+      loadingInstance = null;
+    }
+  }
   const saveButton = document.getElementById("save-button");
   saveButton.disabled = false;
   saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
-  // if (loadingInstance) {
-  //   // 关闭模态框
-  //   loadingInstance.style.display = 'none';
-  //   loadingInstance = null;
-  // }
 }
 
 // 拦截 fetch 请求

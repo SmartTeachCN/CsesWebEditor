@@ -3,6 +3,8 @@ let directoryId = null;
 
 const terminal = {
   init() {
+    const select = document.getElementById("cloud-list");
+    select.innerHTML = "<center style='margin: 20px;'>正在加载终端列表...</center>";
     fetch(`./?action=getId`)
       .then((response) => response.json())
       .then((data) => {
@@ -19,8 +21,7 @@ const terminal = {
                 this.updateTag();
                 this.controlLoad();
               }
-              const terminals = d.terminals;
-              const select = document.getElementById("cloud-list");
+              const terminals = d.terminals; 
               select.innerHTML = "";
               terminals.forEach((t) => {
                 const option = document.createElement("fluent-option");
@@ -53,6 +54,7 @@ const terminal = {
       if (terminalId == null) {
         throw new Error("您尚未选择终端，请选择/创建一个终端");
       }
+      showLoading(2);
       const response = await fetch(`?action=load&terminalId=${encodeURIComponent(terminalId)}`);
       const config = await response.text();
       file.importS(config);
@@ -65,6 +67,7 @@ const terminal = {
       // }
 
       controlMgr.init();
+      closeLoading(2);
     } catch (error) {
       alert("加载配置" + error);
     }
