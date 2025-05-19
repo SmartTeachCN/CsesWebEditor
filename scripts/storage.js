@@ -9,6 +9,10 @@ const storage = {
   init() {
     const saved = localStorage.getItem("csesData");
     if (saved) currentData = JSON.parse(saved);
+    if (currentData.version == undefined) {
+      currentData.version = 1;
+      localStorage.setItem("csesData", currentData);
+    }
   },
   save() {
     localStorage.setItem("csesData", JSON.stringify(currentData));
