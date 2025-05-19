@@ -71,7 +71,7 @@ function createLoadingModal(text) {
   return modal;
 }
 
-function showLoading(mode = 1) {
+function showLoading(mode = 1, text = '正在下载配置') {
   if (mode === 1) {
     const saveButton = document.getElementById("save-button");
     saveButton.disabled = true;
@@ -79,7 +79,7 @@ function showLoading(mode = 1) {
   } else if (mode === 2) {
     if (!loadingInstance) {
       // 如果实例不存在，创建并显示
-      const modal = createLoadingModal('正在下载配置');
+      const modal = createLoadingModal(text);
       modal.style.display = 'flex';
       loadingInstance = modal;
     }

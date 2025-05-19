@@ -3,6 +3,7 @@ let directoryId = null;
 
 const terminal = {
   init() {
+    showLoading(2, "正在拉取列表");
     const select = document.getElementById("cloud-list");
     select.innerHTML = "<center style='margin: 20px;'>正在加载终端列表...</center>";
     fetch(`function.php?action=getId`)
@@ -13,32 +14,37 @@ const terminal = {
             el.textContent = data.directoryId;
           });
           directoryId = data.directoryId;
-          fetch(`function.php?action=listTerminals`)
-            .then((r) => r.json())
-            .then((d) => {
-              if (d.success && d.terminals.length > 0) {
-                if (!currentTerminalId) currentTerminalId = d.terminals[0];
-                this.updateTag();
-                this.controlLoad();
-              }
-              const terminals = d.terminals; 
-              select.innerHTML = "";
-              terminals.forEach((t) => {
-                const option = document.createElement("fluent-option");
-                option.value = t;
-                option.className = "explorer-item";
-                option.innerHTML = `<i class="bi bi-terminal"></i>&nbsp;` + t;
-                option.onclick = () => {
-                  terminal.load(option.value);
-                };
-                option.addEventListener("contextmenu", (e) => {
-                  e.preventDefault();
-                  terminal.delUI(option.value);
+          setTimeout(() => {
+            fetch(`function.php?action=listTerminals`)
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.success && d.terminals.length > 0) {
+                  if (!currentTerminalId) currentTerminalId = d.terminals[0];
+                  this.updateTag();
+                  setTimeout(() => {
+                    this.controlLoad();
+                  }, 1000)
+                }
+                const terminals = d.terminals;
+                select.innerHTML = "";
+                terminals.forEach((t) => {
+                  const option = document.createElement("fluent-option");
+                  option.value = t;
+                  option.className = "explorer-item";
+                  option.innerHTML = `<i class="bi bi-terminal"></i>&nbsp;` + t;
+                  option.onclick = () => {
+                    terminal.load(option.value);
+                  };
+                  option.addEventListener("contextmenu", (e) => {
+                    e.preventDefault();
+                    terminal.delUI(option.value);
+                  });
+                  select.appendChild(option);
                 });
-                select.appendChild(option);
+                if (terminals.length > 0) select.value = currentTerminalId;
               });
-              if (terminals.length > 0) select.value = currentTerminalId;
-            });
+            closeLoading(2);
+          }, 1000)
         }
       });
   },
@@ -65,9 +71,10 @@ const terminal = {
       //   const shareData = await shareResponse.json();
       //   updateShareUI(shareData.config);
       // }
-
-      controlMgr.init();
-      closeLoading(2);
+      setTimeout(() => {
+        controlMgr.init();
+        closeLoading(2);
+      }, 1000)
     } catch (error) {
       alert("加载配置" + error);
     }
