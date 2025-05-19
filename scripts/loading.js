@@ -60,7 +60,6 @@ function createLoadingModal(text) {
   spinner.className = 'spinner';
 
   const loadingText = document.createElement('span');
-  loadingText.style.color = 'white';
   loadingText.style.height = '100%';
   loadingText.textContent = text || '正在加载...';
 
