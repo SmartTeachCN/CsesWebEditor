@@ -7,7 +7,13 @@ const terminal = {
     const select = document.getElementById("cloud-list");
     select.innerHTML = "<center style='margin: 20px;'>正在加载终端列表...</center>";
     fetch(`function.php?action=getId`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          alert("与服务器建立连接出现问题，确保您已连接网络，等待几分钟后刷新网页重试");
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then((data) => {
         if (data.success) {
           document.querySelectorAll(".directoryId").forEach((el) => {
@@ -16,7 +22,12 @@ const terminal = {
           directoryId = data.directoryId;
           setTimeout(() => {
             fetch(`function.php?action=listTerminals`)
-              .then((r) => r.json())
+              .then((r) => {
+                if (!r.ok) {
+                  throw new Error(`HTTP error! status: ${r.status}`);
+                }
+                return r.json();
+              })
               .then((d) => {
                 if (d.success && d.terminals.length > 0) {
                   if (!currentTerminalId) currentTerminalId = d.terminals[0];
@@ -42,10 +53,22 @@ const terminal = {
                   select.appendChild(option);
                 });
                 if (terminals.length > 0) select.value = currentTerminalId;
+              })
+              .catch(error => {
+                console.error('Error listing terminals:', error);
+                select.innerHTML = "<center style='margin: 20px;'>加载终端列表失败</center>";
               });
             closeLoading(2);
           }, 1000)
+        } else {
+          throw new Error('Failed to get directory ID');
         }
+      })
+      .catch(error => {
+        console.error('Error fetching directory ID:', error);
+        select.innerHTML = "<center style='margin: 20px;'>获取目录ID失败</center>";
+        alert("获取目录ID时出错，稍等几分钟后刷新网页或许能解决问题");
+        closeLoading(2);
       });
   },
   load(terminalId) {
