@@ -124,5 +124,3 @@ function about() {
     <b>项目地址: </b><a href="https://github.com/CSES-org/CsesWebEditor">GitHub</a>
    <b>开放许可: </b>MIT License`);
 }
-
-init();

@@ -5,7 +5,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>CSES云服务</title>
+  <title>CSES Cloud</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=0" />
   <?php include('pages/include.html'); ?>
 </head>
@@ -27,6 +27,9 @@
   </div>
   </div>
   <?php include('pages/login.html'); ?>
+  <script>
+    init();
+  </script>
 </body>
 
 </html>

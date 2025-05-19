@@ -617,7 +617,12 @@ fluent-text-field {
   border-color: #151515!important;
 }
 
+.modal-content {
+    color: black;
+}
+
 .darkmode--activated .modal-content {
     background-color: #000000;
     border: solid 0.2px rgb(115 115 115 / 10%);
+    color: white;
 }
