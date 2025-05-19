@@ -5,7 +5,7 @@ const terminal = {
   init() {
     const select = document.getElementById("cloud-list");
     select.innerHTML = "<center style='margin: 20px;'>正在加载终端列表...</center>";
-    fetch(`./?action=getId`)
+    fetch(`function.php?action=getId`)
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
@@ -13,7 +13,7 @@ const terminal = {
             el.textContent = data.directoryId;
           });
           directoryId = data.directoryId;
-          fetch(`?action=listTerminals`)
+          fetch(`function.php?action=listTerminals`)
             .then((r) => r.json())
             .then((d) => {
               if (d.success && d.terminals.length > 0) {
@@ -55,7 +55,7 @@ const terminal = {
         throw new Error("您尚未选择终端，请选择/创建一个终端");
       }
       showLoading(2);
-      const response = await fetch(`?action=load&terminalId=${encodeURIComponent(terminalId)}`);
+      const response = await fetch(`function.php?action=load&terminalId=${encodeURIComponent(terminalId)}`);
       const config = await response.text();
       file.importS(config);
 
@@ -74,7 +74,7 @@ const terminal = {
   },
   add(a) {
     const newTerminalId = a;
-    fetch("", {
+    fetch("function.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: `terminalId=${encodeURIComponent(newTerminalId)}&config=`,
@@ -87,7 +87,7 @@ const terminal = {
   del(a) {
     try {
       fetch(
-        `?action=del&terminalId=${encodeURIComponent(a)}`
+        `function.php?action=del&terminalId=${encodeURIComponent(a)}`
       );
       terminal.init();
     } catch (error) {

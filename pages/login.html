@@ -33,11 +33,10 @@
       if (noNotice) return;
       if (result.success) {
         // alert("配置保存成功！");
-        saveButton.innerHTML =
-          "<i class='bi bi-check-circle'></i>&nbsp;保存成功";
+        saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-check-circle"></i>&nbsp;保存成功</span><span class="mobile-only"><i class="bi bi-check-circle"></i></span>`;
         clearTimeout(tid);
         tid = setTimeout(() => {
-          saveButton.innerHTML = `<i class="bi bi-cloud-upload"></i>&nbsp;保存配置`;
+          saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>`;
           saveButton.disabled = false;
         }, 1000);
       } else {
