@@ -27,9 +27,6 @@
   </div>
   </div>
   <?php include('pages/login.html'); ?>
-  <script>
-    init();
-  </script>
 </body>
 
 </html>
