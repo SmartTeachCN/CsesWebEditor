@@ -154,7 +154,7 @@ function prompt(message, callback) {
   setTimeout(() => input.focus(), 100);
 }
 
-function showAuthDialog(loginCallback, registerCallback) {
+function showAuthDialog(loginCallback, registerCallback, oauth) {
   const modal = document.createElement("fluent-dialog");
   modal.setAttribute("trap-focus", "");
   modal.style.setProperty("z-index", "1000");
@@ -177,7 +177,7 @@ function showAuthDialog(loginCallback, registerCallback) {
         <fluent-text-field id="login-username" placeholder="用户名" style="width: 100%; margin-bottom: 10px;"></fluent-text-field>
         <fluent-text-field id="login-password" placeholder="密码" type="password" style="width: 100%; margin-bottom: 10px;"></fluent-text-field>
         <div style="display: flex; justify-content: space-between;margin-top:10px">
-            <fluent-button appearance="accent" id="login-submit" style="width: 48%;">登录</fluent-button>
+            <fluent-button appearance="accent" id="login-submit" class="active-submit" style="width: 48%;">登录</fluent-button>
             <fluent-button id="switch-to-register" style="width: 48%;">注册</fluent-button>
         </div>
     `;
@@ -190,7 +190,7 @@ function showAuthDialog(loginCallback, registerCallback) {
         <fluent-text-field id="register-password" placeholder="密码" type="password" style="width: 100%; margin-bottom: 10px;"></fluent-text-field>
         <fluent-text-field id="register-confirm" placeholder="确认密码" type="password" style="width: 100%; margin-bottom: 10px;"></fluent-text-field>
         <div style="display: flex; justify-content: space-between;margin-top:10px">
-            <fluent-button appearance="accent" id="register-submit" style="width: 48%;">注册</fluent-button>
+            <fluent-button appearance="accent" id="register-submit" class="active-submit" style="width: 48%;">注册</fluent-button>
             <fluent-button id="switch-to-login" style="width: 48%;">前往登录</fluent-button>
         </div>
     `;
@@ -199,7 +199,7 @@ function showAuthDialog(loginCallback, registerCallback) {
         <div style="margin: 20px;">
             <div id="auth-form-container">${welcomeFormHTML}</div>
             <div style="text-align:left;margin-top:15px;">
-                <fluent-button id="close-btn" appearance="neutral">智教联盟 授权登录</fluent-button>
+                <fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>
                 <fluent-button id="close-btn" appearance="neutral">本地模式</fluent-button>
             </div>
         </div>
@@ -258,18 +258,21 @@ function showAuthDialog(loginCallback, registerCallback) {
     modal.querySelector("#switch-to-login").onclick = switchToLogin;
   }
 
+  modal.querySelector("#switch-to-login2").onclick = switchToLogin;
+
   // 关闭按钮
   modal.querySelector("#close-btn").onclick = () => {
     modal.hidden = true;
     document.body.removeChild(modal);
   };
 
-  // 默认绑定登录事件
-  bindLoginEvents();
-
   // 键盘监听
-  bindDialogEvents(modal,
-    () => modal.querySelector(".active-submit")?.click(),
-    () => modal.querySelector("#close-btn").click()
-  );
+  // bindDialogEvents(modal,
+  //   () => {
+  //     // 处理 .active-submit
+  //     const active = modal.querySelector(".active-submit");
+  //     if (active) active.click();
+  //   },
+  //   () => modal.querySelector("#close-btn").click()
+  // );
 }
