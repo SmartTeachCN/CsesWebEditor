@@ -76,6 +76,9 @@ const storage = {
       );
       document.getElementById("donwCiCB").style.display = "inline-flex";
     }
+  },
+  getOutputMode() {
+    return localStorage.getItem("output-mode") ?? "cy";
   }
 }
 
@@ -122,18 +125,39 @@ const tool = {
 }
 
 const file = {
+  preview(outputMode) {
+    if (!outputMode) outputMode = localStorage.getItem("output-mode");
+    if (
+      outputMode == "cy" ||
+      outputMode == undefined
+    ) {
+      return jsyaml.dump(currentData);
+    } else if (outputMode == "cj") {
+      return JSON.stringify(
+        currentData,
+        null,
+        2
+      );
+    } else if (outputMode == "ci") {
+      return JSON.stringify(
+        CsestoCiFromat(currentData),
+        null,
+        2
+      );
+    } else if (outputMode == "es") {
+      return JSON.stringify(
+        es_procees(currentData),
+        null,
+        2
+      );
+    }
+  },
   export(noNotice) {
     const outputMode = localStorage.getItem("output-mode") || "cy";
     const cloudFormat = "JSON"; // 云端上传始终使用普通 JSON 格式
     let dataToExport;
 
-    if (outputMode === "ci") {
-      dataToExport = JSON.stringify(CsestoCiFromat(currentData), null, 2);
-    } else if (outputMode === "cj") {
-      dataToExport = JSON.stringify(currentData, null, 2);
-    } else {
-      dataToExport = jsyaml.dump(currentData);
-    }
+    dataToExport = file.preview(outputMode);
 
     if (noNotice) return;
     saveToCloud(dataToExport, cloudFormat, noNotice);
@@ -151,7 +175,7 @@ const file = {
       a.download = "file.json";
       a.click();
       URL.revokeObjectURL(url);
-    } else if (localStorage.getItem("output-mode") == "cj") {
+    } else if (localStorage.getItem("output-mode") == "cj" || localStorage.getItem(("output-mode") == "es")) {
       const Str = JSON.stringify(currentData, null, 2);
       const blob = new Blob([Str], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -188,6 +212,9 @@ const file = {
         data = CiToCsesFromat(JSON.parse(source));
         format = "ClassIsland课表档案";
         format2 = "ci";
+      } else if (tool.isJson(source && source.examInfos !== null)) {
+        format = "ExamSchedule";
+        format2 = "es";
       } else if (tool.isJson(source)) {
         data = JSON.parse(source);
         format = "JSON";

@@ -1,5 +1,5 @@
 <p class="pageTitle pageTitle_main">课表编辑</p>
-<div class="settings-card">
+<div class="settings-card" id="card-schedule0">
   <i class="bi bi-calendar-day"></i>
   <div class="left-section">
     <div class="title">启用星期</div>
@@ -17,7 +17,7 @@
     </fluent-select>
   </div>
 </div>
-<div class="settings-card">
+<div class="settings-card" id="card-schedule1">
   <i class="bi bi-arrow-repeat"></i>
   <div class="left-section">
     <div class="title">轮周设定</div>
@@ -29,6 +29,21 @@
       <fluent-option value="even">双周</fluent-option>
       <fluent-option value="all">通用</fluent-option>
     </fluent-select>
+  </div>
+</div>
+<div class="settings-card" id="card-schedule2">
+  <i class="bi bi-calendar-range"></i>
+  <div class="left-section">
+    <div class="title">选择日期</div>
+    <div class="description">为课表选择一个具体日期</div>
+  </div>
+  <div class="right-section">
+    <fluent-text-field
+      type="date"
+      id="schedule-date"
+      onchange="schedule.save()"
+      style="width: 180px"
+    ></fluent-text-field>
   </div>
 </div>
 <br />

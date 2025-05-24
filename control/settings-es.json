@@ -1,0 +1,42 @@
+{
+    "mode": "date",
+    "tabs": [
+        {
+            "name": "考试设置",
+            "eng_name": "policy",
+            "icon": "bi-info-circle",
+            "settings": [
+                "examName",
+                "message",
+                "room"
+            ]
+        }
+    ],
+    "settings": [
+        {
+            "type": "text",
+            "keyPath": "examName",
+            "name": "考试名称",
+            "description": "本场考试的名称",
+            "placeholder": "考试名称",
+            "icon": "bi-pencil"
+        },
+        {
+            "type": "text",
+            "keyPath": "message",
+            "name": "考试通知",
+            "description": "请保持安静，认真答题",
+            "default": "请保持安静，认真答题",
+            "placeholder": "考试通知",
+            "icon": "bi-chat-dots"
+        },
+        {
+            "type": "text",
+            "keyPath": "room",
+            "name": "考场教室",
+            "placeholder": "考场教室",
+            "description": "请输入考场教室编号",
+            "icon": "bi-door-closed"
+        }
+    ]
+}

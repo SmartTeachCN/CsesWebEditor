@@ -1,18 +1,19 @@
 {
+  "mode": "common",
   "tabs": [
     {
       "name": "策略设置",
       "eng_name": "Policy",
       "icon": "bi-lock",
       "settings": [
-        "Policy.DisableProfileClassPlanEditing",
-        "Policy.DisableProfileTimeLayoutEditing",
-        "Policy.DisableProfileSubjectsEditing",
-        "Policy.DisableProfileEditing",
-        "Policy.DisableSettingsEditing",
-        "Policy.DisableSplashCustomize",
-        "Policy.DisableDebugMenu",
-        "Policy.AllowExitManagement"
+        "extraKey.Policy.DisableProfileClassPlanEditing",
+        "extraKey.Policy.DisableProfileTimeLayoutEditing",
+        "extraKey.Policy.DisableProfileSubjectsEditing",
+        "extraKey.Policy.DisableProfileEditing",
+        "extraKey.Policy.DisableSettingsEditing",
+        "extraKey.Policy.DisableSplashCustomize",
+        "extraKey.Policy.DisableDebugMenu",
+        "extraKey.Policy.AllowExitManagement"
       ]
     },
     {
@@ -20,9 +21,9 @@
       "eng_name": "basic",
       "icon": "bi-gear-wide-connected",
       "settings": [
-        "settings.SelectedProfile",
-        "settings.IsMainWindowVisible",
-        "settings.IsWelcomeWindowShowed"
+        "extraKey.settings.SelectedProfile",
+        "extraKey.settings.IsMainWindowVisible",
+        "extraKey.settings.IsWelcomeWindowShowed"
       ]
     },
     {
@@ -30,10 +31,10 @@
       "eng_name": "not",
       "icon": "bi-bell",
       "settings": [
-        "settings.ClassPrepareNotifySeconds",
-        "settings.IsClassPrepareNotificationEnabled",
-        "settings.IsClassChangingNotificationEnabled",
-        "settings.IsClassOffNotificationEnabled"
+        "extraKey.settings.ClassPrepareNotifySeconds",
+        "extraKey.settings.IsClassPrepareNotificationEnabled",
+        "extraKey.settings.IsClassChangingNotificationEnabled",
+        "extraKey.settings.IsClassOffNotificationEnabled"
       ]
     },
     {
@@ -41,10 +42,10 @@
       "eng_name": "ui",
       "icon": "bi-palette",
       "settings": [
-        "settings.Theme",
-        "settings.MainWindowFont",
-        "settings.MainWindowBodyFontSize",
-        "settings.MainWindowEmphasizedFontSize"
+        "extraKey.settings.Theme",
+        "extraKey.settings.MainWindowFont",
+        "extraKey.settings.MainWindowBodyFontSize",
+        "extraKey.settings.MainWindowEmphasizedFontSize"
       ]
     },
     {
@@ -52,10 +53,10 @@
       "eng_name": "adv",
       "icon": "bi-cpu",
       "settings": [
-        "settings.HideMode",
-        "settings.HiedRules",
-        "settings.HideOnFullscreen",
-        "settings.ExcludedFullscreenWindow"
+        "extraKey.settings.HideMode",
+        "extraKey.settings.HiedRules",
+        "extraKey.settings.HideOnFullscreen",
+        "extraKey.settings.ExcludedFullscreenWindow"
       ]
     },
     {
@@ -63,16 +64,16 @@
       "eng_name": "update",
       "icon": "bi-cloud-arrow-down",
       "settings": [
-        "settings.UpdateMode",
-        "settings.LastCheckUpdateTime",
-        "settings.AutoInstallUpdateNextStartup"
+        "extraKey.settings.UpdateMode",
+        "extraKey.settings.LastCheckUpdateTime",
+        "extraKey.settings.AutoInstallUpdateNextStartup"
       ]
     }
   ],
   "settings": [
     {
       "type": "select",
-      "keyPath": "settings.SelectedProfile",
+      "keyPath": "extraKey.settings.SelectedProfile",
       "name": "选择配置文件",
       "description": "选择当前使用的配置文件",
       "icon": "bi-file-earmark-text",
@@ -86,7 +87,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.IsMainWindowVisible",
+      "keyPath": "extraKey.settings.IsMainWindowVisible",
       "name": "主窗口可见",
       "description": "是否显示主窗口",
       "icon": "bi-window",
@@ -94,7 +95,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.IsWelcomeWindowShowed",
+      "keyPath": "extraKey.settings.IsWelcomeWindowShowed",
       "name": "显示欢迎窗口",
       "description": "是否显示欢迎窗口",
       "icon": "bi-box-arrow-in-right",
@@ -102,7 +103,7 @@
     },
     {
       "type": "number",
-      "keyPath": "settings.ClassPrepareNotifySeconds",
+      "keyPath": "extraKey.settings.ClassPrepareNotifySeconds",
       "name": "课前通知时间",
       "description": "课前通知的时间（秒）",
       "icon": "bi-alarm",
@@ -116,7 +117,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.IsClassPrepareNotificationEnabled",
+      "keyPath": "extraKey.settings.IsClassPrepareNotificationEnabled",
       "name": "启用课前通知",
       "description": "是否启用课前通知",
       "icon": "bi-bell",
@@ -124,7 +125,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.IsClassChangingNotificationEnabled",
+      "keyPath": "extraKey.settings.IsClassChangingNotificationEnabled",
       "name": "启用换课通知",
       "description": "是否启用换课通知",
       "icon": "bi-bell",
@@ -132,7 +133,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.IsClassOffNotificationEnabled",
+      "keyPath": "extraKey.settings.IsClassOffNotificationEnabled",
       "name": "启用下课通知",
       "description": "是否启用下课通知",
       "icon": "bi-bell",
@@ -140,7 +141,7 @@
     },
     {
       "type": "select",
-      "keyPath": "settings.Theme",
+      "keyPath": "extraKey.settings.Theme",
       "name": "主题",
       "description": "选择应用的主题",
       "icon": "bi-palette",
@@ -162,7 +163,7 @@
     },
     {
       "type": "text",
-      "keyPath": "settings.MainWindowFont",
+      "keyPath": "extraKey.settings.MainWindowFont",
       "name": "主窗口字体",
       "description": "设置主窗口的字体",
       "icon": "bi-type-bold",
@@ -171,7 +172,7 @@
     },
     {
       "type": "number",
-      "keyPath": "settings.MainWindowBodyFontSize",
+      "keyPath": "extraKey.settings.MainWindowBodyFontSize",
       "name": "正文字体大小",
       "description": "设置正文的字体大小",
       "icon": "bi-fonts",
@@ -185,7 +186,7 @@
     },
     {
       "type": "number",
-      "keyPath": "settings.MainWindowEmphasizedFontSize",
+      "keyPath": "extraKey.settings.MainWindowEmphasizedFontSize",
       "name": "强调字体大小",
       "description": "设置强调文本的字体大小",
       "icon": "bi-fonts",
@@ -199,7 +200,7 @@
     },
     {
       "type": "select",
-      "keyPath": "settings.HideMode",
+      "keyPath": "extraKey.settings.HideMode",
       "name": "隐藏模式",
       "description": "选择隐藏窗口的模式",
       "icon": "bi-eye-slash",
@@ -217,7 +218,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.HideOnFullscreen",
+      "keyPath": "extraKey.settings.HideOnFullscreen",
       "name": "全屏时隐藏",
       "description": "是否在全屏时隐藏窗口",
       "icon": "bi-fullscreen",
@@ -225,7 +226,7 @@
     },
     {
       "type": "text",
-      "keyPath": "settings.ExcludedFullscreenWindow",
+      "keyPath": "extraKey.settings.ExcludedFullscreenWindow",
       "name": "排除全屏窗口",
       "description": "输入需要排除的全屏窗口名称（逗号分隔）",
       "icon": "bi-window-minus",
@@ -234,7 +235,7 @@
     },
     {
       "type": "select",
-      "keyPath": "settings.UpdateMode",
+      "keyPath": "extraKey.settings.UpdateMode",
       "name": "更新模式",
       "description": "选择更新模式",
       "icon": "bi-cloud-arrow-down",
@@ -260,7 +261,7 @@
     },
     {
       "type": "html",
-      "keyPath": "settings.LastCheckUpdateTime",
+      "keyPath": "extraKey.settings.LastCheckUpdateTime",
       "name": "上次检查更新时间",
       "description": "上次检查更新的时间",
       "icon": "bi-clock",
@@ -268,7 +269,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "settings.AutoInstallUpdateNextStartup",
+      "keyPath": "extraKey.settings.AutoInstallUpdateNextStartup",
       "name": "下次启动时自动安装更新",
       "description": "是否在下次启动时自动安装更新",
       "icon": "bi-cloud-download",
@@ -276,7 +277,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableProfileClassPlanEditing",
+      "keyPath": "extraKey.Policy.DisableProfileClassPlanEditing",
       "name": "禁止编辑课表",
       "description": "禁止编辑课表",
       "icon": "bi-calendar-x",
@@ -284,7 +285,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableProfileTimeLayoutEditing",
+      "keyPath": "extraKey.Policy.DisableProfileTimeLayoutEditing",
       "name": "禁止编辑时间表",
       "description": "禁止编辑时间表",
       "icon": "bi-clock-history",
@@ -292,7 +293,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableProfileSubjectsEditing",
+      "keyPath": "extraKey.Policy.DisableProfileSubjectsEditing",
       "name": "禁止编辑科目",
       "description": "禁止编辑科目",
       "icon": "bi-book",
@@ -300,7 +301,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableProfileEditing",
+      "keyPath": "extraKey.Policy.DisableProfileEditing",
       "name": "禁止编辑档案",
       "description": "禁止编辑档案",
       "icon": "bi-archive",
@@ -308,7 +309,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableSettingsEditing",
+      "keyPath": "extraKey.Policy.DisableSettingsEditing",
       "name": "禁止编辑应用设置",
       "description": "禁止编辑应用设置",
       "icon": "bi-gear-wide-connected",
@@ -316,7 +317,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableSplashCustomize",
+      "keyPath": "extraKey.Policy.DisableSplashCustomize",
       "name": "禁止自定义启动加载界面",
       "description": "禁止自定义启动加载界面",
       "icon": "bi-window-dock",
@@ -324,7 +325,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.DisableDebugMenu",
+      "keyPath": "extraKey.Policy.DisableDebugMenu",
       "name": "禁用调试菜单",
       "description": "禁用调试菜单",
       "icon": "bi-tools",
@@ -332,7 +333,7 @@
     },
     {
       "type": "bool",
-      "keyPath": "Policy.AllowExitManagement",
+      "keyPath": "extraKey.Policy.AllowExitManagement",
       "name": "允许退出集控",
       "description": "允许退出集控",
       "icon": "bi-door-open",

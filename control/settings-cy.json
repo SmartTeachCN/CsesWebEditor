@@ -1,18 +1,19 @@
 {
+  "mode": "common",
   "tabs": [
     {
       "name": "获取帮助",
       "eng_name": "policy",
       "icon": "bi-info-circle",
       "settings": [
-        "Settings.Welcome"
+        "extraKey.Settings.Welcome"
       ]
     }
   ],
   "settings": [
     {
       "type": "html",
-      "keyPath": "Settings.Welcome",
+      "keyPath": "extraKey.Settings.Welcome",
       "name": "欢迎使用CSES Cloud",
       "description": "您正在使用CSES-YAML格式作为云存储",
       "icon": "bi-broadcast"

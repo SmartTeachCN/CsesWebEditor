@@ -54,24 +54,7 @@ const activityBar = {
       document.getElementsByClassName("explorer")[0].style.display = "none";
       document.getElementById(`${view}-editor`).style.display = "block";
       document.getElementsByClassName(`editor-area`)[0].style.borderRadius = "10px 0px 0px 0px";
-      if (
-        localStorage.getItem("output-mode") == "cy" ||
-        localStorage.getItem("output-mode") == undefined
-      ) {
-        document.getElementById("yaml-editor").value = jsyaml.dump(currentData);
-      } else if (localStorage.getItem("output-mode") == "cj") {
-        document.getElementById("yaml-editor").value = JSON.stringify(
-          currentData,
-          null,
-          2
-        );
-      } else if (localStorage.getItem("output-mode") == "ci") {
-        document.getElementById("yaml-editor").value = JSON.stringify(
-          CsestoCiFromat(currentData),
-          null,
-          2
-        );
-      }
+        document.getElementById("yaml-editor").value = file.preview();
       if (checkDeviceType()) {
         location.href = "#";
         document.getElementsByClassName("editor-area")[0].style.display = "block";
