@@ -1,0 +1,12 @@
+<?PHP
+
+// 基础配置
+$CASDOOR_CLIENT_ID = "";
+$CASDOOR_CLIENT_SECRET = "";
+$CASDOOR_ENDPOINT = "";
+$REDIRECT_URI = "";
+$REDIRECT_URI2 = "";
+$ENCYC = "HOST";
+$ALLOWOAUTH = false;
+$ALLOWINUSER = true;
+$ALLOWREG = false;
