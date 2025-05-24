@@ -199,12 +199,12 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
         <div style="margin: 20px;">
             <div id="auth-form-container">${welcomeFormHTML}</div>
             <div style="text-align:left;margin-top:15px;">
-                <fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>
+
                 <fluent-button id="close-btn" appearance="neutral">本地模式</fluent-button>
             </div>
         </div>
     `;
-
+  //                 <fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>
   document.body.appendChild(modal);
   modal.hidden = false;
 
