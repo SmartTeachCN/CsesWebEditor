@@ -9,3 +9,4 @@ $REDIRECT_URI2 = "";
 $ENCYC = "";
 $ALLOWOAUTH = false;
 $ALLOWINUSER = true;
+$ALLOWREG = false;
