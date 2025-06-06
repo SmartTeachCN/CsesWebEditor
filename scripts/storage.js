@@ -55,6 +55,8 @@ const storage = {
       hasLogin ? "output-mode" : "output-mode2"
     ).value;
     document.getElementById("donwCiCB").style.display = "none";
+    document.getElementById("config_preview").style.display = "none";
+    document.getElementById("config_preview2").style.display = "none";
     localStorage.setItem("output-mode", mode);
     controlMgr.init(true);
     if (
@@ -75,12 +77,40 @@ const storage = {
         2
       );
       document.getElementById("donwCiCB").style.display = "inline-flex";
+    } else if (localStorage.getItem("output-mode") == "es") {
+      document.getElementById("yaml-editor").value = JSON.stringify(
+        es_procees(currentData),
+        null,
+        2
+      );
+      document.getElementById("config_preview").style.display = "inline-flex";
+      if (!hasLogin) {
+        document.getElementById("config_preview2").style.display =
+          "inline-flex";
+      }
     }
   },
   getOutputMode() {
     return localStorage.getItem("output-mode") ?? "cy";
-  }
-}
+  },
+  preview() {
+    const mode = document.getElementById(
+      hasLogin ? "output-mode" : "output-mode2"
+    ).value;
+    const terminalId = localStorage.getItem("currentTerminalId");
+    if (mode == "es") {
+      window.open(
+        `https://es.examaware.tech/exam/index.html?configUrl=${encodeURIComponent(
+          "https://cloud.cses-org.cn/user/" +
+            document.querySelectorAll(".directoryId")[0].innerHTML +
+            "/" +
+            terminalId +
+            ".cses"
+        )}`
+      );
+    }
+  },
+};
 
 const tool = {
   isJson(text) {
@@ -100,7 +130,7 @@ const tool = {
     return true;
   },
   setNestedValue(obj, path, value) {
-    const keys = path.split('.');
+    const keys = path.split(".");
     const lastKeyIndex = keys.length - 1;
     for (let i = 0; i < lastKeyIndex; i++) {
       const key = keys[i];
@@ -112,44 +142,29 @@ const tool = {
     obj[keys[lastKeyIndex]] = value;
   },
   getNestedValue(obj, path) {
-    const keys = path.split('.');
+    const keys = path.split(".");
 
     for (let key of keys) {
-      if (!obj || typeof obj !== 'object' || !obj.hasOwnProperty(key)) {
+      if (!obj || typeof obj !== "object" || !obj.hasOwnProperty(key)) {
         return undefined;
       }
       obj = obj[key];
     }
     return obj;
-  }
-}
+  },
+};
 
 const file = {
   preview(outputMode) {
     if (!outputMode) outputMode = localStorage.getItem("output-mode");
-    if (
-      outputMode == "cy" ||
-      outputMode == undefined
-    ) {
+    if (outputMode == "cy" || outputMode == undefined) {
       return jsyaml.dump(currentData);
     } else if (outputMode == "cj") {
-      return JSON.stringify(
-        currentData,
-        null,
-        2
-      );
+      return JSON.stringify(currentData, null, 2);
     } else if (outputMode == "ci") {
-      return JSON.stringify(
-        CsestoCiFromat(currentData),
-        null,
-        2
-      );
+      return JSON.stringify(CsestoCiFromat(currentData), null, 2);
     } else if (outputMode == "es") {
-      return JSON.stringify(
-        es_procees(currentData),
-        null,
-        2
-      );
+      return JSON.stringify(es_procees(currentData), null, 2);
     }
   },
   export(noNotice) {
@@ -175,7 +190,10 @@ const file = {
       a.download = "file.json";
       a.click();
       URL.revokeObjectURL(url);
-    } else if (localStorage.getItem("output-mode") == "cj" || localStorage.getItem(("output-mode") == "es")) {
+    } else if (
+      localStorage.getItem("output-mode") == "cj" ||
+      localStorage.getItem("output-mode" == "es")
+    ) {
       const Str = JSON.stringify(currentData, null, 2);
       const blob = new Blob([Str], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -248,8 +266,7 @@ const file = {
       }
       if (tempData.schedules && tempData.schedules.length !== 0) {
         tempData.schedules.forEach((schedule, index) => {
-          if (!schedule.name)
-            throw new Error(`课程${index}中缺少课程名称`);
+          if (!schedule.name) throw new Error(`课程${index}中缺少课程名称`);
           // if (!schedule.enable_day)
           //   throw new Error(`解析出错:课程${schedule.name}中缺少课程启用时间`);
           // if (!schedule.weeks)
@@ -296,8 +313,8 @@ const file = {
       if (showNotice) {
         confirm(
           `文件解析成功,文件格式:${format},按确认以导入(当前课程信息将丢失)` +
-          "<br>" +
-          unknownSubjects,
+            "<br>" +
+            unknownSubjects,
           (result) => {
             if (result) {
               currentData = tempData;
@@ -328,8 +345,5 @@ const file = {
       reader.readAsText(file);
     };
     fileInput.click();
-  }
-}
-
-
-
+  },
+};

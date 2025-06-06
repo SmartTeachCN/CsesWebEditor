@@ -1,5 +1,16 @@
 <p class="pageTitle pageTitle_main">终端信息</p>
-<p class="pageTitle" style="background-color: rgba(250,0,0,.1);padding: 10px;border-radius: 4px;height: auto;"><i class="bi bi-info-circle"></i>&nbsp;<b>提示:</b>&nbsp;部分地区CDN与服务器连接存在不稳定性，当您发现无法保存时，清不要刷新并及时导出文件</p>
+<p
+  class="pageTitle"
+  style="
+    background-color: rgba(250, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    height: auto;
+  "
+>
+  <i class="bi bi-info-circle"></i
+  >&nbsp;<b>提示:</b>&nbsp;部分地区CDN与服务器连接存在不稳定性，当您发现无法保存时，清不要刷新并及时导出文件
+</p>
 <h4>基本</h4>
 <div class="settings-card">
   <i class="bi bi-info-circle"></i>
@@ -60,7 +71,17 @@
     <fluent-button id="donwCiCB" onclick="donwCiC()"
       >下载配置清单</fluent-button
     >
-    <fluent-select id="output-mode" onchange="storage.outputSet()" title="选择导出格式" >
+    <fluent-button
+      id="config_preview"
+      onclick="storage.preview()"
+      style="display: none"
+      >在线预览</fluent-button
+    >
+    <fluent-select
+      id="output-mode"
+      onchange="storage.outputSet()"
+      title="选择导出格式"
+    >
       <fluent-option value="ci">ClassIsland静态集控</fluent-option>
       <fluent-option value="es">ExamSchedule</fluent-option>
       <fluent-option value="cy">通用CSES</fluent-option>
