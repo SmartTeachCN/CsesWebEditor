@@ -41,7 +41,7 @@
   <div class="right-section">
     <fluent-button onclick="copyUrl()"> 复制 </fluent-button>
     <span style="user-select: text; display: none" id="url2"
-      >https://cloud.cses-org.cn/user/<span class="directoryId"></span>/<span
+      >https://cloud.smart-teach.cn/user/<span class="directoryId"></span>/<span
         class="configId"
       ></span
       >.cses</span
@@ -68,14 +68,13 @@
     <div class="description">选择该终端要使用的配置类型</div>
   </div>
   <div class="right-section">
-    <fluent-button id="donwCiCB" onclick="donwCiC()"
+    <!-- <fluent-button id="donwCiCB" onclick="donwCiC()"
       >下载配置清单</fluent-button
-    >
+    > -->
     <fluent-button
       id="config_preview"
       onclick="storage.preview()"
-      style="display: none"
-      >在线预览</fluent-button
+      >部署/预览</fluent-button
     >
     <fluent-select
       id="output-mode"
@@ -182,7 +181,7 @@
       ManagementServer: "",
       ManagementServerGrpc: "",
       ManifestUrlTemplate:
-        "https://cloud.cses-org.cn/classisland/manifest.php?id=" +
+        "https://cloud.smart-teach.cn/classisland/manifest.php?id=" +
         document.querySelectorAll(".directoryId")[0].innerHTML,
     };
 

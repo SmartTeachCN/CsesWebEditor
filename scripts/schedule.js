@@ -254,7 +254,7 @@ const schedule = {
       const btn = document.createElement("fluent-button");
       btn.appearance = "stealth";
       btn.textContent = s.name;
-      btn.addEventListener("click", () => this.setSubject(s.name));
+      btn.addEventListener("click", () => this.setSubject(s.name, true));
       grid.appendChild(btn);
     });
   },
@@ -372,9 +372,9 @@ const schedule = {
   },
   addClass() {
     currentData.schedules[currentScheduleIndex].classes.push({
-      subject: "",
-      start_time: "",
-      end_time: "",
+      subject: document.querySelector('#current-subject').value ?? "",
+      start_time: document.querySelectorAll('.time-input')[0].value ?? "",
+      end_time: document.querySelectorAll('.time-input')[1].value ?? "",
     });
     currentClassIndex =
       currentData.schedules[currentScheduleIndex].classes.length - 1; // 设置新增课程为当前选中
@@ -433,16 +433,18 @@ const schedule = {
     this.init();
     alert("快速创建周一~周日通用周成功");
   },
-  setSubject(subject) {
+  setSubject(subject, autoAdd) {
     if (currentClassIndex === -1) return;
     currentData.schedules[currentScheduleIndex].classes[
       currentClassIndex
     ].subject = subject;
     storage.save();
     schedule.refresh();
-    const maxIndex =
-      currentData.schedules[currentScheduleIndex].classes.length - 1;
-    currentClassIndex = Math.min(currentClassIndex + 1, maxIndex);
+    if (autoAdd) {
+      const maxIndex =
+        currentData.schedules[currentScheduleIndex].classes.length - 1;
+      currentClassIndex = Math.min(currentClassIndex + 1, maxIndex);
+    }
     document.getElementById("class-list").value = currentClassIndex;
     document.getElementById("current-subject").value = subject;
   },

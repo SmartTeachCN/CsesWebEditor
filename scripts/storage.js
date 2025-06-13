@@ -54,8 +54,8 @@ const storage = {
     const mode = document.getElementById(
       hasLogin ? "output-mode" : "output-mode2"
     ).value;
-    document.getElementById("donwCiCB").style.display = "none";
-    document.getElementById("config_preview").style.display = "none";
+    // document.getElementById("donwCiCB").style.display = "none";
+    // document.getElementById("config_preview").style.display = "none";
     document.getElementById("config_preview2").style.display = "none";
     localStorage.setItem("output-mode", mode);
     controlMgr.init(true);
@@ -76,14 +76,14 @@ const storage = {
         null,
         2
       );
-      document.getElementById("donwCiCB").style.display = "inline-flex";
+      // document.getElementById("donwCiCB").style.display = "inline-flex";
     } else if (localStorage.getItem("output-mode") == "es") {
       document.getElementById("yaml-editor").value = JSON.stringify(
         es_procees(currentData),
         null,
         2
       );
-      document.getElementById("config_preview").style.display = "inline-flex";
+      // document.getElementById("config_preview").style.display = "inline-flex";
       if (!hasLogin) {
         document.getElementById("config_preview2").style.display =
           "inline-flex";
@@ -100,14 +100,40 @@ const storage = {
     const terminalId = localStorage.getItem("currentTerminalId");
     if (mode == "es") {
       window.open(
-        `https://es.examaware.tech/exam/index.html?configUrl=${encodeURIComponent(
-          "https://cloud.cses-org.cn/user/" +
-            document.querySelectorAll(".directoryId")[0].innerHTML +
-            "/" +
-            terminalId +
-            ".cses"
+        `https://cloud.smart-teach.cn/es/exam/index.html?configUrl=${encodeURIComponent(
+          "https://cloud.smart-teach.cn/user/" +
+          document.querySelectorAll(".directoryId")[0].innerHTML +
+          "/" +
+          terminalId +
+          ".cses"
         )}`
       );
+    } else if (mode == "ci") {
+      // 创建一个JSON对象
+      const data = {
+        ManagementServerKind: 0,
+        ManagementServer: "",
+        ManagementServerGrpc: "",
+        ManifestUrlTemplate:
+          "https://cloud.smart-teach.cn/classisland/manifest.php?id=" +
+          document.querySelectorAll(".directoryId")[0].innerHTML,
+      };
+
+      // 将JSON对象转换为字符串
+      const jsonString = JSON.stringify(data, null, 2);
+
+      // 创建一个Blob对象，设置文件类型为JSON
+      const blob = new Blob([jsonString], { type: "application/json" });
+
+      // 创建一个下载链接
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "file.json"; // 设置下载文件的名称
+      a.click(); // 触发下载
+      URL.revokeObjectURL(url); // 释放对象URL
+    } else {
+      alert("当前终端类型暂无该操作");
     }
   },
 };
@@ -231,6 +257,7 @@ const file = {
         format = "ClassIsland课表档案";
         format2 = "ci";
       } else if (tool.isJson(source && source.examInfos !== null)) {
+        data = JSON.parse(source);
         format = "ExamSchedule";
         format2 = "es";
       } else if (tool.isJson(source)) {
@@ -313,8 +340,8 @@ const file = {
       if (showNotice) {
         confirm(
           `文件解析成功,文件格式:${format},按确认以导入(当前课程信息将丢失)` +
-            "<br>" +
-            unknownSubjects,
+          "<br>" +
+          unknownSubjects,
           (result) => {
             if (result) {
               currentData = tempData;
@@ -328,8 +355,8 @@ const file = {
         storage.save();
       }
       document.getElementById("output-mode").value = format2;
-      document.getElementById("donwCiCB").style.display =
-        format2 == "ci" ? "inline-flex" : "none";
+      // document.getElementById("donwCiCB").style.display =
+      // format2 == "ci" ? "inline-flex" : "none";
     } catch (error) {
       alert(`数据加载${error}`);
     }
