@@ -99,42 +99,54 @@ const storage = {
     ).value;
     const terminalId = localStorage.getItem("currentTerminalId");
     if (mode == "es") {
-      window.open(
-        `https://cloud.smart-teach.cn/es/exam/index.html?configUrl=${encodeURIComponent(
-          "https://cloud.smart-teach.cn/user/" +
-          document.querySelectorAll(".directoryId")[0].innerHTML +
-          "/" +
-          terminalId +
-          ".cses"
-        )}`
-      );
-    } else if (mode == "ci") {
-      // 创建一个JSON对象
-      const data = {
-        ManagementServerKind: 0,
-        ManagementServer: "",
-        ManagementServerGrpc: "",
-        ManifestUrlTemplate:
-          "https://cloud.smart-teach.cn/classisland/manifest.php?id=" +
-          document.querySelectorAll(".directoryId")[0].innerHTML,
-      };
+      const url = `https://cloud.smart-teach.cn/es/link.php?id=${document.querySelectorAll(".directoryId")[0].innerHTML + "/" + terminalId}`
+      showModal(`<h2>在云端ExamSchedule使用您的配置</h2>
+        <li>复制链接，通过集控/手动在设备上打开链接即可</li><li>编辑配置后，无需重新复制链接，原链接为最新档案</li>
+        ${url}<br>
+        <fluent-button onclick="navigator.clipboard.writeText('${url}')">复制</fluent-button>&nbsp;<fluent-button onclick="window.open('${url}')"><i class="bi bi-play-circle" style="font-size: 12px;margin: 0;margin-right: 5px;"></i>打开链接</fluent-button>
+        `)
+    }
+    if (mode == "ci") {
+      showModal(`<h2>在ClassIsland使用静态配置</h2>
+        <li>下载清单文件，保存到您可以访问的位置</li><li>打开ClassIsland设置页面，右上角菜单点击“加入管理”</li><li>点击“配置文件”左侧的文件夹图标</li><li>选择您刚刚下载的清单文件，点击“打开”</li><li>在“ID”处输入您在CSES Cloud创建的终端名称，无需带上目录ID</li>
+        <fluent-button id="download-manifest-btn"><i class="bi bi-download" style="font-size: 12px;margin: 0;margin-right: 5px;"></i>下载清单文件</fluent-button>
+        `);
 
-      // 将JSON对象转换为字符串
-      const jsonString = JSON.stringify(data, null, 2);
+      setTimeout(() => {
+        const btn = document.getElementById("download-manifest-btn");
+        if (btn) {
+          btn.onclick = function () {
+            // 创建一个JSON对象
+            const data = {
+              ManagementServerKind: 0,
+              ManagementServer: "",
+              ManagementServerGrpc: "",
+              ManifestUrlTemplate:
+                "https://cloud.smart-teach.cn/classisland/manifest.php?id=" +
+                document.querySelectorAll(".directoryId")[0].innerHTML,
+            };
 
-      // 创建一个Blob对象，设置文件类型为JSON
-      const blob = new Blob([jsonString], { type: "application/json" });
+            // 将JSON对象转换为字符串
+            const jsonString = JSON.stringify(data, null, 2);
 
-      // 创建一个下载链接
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "file.json"; // 设置下载文件的名称
-      a.click(); // 触发下载
-      URL.revokeObjectURL(url); // 释放对象URL
+            // 创建一个Blob对象，设置文件类型为JSON
+            const blob = new Blob([jsonString], { type: "application/json" });
+
+            // 创建一个下载链接
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "file.json"; // 设置下载文件的名称
+            a.click(); // 触发下载
+            URL.revokeObjectURL(url); // 释放对象URL
+          };
+        }
+      }, 0);
+
     } else {
       alert("当前终端类型暂无该操作");
     }
+
   },
 };
 

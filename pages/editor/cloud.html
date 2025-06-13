@@ -1,15 +1,11 @@
 <p class="pageTitle pageTitle_main">终端信息</p>
-<p
-  class="pageTitle"
-  style="
+<p class="pageTitle" style="
     background-color: rgba(250, 0, 0, 0.1);
     padding: 10px;
     border-radius: 4px;
     height: auto;
-  "
->
-  <i class="bi bi-info-circle"></i
-  >&nbsp;<b>提示:</b>&nbsp;部分地区CDN与服务器连接存在不稳定性，当您发现无法保存时，清不要刷新并及时导出文件
+  ">
+  <i class="bi bi-info-circle"></i>&nbsp;<b>提示:</b>&nbsp;部分地区CDN与服务器连接存在不稳定性，当您发现无法保存时，清不要刷新并及时导出文件
 </p>
 <h4>基本</h4>
 <div class="settings-card">
@@ -40,12 +36,8 @@
   </div>
   <div class="right-section">
     <fluent-button onclick="copyUrl()"> 复制 </fluent-button>
-    <span style="user-select: text; display: none" id="url2"
-      >https://cloud.smart-teach.cn/user/<span class="directoryId"></span>/<span
-        class="configId"
-      ></span
-      >.cses</span
-    >
+    <span style="user-select: text; display: none" id="url2">https://cloud.smart-teach.cn/user/<span
+        class="directoryId"></span>/<span class="configId"></span>.cses</span>
   </div>
   <script>
     function copyUrl() {
@@ -71,21 +63,24 @@
     <!-- <fluent-button id="donwCiCB" onclick="donwCiC()"
       >下载配置清单</fluent-button
     > -->
-    <fluent-button
-      id="config_preview"
-      onclick="storage.preview()"
-      >部署/预览</fluent-button
-    >
-    <fluent-select
-      id="output-mode"
-      onchange="storage.outputSet()"
-      title="选择导出格式"
-    >
+    <fluent-select id="output-mode" onchange="storage.outputSet()" title="选择导出格式">
       <fluent-option value="ci">ClassIsland静态集控</fluent-option>
       <fluent-option value="es">ExamSchedule</fluent-option>
       <fluent-option value="cy">通用CSES</fluent-option>
       <fluent-option value="cj">通用CSES(JSON)</fluent-option>
     </fluent-select>
+  </div>
+</div>
+<div class="settings-card">
+  <i class="bi bi-box-arrow-down"></i>
+  <div class="left-section">
+    <div class="title">部署终端</div>
+    <div class="description">下载集控配置/启用在线展示软件</div>
+  </div>
+  <div class="right-section">
+    <fluent-button id="config_preview" onclick="storage.preview()"><i class="bi bi-play-circle"
+        style="font-size: 12px;margin: 0;margin-right: 5px;"></i>
+      启用向导</fluent-button>
   </div>
 </div>
 <h4 style="display: none">空间共享</h4>
@@ -96,18 +91,9 @@
     <div class="description">输入用户ID、目标终端ID及本地终端ID</div>
   </div>
   <div class="right-section">
-    <fluent-text-field
-      id="target-user"
-      placeholder="用户ID"
-    ></fluent-text-field>
-    <fluent-text-field
-      id="target-terminal"
-      placeholder="目标终端ID"
-    ></fluent-text-field>
-    <fluent-text-field
-      id="local-terminal"
-      placeholder="本地终端ID"
-    ></fluent-text-field>
+    <fluent-text-field id="target-user" placeholder="用户ID"></fluent-text-field>
+    <fluent-text-field id="target-terminal" placeholder="目标终端ID"></fluent-text-field>
+    <fluent-text-field id="local-terminal" placeholder="本地终端ID"></fluent-text-field>
     <fluent-button onclick="joinSpace()">加入</fluent-button>
   </div>
 </div>
@@ -118,10 +104,7 @@
     <div class="description">启用后其他用户可加入此空间</div>
   </div>
   <div class="right-section">
-    <fluent-switch
-      id="share-switch"
-      onchange="toggleShareSettings()"
-    ></fluent-switch>
+    <fluent-switch id="share-switch" onchange="toggleShareSettings()"></fluent-switch>
   </div>
 </div>
 <div class="settings-card" id="share-mode-card" style="display: none">
@@ -144,11 +127,7 @@
     <div class="description">设置其他用户加入时需要的密码</div>
   </div>
   <div class="right-section">
-    <fluent-text-field
-      type="password"
-      id="share-password"
-      placeholder="输入密码"
-    ></fluent-text-field>
+    <fluent-text-field type="password" id="share-password" placeholder="输入密码"></fluent-text-field>
   </div>
 </div>
 <div class="settings-card" id="whitelist-card" style="display: none">
@@ -158,10 +137,7 @@
     <div class="description">输入允许的用户ID，用逗号分隔</div>
   </div>
   <div class="right-section">
-    <fluent-text-area
-      id="share-whitelist"
-      placeholder="用户ID列表"
-    ></fluent-text-area>
+    <fluent-text-area id="share-whitelist" placeholder="用户ID列表"></fluent-text-area>
   </div>
 </div>
 <div class="settings-card" style="display: none">
@@ -174,29 +150,4 @@
 </div>
 
 <script>
-  function donwCiC() {
-    // 创建一个JSON对象
-    const data = {
-      ManagementServerKind: 0,
-      ManagementServer: "",
-      ManagementServerGrpc: "",
-      ManifestUrlTemplate:
-        "https://cloud.smart-teach.cn/classisland/manifest.php?id=" +
-        document.querySelectorAll(".directoryId")[0].innerHTML,
-    };
-
-    // 将JSON对象转换为字符串
-    const jsonString = JSON.stringify(data, null, 2);
-
-    // 创建一个Blob对象，设置文件类型为JSON
-    const blob = new Blob([jsonString], { type: "application/json" });
-
-    // 创建一个下载链接
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "file.json"; // 设置下载文件的名称
-    a.click(); // 触发下载
-    URL.revokeObjectURL(url); // 释放对象URL
-  }
 </script>

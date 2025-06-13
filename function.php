@@ -32,7 +32,7 @@ if (isset($_GET['login'])) {
   }
 
   // 用户信息
-  if ($ALLOWOAUTH) {
+  if ($ALLOWOAUTH || $debugMode) {
     $debugMode ? $userData = user::debug() : $userData = user::getUserInfo();
     user::setSession($userData);
   }

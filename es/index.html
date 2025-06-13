@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <link rel="shortcut icon" href="./favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择页面</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <style>
+        body {
+            background: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            color: #e3f2fd;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            display: none;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            animation: fadeInUp 1s ease-in-out;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        ul a {
+            color: #e3f2fd;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 500;
+            padding: 32px;
+            border-radius: 20px;
+            background-color: #1e1e1e;
+            transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            min-width: 200px;
+            text-align: center;
+            min-height: 140px;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+        }
+
+        ul a:hover {
+            background-color: #232a34;
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.18);
+            color: #90caf9;
+        }
+
+        ul .material-icons,
+        ul .material-symbols-outlined {
+            font-size: 32px;
+            color: #90caf9;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .copyright {
+            position: absolute;
+            bottom: 16px;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: #90caf9;
+            animation: fadeInUp 1s ease-in-out;
+        }
+
+        .github-link {
+            position: static;
+            background-color: #232a34;
+            padding: 8px 16px;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #e3f2fd;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+        }
+
+        .github-link:hover {
+            background-color: #1976d2;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(25, 118, 210, 0.18);
+        }
+
+        .github-link .material-symbols-outlined {
+            font-size: 18px;
+            color: #90caf9;
+            transition: color 0.2s;
+        }
+
+        .github-link:hover .material-symbols-outlined {
+            color: #fff;
+        }
+
+        .project-title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: 500;
+            color: #e3f2fd;
+            animation: fadeInUp 1s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(18, 18, 18, 0.85);
+            border-radius: 16px;
+            padding: 8px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+        }
+
+        .project-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .material-icons,
+        .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .top-right-links {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .about-link {
+            background-color: transparent;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 14px;
+            text-decoration: none;
+            color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .about-link:hover {
+            background-color: #232a34;
+            color: #90caf9;
+        }
+
+        .about-link .material-icons,
+        .about-link .material-symbols-outlined {
+            font-size: 18px;
+            color: #90caf9;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #90caf9;
+            margin-top: 4px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="project-title">
+        <img src="./icon.png" alt="ExamSchedule Logo" class="project-logo">
+        ExamSchedule
+    </div>
+    <ul>
+        <li><a href="./time/"><span class="material-symbols-outlined">schedule</span>电子钟表</a></li>
+        <li><a href="./exam/"><span class="material-symbols-outlined">dashboard</span>考试信息
+                <div class="subtitle">看板 & 广播</div>
+            </a></li>
+    </ul>
+
+    <div class="top-right-links">
+        <a href="./about/" class="about-link">
+            <span class="material-symbols-outlined">info</span>
+            关于
+        </a>
+        <a href="https://github.com/ExamAware/ExamSchedule" target="_blank" class="github-link">
+            <span class="material-symbols-outlined" title="在GitHub上查看源代码">code</span>
+        </a>
+    </div>
+
+    <div class="copyright">&copy; 2024-2025 ExamAware开发团队 版权所有</div>
+
+    <script>
+        function checkAprilFools() {
+            const today = new Date();
+            if (today.getMonth() === 3 && today.getDate() === 1) {
+                if (Math.random() <= 0.75) {
+                    window.location.href = 'https://www.bilibili.com/video/BV1GJ411x7h7/';
+                }
+            }
+        }
+        window.onload = checkAprilFools;
+    </script>
+</body>
+
+</html>
