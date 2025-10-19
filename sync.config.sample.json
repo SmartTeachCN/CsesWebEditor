@@ -1,0 +1,17 @@
+{
+  "serverUrl": "-",
+  "token": "-",
+  "localRoot": ".",
+  "remoteBase": "",
+  "debug": false,
+  "ignore": [
+    "sync.js",
+    "node_modules",
+    ".git",
+    "debug.flag",
+    "package.json",
+    ".last_sync_timestamp",
+    "sync-error.log",
+    "sync.config.json"
+  ]
+}

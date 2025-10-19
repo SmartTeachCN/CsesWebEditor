@@ -1,5 +1,5 @@
 <?php // PYLXU 5/17 ?>
-<?php include 'function.php'; ?>
+<?php include('function.php'); ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -20,6 +20,7 @@
 
     <div class="editor-area">
       <?php ui::renderEditors(uiConfig::editors()); ?>
+
     </div>
   </div>
   <div class="mobile-only-flex" id="mobile-bottomBar">
@@ -27,6 +28,10 @@
   </div>
   </div>
   <?php include('pages/login.html'); ?>
+<?php if (!empty($ICP_BEIAN)) : ?>
+<span style="width: auto;margin: 0;border-radius: 0px;padding: 5px;" class="settings-card"><a href="https://beian.miit.gov.cn/" target="_blank" class="" style="color: black;width: 100%;display: block;text-align: center;"><?php echo htmlspecialchars($ICP_BEIAN, ENT_QUOTES, 'UTF-8'); ?></a></span>
+<?php endif; ?>
+
 </body>
 
 </html>

@@ -49,14 +49,36 @@
   }
   document.addEventListener("DOMContentLoaded", (event) => {
     if (!"<?php echo $_SESSION['user']['id'] ?>") {
-      confirm(
-        "您好，您尚未登录，云功能将不可用。如需加载云功能，请点击“确认”按钮登录",
-        (r) => {
-          if (r)
-            window.location.href =
-              "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email";
-        }
+      showAuthDialog(
+        async (modal) => {
+          console.log(modal);
+            const username = modal.username.trim();
+            const password = modal.password;
+            if (!username || !password) return alert("请输入用户名和密码");
+
+            const res = await fetch(`/function.php?login=${username}&pass=${password}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(data.user);
+            } else {
+                alert(data.message);
+            }
+        },
+        async () => {},
+        "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email"
       );
+      // confirm(
+      //   "您好，您尚未登录，云功能将不可用。如需加载云功能，请点击“确认”按钮登录",
+      //   (r) => {
+      //     if (r)
+      //       window.location.href =
+      //         "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email";
+      //   }
+      // );
       hasLogin = false;
       document.querySelectorAll(".online").forEach((element) => {
         element.disabled = true;

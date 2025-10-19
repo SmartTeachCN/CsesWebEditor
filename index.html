@@ -1,32 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <title>CSES Cloud</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0,user-scalable=0"
-    />
-    <link
-      href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap-icons/1.8.1/font/bootstrap-icons.css"
-      type="text/css"
-      rel="stylesheet"
-    />
-    <script
-      src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/js-yaml/4.1.0/js-yaml.min.js"
-      type="application/javascript"
-    ></script>
-    <script src="scripts/jquery.js"></script>
-    <!-- <script
+
+<head>
+  <meta charset="UTF-8" />
+  <title>CSES Cloud</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=0" />
+  <link href="assets/bootstrap-icons.css"
+    type="text/css" rel="stylesheet" />
+  <script src="scripts/jquery.js"></script>
+  <!-- <script
       type="module"
       src="https://unpkg.com/@fluentui/web-components"
     ></script> -->
-    <!-- <script
+  <!-- <script
   type="module"
   src="https://npm.elemecdn.com/@fluentui/web-components"
 ></script> -->
-    <script type="module">
-      import {
+  <script type="module">
+    import {
         StandardLuminance,
         baseLayerLuminance,
         fillColor,
@@ -57,165 +48,165 @@
           }
         };
       });
-    </script>
-    <link rel="stylesheet" href="style.css?ver=2503209" />
-    <script src="scripts/device.js" defer></script>
-    <script src="scripts/ui.js" defer></script>
-    <script src="scripts/shortcut.js" defer></script>
-    <script src="scripts/darkmode.js" defer></script>
-    <style>
-      /* 基础样式 */
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f9f9f9;
-        color: #333;
-      }
+  </script>
+  <link rel="stylesheet" href="style.css?ver=2503209" />
+  <script src="scripts/device.js" defer></script>
+  <script src="scripts/ui.js" defer></script>
+  <script src="scripts/shortcut.js" defer></script>
+  <script src="scripts/darkmode.js" defer></script>
+  <style>
+    /* 基础样式 */
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
 
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 40px 20px;
-        box-sizing: border-box;
-      }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      box-sizing: border-box;
+    }
 
-      /* Hero 区域样式 */
-      .hero {
-        text-align: center;
-        padding-bottom: 40px;
-        border-bottom: 1px solid #ddd;
-      }
+    /* Hero 区域样式 */
+    .hero {
+      text-align: center;
+      padding-bottom: 40px;
+      border-bottom: 1px solid #ddd;
+    }
 
-      .hero h1 {
-        font-size: 2.5rem;
-        margin-bottom: 20px;
-      }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
 
-      .hero .desc {
-        font-size: 1.1rem;
-        color: #555;
-        margin-bottom: 30px;
-        line-height: 1.6;
-      }
+    .hero .desc {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
 
-      .cta-button {
-        font-size: 1rem;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background-color 0.3s ease;
-      }
+    .cta-button {
+      font-size: 1rem;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
 
-      .cta-button:hover {
-        background-color: #005fa3;
-      }
+    .cta-button:hover {
+      background-color: #005fa3;
+    }
 
-      /* 功能列表样式 */
-      .features-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 40px;
-        margin-top: 60px;
-      }
+    /* 功能列表样式 */
+    .features-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 40px;
+      margin-top: 60px;
+    }
 
-      .features,
-      .getting-started {
-        flex: 1;
-        min-width: 300px;
-        max-width: 500px;
-      }
+    .features,
+    .getting-started {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+    }
 
-      .features h2,
-      .getting-started h2 {
-        font-size: 1.8rem;
-        margin-bottom: 20px;
-      }
+    .features h2,
+    .getting-started h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
 
-      .feature-list {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
 
-      .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1rem;
-        color: #333;
-      }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      color: #333;
+    }
 
-      .feature-item i {
-        font-size: 1.2rem;
-        color: #0078d4;
-      }
+    .feature-item i {
+      font-size: 1.2rem;
+      color: #0078d4;
+    }
 
-      .steps {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-      .step {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-      }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
 
-      .step-number {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background-color: #0078d4;
-        color: white;
-        font-weight: bold;
-        flex-shrink: 0;
-      }
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #0078d4;
+      color: white;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
 
-      .step p {
-        margin: 0;
-        font-size: 1rem;
-        line-height: 1.5;
-      }
+    .step p {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
 
-      /* Footer 样式 */
-      .footer {
-        margin-top: 80px;
-        padding-top: 40px;
-        border-top: 1px solid #ddd;
-      }
+    /* Footer 样式 */
+    .footer {
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid #ddd;
+    }
 
-      .footer-content {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-      }
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-      .footer-item {
-        font-size: 0.95rem;
-        color: #666;
-      }
+    .footer-item {
+      font-size: 0.95rem;
+      color: #666;
+    }
 
-      .footer-item a {
-        color: #0078d4;
-        text-decoration: none;
-      }
+    .footer-item a {
+      color: #0078d4;
+      text-decoration: none;
+    }
 
-      .footer-item a:hover {
-        text-decoration: underline;
-      }
-    </style>
-  </head>
+    .footer-item a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
 
-  <body>
-    <div class="menu-bar">
-      <span
+<body>
+  <div class="menu-bar">
+    <span
         id="leftArea"
         style="display: flex; align-items: center; flex: auto"
       >
@@ -250,118 +241,117 @@
           </svg>
           <h3 onclick="about()" id="webTitle" style="display: flex">
             <span class="desktop-only">CSES&nbsp;</span>Cloud&nbsp;
-          </h3>
-          <div class="topbarBtnGroup">
-            <!-- <button class="desktop-only" onclick="location.href = 'https://edit.cses-org.cn/'">本地编辑</button> -->
-            <!-- <button class="desktop-only" onclick="keyHelp()">快捷键</button> -->
-            <button onclick="toggleColorMode()" title="深色模式">
+    </h3>
+    <div class="topbarBtnGroup">
+      <!-- <button class="desktop-only" onclick="location.href = 'https://edit.cses-org.cn/'">本地编辑</button> -->
+      <!-- <button class="desktop-only" onclick="keyHelp()">快捷键</button> -->
+      <button onclick="toggleColorMode()" title="深色模式">
               <i class="bi bi-moon"></i>
             </button>
-            <button onclick="about()" title="关于软件">
+      <button onclick="about()" title="关于软件">
               <i class="bi bi-info-circle"></i>
             </button>
-          </div>
-        </span>
-        <span id="separator" style="flex: 1"></span>
-        <!-- <button id="clearButton" onclick="clearData()">清空</button> -->
-      </span>
-      <span id="fileArea" style="display: flex; align-items: center">
+    </div>
+    </span>
+    <span id="separator" style="flex: 1"></span>
+    <!-- <button id="clearButton" onclick="clearData()">清空</button> -->
+    </span>
+    <span id="fileArea" style="display: flex; align-items: center">
         <fluent-button
           appearance="accent"
           id="save-button"
           onclick="window.location = 'panel.php'"
         >
           <span class="desktop-only"
-            ><i class="bi bi-box-arrow-up-right"></i>&nbsp;进入云服务</span
-          ><span class="mobile-only"
+            ><i class="bi bi-box-arrow-up-right"></i>&nbsp;进入云服务</span><span class="mobile-only"
             ><i class="bi bi-box-arrow-up-right"></i
           ></span>
-        </fluent-button>
-      </span>
-    </div>
-    <div class="container" style="display: block; overflow-y: auto">
-      <section class="hero">
-        <h1>CSES Cloud</h1>
-        <p class="desc">
-          CSES Cloud
-          是一个面向学校/教室的课表与终端管理平台，支持云端存储、导入导出、终端分组、集控配置等功能。
-          适用于教师、管理员和开发者进行课表管理与终端配置。
-        </p>
-        <fluent-button
-          appearance="accent"
-          class="cta-button"
-          href="panel.php"
-          onclick="window.location = 'panel.php'"
-        >
-          <i class="bi bi-cloud"></i>&nbsp;进入云服务
-        </fluent-button>
-      </section>
+    </fluent-button>
+    </span>
+  </div>
+  <div class="container" style="display: block; overflow-y: auto">
+    <section class="hero">
+      <h1>CSES Cloud</h1>
+      <p class="desc">
+        CSES Cloud
+        是一个面向学校/教室的课表与终端管理平台，支持云端存储、导入导出、终端分组、集控配置等功能。
+        适用于教师、管理员和开发者进行课表管理与终端配置。
+      </p>
+      <fluent-button appearance="accent" class="cta-button" href="panel.php" onclick="window.location = 'panel.php'">
+        <i class="bi bi-cloud"></i>&nbsp;进入云服务
+      </fluent-button>
+    </section>
 
-      <div class="features-grid">
-        <section class="features">
-          <h2>主要功能</h2>
-          <div class="feature-list">
-            <div class="feature-item">
-              <i class="bi bi-cloud"></i>
-              <span>多终端云端课表管理与同步</span>
-            </div>
-            <div class="feature-item">
-              <i class="bi bi-file-earmark-arrow-up"></i>
-              <span>支持多种课表与终端配置格式导入导出</span>
-            </div>
-            <div class="feature-item">
-              <i class="bi bi-people"></i>
-              <span>终端分组、空间共享与权限控制</span>
-            </div>
-            <div class="feature-item">
-              <i class="bi bi-sliders"></i>
-              <span>集控参数可视化配置</span>
-            </div>
-            <div class="feature-item">
-              <i class="bi bi-plus"></i>
-              <span>支持移动端与桌面端访问</span>
-            </div>
+    <div class="features-grid">
+      <section class="features">
+        <h2>主要功能</h2>
+        <div class="feature-list">
+          <div class="feature-item">
+            <i class="bi bi-cloud"></i>
+            <span>多终端云端课表管理与同步</span>
           </div>
-        </section>
-
-        <section class="getting-started">
-          <h2>使用方法</h2>
-          <div class="steps">
-            <div class="step">
-              <span class="step-number">1</span>
-              <p>点击"进入云服务"按钮，使用智教联盟认证登录</p>
-            </div>
-            <div class="step">
-              <span class="step-number">2</span>
-              <p>新建或导入终端配置，编辑课表、科目、时间表等</p>
-            </div>
-            <div class="step">
-              <span class="step-number">3</span>
-              <p>可将配置保存到云端或导出为本地文件</p>
-            </div>
-            <div class="step">
-              <span class="step-number">4</span>
-              <p>如需共享空间，可在终端信息页设置共享选项</p>
-            </div>
+          <div class="feature-item">
+            <i class="bi bi-file-earmark-arrow-up"></i>
+            <span>支持多种课表与终端配置格式导入导出</span>
           </div>
-        </section>
-      </div>
-
-      <footer class="footer">
-        <div class="footer-content">
-          <div class="footer-item">
-            <strong>项目地址：</strong>
-            <a href="https://github.com/cses-org/CsesWebEditor" target="_blank">
-              GitHub - CsesWebEditor
-            </a>
+          <div class="feature-item">
+            <i class="bi bi-people"></i>
+            <span>终端分组、空间共享与权限控制</span>
           </div>
-          <div class="footer-item">
-            <strong>技术支持：</strong> PYLXU &nbsp;|&nbsp;
-            <a href="mailto:e-pylxu@outlook.com">e-pylxu@outlook.com</a>
+          <div class="feature-item">
+            <i class="bi bi-sliders"></i>
+            <span>集控参数可视化配置</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-plus"></i>
+            <span>支持移动端与桌面端访问</span>
           </div>
         </div>
-      </footer>
+      </section>
+
+      <section class="getting-started">
+        <h2>使用方法</h2>
+        <div class="steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <p>点击"进入云服务"按钮，使用智教联盟认证登录</p>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <p>新建或导入终端配置，编辑课表、科目、时间表等</p>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <p>可将配置保存到云端或导出为本地文件</p>
+          </div>
+          <div class="step">
+            <span class="step-number">4</span>
+            <p>如需共享空间，可在终端信息页设置共享选项</p>
+          </div>
+        </div>
+      </section>
     </div>
-    <script></script>
-  </body>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-item">
+          <strong>项目地址：</strong>
+          <a href="https://github.com/cses-org/CsesWebEditor" target="_blank">
+            GitHub - CsesWebEditor
+          </a>
+        </div>
+        <div class="footer-item">
+          <strong>技术支持：</strong> PYLXU &nbsp;|&nbsp;
+          <a href="mailto:e-pylxu@outlook.com">e-pylxu@outlook.com</a>
+        </div>
+        <div class="footer-item">
+          <a href="https://beian.miit.gov.cn/" target="_blank">皖ICP备2024050771号</a>
+        </div>
+
+      </div>
+    </footer>
+  </div>
+  <script></script>
+</body>
+
 </html>

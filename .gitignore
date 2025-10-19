@@ -1,2 +1,4 @@
-/config.php
-/user
+config.prod.php
+sync.config.json
+node_modules
+user/*

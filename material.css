@@ -1,0 +1,408 @@
+:root {
+  --md-primary-color: #6200ee;
+  --md-primary-variant: #3700b3;
+  --md-secondary-color: #03dac6;
+  --md-secondary-variant: #018786;
+  --md-background: #f5f5f5;
+  --md-surface: #ffffff;
+  --md-error: #b00020;
+  --md-on-primary: #ffffff;
+  --md-on-secondary: #000000;
+  --md-on-background: #000000;
+  --md-on-surface: #000000;
+  --md-on-error: #ffffff;
+  --md-elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+  --md-elevation-2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+  --md-elevation-3: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
+  --md-elevation-4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  --md-elevation-6: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
+  --md-elevation-8: 0 5px 5px -3px rgba(0,0,0,0.2), 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12);
+  --md-elevation-12: 0 7px 8px -4px rgba(0,0,0,0.2), 0 12px 17px 2px rgba(0,0,0,0.14), 0 5px 22px 4px rgba(0,0,0,0.12);
+  --md-elevation-16: 0 8px 10px -5px rgba(0,0,0,0.2), 0 16px 24px 2px rgba(0,0,0,0.14), 0 6px 30px 5px rgba(0,0,0,0.12);
+  --md-elevation-24: 0 11px 15px -7px rgba(0,0,0,0.2), 0 24px 38px 3px rgba(0,0,0,0.14), 0 9px 46px 8px rgba(0,0,0,0.12);
+  --md-border-radius: 4px;
+  --md-transition-standard: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 全局样式 */
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--md-background);
+  color: var(--md-on-background);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 菜单栏 */
+.menu-bar {
+  height: 64px;
+  background-color: var(--md-primary-color);
+  color: var(--md-on-primary);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-shadow: var(--md-elevation-4);
+  z-index: 4;
+}
+
+.menu-bar button {
+  background: none;
+  border: none;
+  color: var(--md-on-primary);
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: var(--md-border-radius);
+  transition: background-color var(--md-transition-standard);
+  margin: 0 4px;
+  font-weight: 500;
+}
+
+.menu-bar button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#webTitle {
+  color: var(--md-on-primary);
+  font-weight: 500;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* 主容器 */
+.container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 左侧功能栏 */
+.activity-bar {
+  width: 260px;
+  background-color: var(--md-surface);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  padding: 8px;
+  gap: 4px;
+  box-shadow: var(--md-elevation-1);
+  z-index: 3;
+}
+
+.activity-item {
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  padding: 12px 16px;
+  border-radius: var(--md-border-radius);
+  transition: background-color var(--md-transition-standard);
+}
+
+.activity-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.activity-item.selected {
+  background-color: rgba(98, 0, 238, 0.08);
+  color: var(--md-primary-color);
+}
+
+/* 资源管理器 */
+.explorer {
+  width: 280px;
+  background-color: var(--md-surface);
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  padding: 16px;
+  box-shadow: var(--md-elevation-1);
+}
+
+.explorer-item {
+  cursor: pointer;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--md-border-radius);
+  transition: background-color var(--md-transition-standard);
+}
+
+.explorer-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.explorer-item.selected {
+  background-color: rgba(98, 0, 238, 0.08);
+  color: var(--md-primary-color);
+}
+
+/* 编辑区域 */
+.editor-area {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: var(--md-surface);
+  box-shadow: var(--md-elevation-1);
+}
+
+/* 设置卡片 */
+.settings-card {
+  display: flex;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--md-border-radius);
+  background-color: var(--md-surface);
+  margin-bottom: 16px;
+  box-shadow: var(--md-elevation-1);
+  transition: box-shadow var(--md-transition-standard);
+}
+
+.settings-card:hover {
+  box-shadow: var(--md-elevation-2);
+}
+
+.settings-card i {
+  font-size: 24px;
+  margin: auto 16px auto 0;
+  color: var(--md-primary-color);
+}
+
+.settings-card .left-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-card .title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  margin-bottom: 4px;
+}
+
+.settings-card .description {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.5;
+}
+
+.settings-card .right-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 按钮样式 */
+fluent-button {
+  --accent-fill-rest: var(--md-primary-color);
+  --accent-fill-hover: var(--md-primary-variant);
+  --accent-fill-active: var(--md-primary-variant);
+  --accent-foreground-rest: var(--md-on-primary);
+  --neutral-fill-rest: transparent;
+  --neutral-fill-hover: rgba(0, 0, 0, 0.04);
+  --neutral-fill-active: rgba(0, 0, 0, 0.08);
+  --neutral-foreground-rest: var(--md-on-surface);
+  border-radius: var(--md-border-radius);
+  font-weight: 500;
+  transition: all var(--md-transition-standard);
+}
+
+fluent-button::part(control) {
+  padding: 8px 16px;
+}
+
+/* 输入框样式 */
+fluent-text-field {
+  --neutral-foreground-rest: var(--md-on-surface);
+  --neutral-fill-input-rest: var(--md-surface);
+  --neutral-fill-input-hover: var(--md-surface);
+  --neutral-fill-input-focus: var(--md-surface);
+  --neutral-fill-input-active: var(--md-surface);
+  --neutral-fill-stealth-rest: transparent;
+  --accent-fill-rest: var(--md-primary-color);
+  border-radius: var(--md-border-radius);
+  margin-bottom: 16px;
+}
+
+fluent-text-field::part(control) {
+  border-radius: 4px 4px 0 0;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  padding: 8px 0;
+  transition: border-bottom-color var(--md-transition-standard);
+}
+
+fluent-text-field:hover::part(control) {
+  border-bottom-color: rgba(0, 0, 0, 0.87);
+}
+
+fluent-text-field:focus-within::part(control) {
+  border-bottom: 2px solid var(--md-primary-color);
+}
+
+/* 下拉菜单样式 */
+fluent-select {
+  --neutral-foreground-rest: var(--md-on-surface);
+  --neutral-fill-input-rest: var(--md-surface);
+  --neutral-fill-input-hover: var(--md-surface);
+  --neutral-fill-input-focus: var(--md-surface);
+  --neutral-fill-input-active: var(--md-surface);
+  --neutral-fill-stealth-rest: transparent;
+  --accent-fill-rest: var(--md-primary-color);
+  border-radius: var(--md-border-radius);
+}
+
+fluent-select::part(control) {
+  border-radius: 4px 4px 0 0;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  padding: 8px 0;
+  transition: border-bottom-color var(--md-transition-standard);
+}
+
+fluent-select:hover::part(control) {
+  border-bottom-color: rgba(0, 0, 0, 0.87);
+}
+
+fluent-select:focus-within::part(control) {
+  border-bottom: 2px solid var(--md-primary-color);
+}
+
+/* 列表样式 */
+fluent-listbox {
+  border: none;
+  outline: none;
+  background-color: transparent;
+}
+
+fluent-option {
+  padding: 12px 16px;
+  border-radius: var(--md-border-radius);
+  transition: background-color var(--md-transition-standard);
+}
+
+fluent-option:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+fluent-option.selected {
+  background-color: rgba(98, 0, 238, 0.08);
+  color: var(--md-primary-color);
+}
+
+/* 移动端样式 */
+#mobile-bottomBar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: var(--md-surface);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  justify-content: space-around;
+  padding: 8px 0;
+  z-index: 10;
+  box-shadow: var(--md-elevation-4);
+}
+
+#mobile-bottomBar > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  padding: 8px 12px;
+  color: rgba(0, 0, 0, 0.6);
+  transition: color var(--md-transition-standard);
+}
+
+#mobile-bottomBar > button > i {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+#mobile-bottomBar > button.selected {
+  color: var(--md-primary-color);
+}
+
+#mobile-bottomBar > button.selected::before {
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--md-primary-color);
+  border-radius: 3px 3px 0 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .mobile-only-flex {
+    display: flex;
+  }
+
+  .explorer, .activity-bar {
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .editor-area {
+    flex: 1;
+    padding: 16px;
+    border-radius: 0;
+  }
+
+  .menu-bar {
+    height: auto;
+    flex-direction: column;
+    padding: 8px 16px;
+  }
+
+  .menu-bar #titleArea {
+    width: 100%;
+    margin: 8px 0;
+  }
+
+  .menu-bar #fileArea {
+    width: 100%;
+    margin: 8px 0;
+    justify-content: space-between;
+  }
+
+  .menu-bar #fileArea > fluent-button {
+    flex: 1;
+    margin: 0 4px;
+  }
+
+  .settings-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-card i {
+    margin-bottom: 8px;
+  }
+
+  .settings-card .right-section {
+    width: 100%;
+    margin-top: 8px;
+    justify-content: flex-end;
+  }
+
+  body {
+    padding-bottom: 64px; /* 为底部导航栏留出空间 */
+  }
+}

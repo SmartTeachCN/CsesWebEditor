@@ -1,4 +1,4 @@
-<?php $debugMode = true;
+<?php $debugMode = file_exists(__DIR__ . '/debug.flag');
 $RUNDIR = __DIR__ . '/';
 
 include_once 'config.php';
@@ -16,7 +16,7 @@ session_start();
 // 用户登录
 if (isset($_GET['code'])) {
   $accessToken = user::handleLogin($_GET['code']);
-  header('Location: /');
+  header('Location: /panel.php');
   exit;
 }
 

@@ -28,36 +28,43 @@ const schedule = {
   init() {
     const container = document.getElementById("schedule-list");
     container.innerHTML = "";
-    const div = document.createElement("fluent-option");
-    div.className = "explorer-item";
-    div.innerHTML = `<i class="bi bi-table"></i> 表格视图`;
-    div.addEventListener("click", () => {
-      document.getElementById(`schedule-editor`).style.display = "none";
-      document.getElementById(`subject-editor`).style.display = "none";
-      document.getElementById(`source-editor`).style.display = "none";
-      document.getElementById(`change-editor`).style.display = "block";
-      if (checkDeviceType()) {
-        location.href = "#schedule-editor";
-        document.getElementById("change-editor").style.display = "block";
-        document.getElementsByClassName("explorer")[0].style.display = "none";
-        document.getElementsByClassName("editor-area")[0].style.display = "block";
+    if (storage.getOutputMode() == "es") { } else {
+      const div = document.createElement("fluent-option");
+      div.className = "explorer-item";
+      div.innerHTML = `<i class="bi bi-table"></i> 表格视图`;
+      div.addEventListener("click", () => {
+        document.getElementById(`schedule-editor`).style.display = "none";
+        document.getElementById(`subject-editor`).style.display = "none";
+        document.getElementById(`source-editor`).style.display = "none";
+        document.getElementById(`change-editor`).style.display = "block";
+        if (checkDeviceType()) {
+          location.href = "#schedule-editor";
+          document.getElementById("change-editor").style.display = "block";
+          document.getElementsByClassName("explorer")[0].style.display = "none";
+          document.getElementsByClassName("editor-area")[0].style.display = "block";
+        }
+        this.view(this.viewMode);
+      });
+      container.appendChild(div);
+      if (currentScheduleIndex == -1) {
+        div.classList.add("selected");
+        div.setAttribute("aria-selected", "true");
       }
-      this.view(this.viewMode);
-    });
-    if (currentScheduleIndex == -1) {
-      div.classList.add("selected");
-      div.setAttribute("aria-selected", "true");
     }
-    container.appendChild(div);
     currentData.schedules.forEach((schedule2, index) => {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
-      const weekMode = schedule2.weeks;
-      const dayMode = schedule2.enable_day;
-      div.innerHTML = 
-        this.weekMap[weekMode] && this.dayMap[dayMode]
-          ? `<i class="bi bi-calendar3-week"></i>&nbsp;` + this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
-          : `<i class="bi bi-calendar3-week"></i>&nbsp;` + `无规则计划 ${index + 1}`;
+      if (storage.getOutputMode() == "es") {
+        div.innerHTML = schedule2.date ? `<i class="bi bi-calendar3-week"></i>&nbsp;` + schedule2.date
+          : `<i class="bi bi-calendar3-week"></i>&nbsp;` + `未设定日期 ${index + 1}`;;
+      } else {
+        const weekMode = schedule2.weeks;
+        const dayMode = schedule2.enable_day;
+        div.innerHTML =
+          this.weekMap[weekMode] && this.dayMap[dayMode]
+            ? `<i class="bi bi-calendar3-week"></i>&nbsp;` + this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
+            : `<i class="bi bi-calendar3-week"></i>&nbsp;` + `无规则计划 ${index + 1}`;
+      }
       div.addEventListener("click", () => {
         this.load(index);
         document
@@ -67,11 +74,17 @@ const schedule = {
       });
       div.addEventListener("contextmenu", (e) => {
         e.preventDefault();
+
         confirm(
-          `确定要删除计划 ${this.weekMap[weekMode] && this.dayMap[dayMode]
-            ? this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
-            : `无规则计划 ${index + 1}`
-          } 吗？`,
+          storage.getOutputMode() == "es" ? (
+            `确定要删除计划 ${schedule2.date
+              ? schedule2.date
+              : `未设定日期 ${index + 1}`
+            } 吗？`) : (
+            `确定要删除计划 ${this.weekMap[weekMode] && this.dayMap[dayMode]
+              ? this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
+              : `无规则计划 ${index + 1}`
+            } 吗？`),
           (result, index) => {
             if (result) {
               currentData.schedules.splice(index, 1);
@@ -191,25 +204,25 @@ const schedule = {
             subjectSelector.appendChild(button);
           });
 
-            const rect = td.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            subjectSelector.style.display = 'flex';
-            let left = rect.left;
-            let top = rect.bottom + 5;
-            
-            if (left + 200 > viewportWidth) {
+          const rect = td.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+
+          subjectSelector.style.display = 'flex';
+          let left = rect.left;
+          let top = rect.bottom + 5;
+
+          if (left + 200 > viewportWidth) {
             left = viewportWidth - 200;
-            }
-            
-            if (top + subjectSelector.offsetHeight > viewportHeight) {
+          }
+
+          if (top + subjectSelector.offsetHeight > viewportHeight) {
             top = rect.top - subjectSelector.offsetHeight - 5;
-            }
-            
-            subjectSelector.style.left = Math.max(0, left) + 'px';
-            subjectSelector.style.top = Math.max(0, top) + 'px';
-            subjectSelector.style.maxWidth = '200px';
+          }
+
+          subjectSelector.style.left = Math.max(0, left) + 'px';
+          subjectSelector.style.top = Math.max(0, top) + 'px';
+          subjectSelector.style.maxWidth = '200px';
         });
 
         row.appendChild(td);
@@ -241,27 +254,34 @@ const schedule = {
       const btn = document.createElement("fluent-button");
       btn.appearance = "stealth";
       btn.textContent = s.name;
-      btn.addEventListener("click", () => this.setSubject(s.name));
+      btn.addEventListener("click", () => this.setSubject(s.name, true));
       grid.appendChild(btn);
     });
   },
   save() {
     const weekMode = document.getElementById("week-mode").value ?? "all";
     const dayMode = document.getElementById("day-mode").value ?? "1";
+    const ParticularDate = document.getElementById("schedule-date").value ?? null;
     const selectedWeekMode = Object.keys(this.weekMap).find(
       (key) => this.weekMap[key] === weekMode
     );
     const selectedDayMode = Object.keys(this.dayMap).find(
       (key) => this.dayMap[key] === dayMode
     );
-    const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
-      }_${this.dayMap_Full[dayMode]}`;
-    currentData.schedules[currentScheduleIndex].name = scheduleName;
-    currentData.schedules[currentScheduleIndex].enable_day = parseInt(
-      dayMode,
-      10
-    );
-    currentData.schedules[currentScheduleIndex].weeks = weekMode;
+    if (storage.getOutputMode() == "es") {
+      const scheduleName = ParticularDate;
+      console.log(scheduleName);
+      currentData.schedules[currentScheduleIndex].date = scheduleName;
+    } else {
+      const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
+        }_${this.dayMap_Full[dayMode]}`;
+      currentData.schedules[currentScheduleIndex].name = scheduleName;
+      currentData.schedules[currentScheduleIndex].enable_day = parseInt(
+        dayMode,
+        10
+      );
+      currentData.schedules[currentScheduleIndex].weeks = weekMode;
+    }
     storage.save();
     this.init();
   },
@@ -309,6 +329,17 @@ const schedule = {
       select.appendChild(option);
     });
     this.quickPanel();
+    const dateSelector = document.getElementById('card-schedule2');
+    if (storage.getOutputMode() == "es") {
+      dateSelector.style.display = checkDeviceType() ? 'block' : 'flex';
+      document.getElementById('schedule-date').value = schedule.date;
+      document.getElementById("card-schedule0").style.display = 'none';
+      document.getElementById("card-schedule1").style.display = 'none';
+    } else {
+      dateSelector.style.display = 'none';
+      document.getElementById("card-schedule0").style.display = checkDeviceType() ? 'block' : 'flex';
+      document.getElementById("card-schedule1").style.display = checkDeviceType() ? 'block' : 'flex';
+    }
   },
   refresh() {
     const listbox = document.getElementById("class-list");
@@ -341,9 +372,9 @@ const schedule = {
   },
   addClass() {
     currentData.schedules[currentScheduleIndex].classes.push({
-      subject: "",
-      start_time: "",
-      end_time: "",
+      subject: document.querySelector('#current-subject').value ?? "",
+      start_time: document.querySelectorAll('.time-input')[0].value ?? "",
+      end_time: document.querySelectorAll('.time-input')[1].value ?? "",
     });
     currentClassIndex =
       currentData.schedules[currentScheduleIndex].classes.length - 1; // 设置新增课程为当前选中
@@ -402,16 +433,18 @@ const schedule = {
     this.init();
     alert("快速创建周一~周日通用周成功");
   },
-  setSubject(subject) {
+  setSubject(subject, autoAdd) {
     if (currentClassIndex === -1) return;
     currentData.schedules[currentScheduleIndex].classes[
       currentClassIndex
     ].subject = subject;
     storage.save();
     schedule.refresh();
-    const maxIndex =
-      currentData.schedules[currentScheduleIndex].classes.length - 1;
-    currentClassIndex = Math.min(currentClassIndex + 1, maxIndex);
+    if (autoAdd) {
+      const maxIndex =
+        currentData.schedules[currentScheduleIndex].classes.length - 1;
+      currentClassIndex = Math.min(currentClassIndex + 1, maxIndex);
+    }
     document.getElementById("class-list").value = currentClassIndex;
     document.getElementById("current-subject").value = subject;
   },

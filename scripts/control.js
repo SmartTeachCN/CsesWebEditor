@@ -116,7 +116,7 @@ const controlMgr = {
     if (typeof value === "string" && /^\-?\d+$/.test(value)) {
       value = parseInt(value, 10); // 转换为整数
     }
-    tool.setNestedValue(currentData, "extraKey." + settingKey, value);
+    tool.setNestedValue(currentData, settingKey, value);
     file.export(true);
   },
   valid(control) {
@@ -142,7 +142,7 @@ const Fcard = {
       case "text":
         const textField = document.createElement("fluent-text-field");
         textField.value =
-          tool.getNestedValue(currentData, "extraKey." + setting.keyPath) ??
+          tool.getNestedValue(currentData, setting.keyPath) ??
           (setting.default ||
             "");
         textField.placeholder = setting.placeholder;
@@ -151,14 +151,14 @@ const Fcard = {
 
       case "bool":
         const toggle = document.createElement("fluent-switch");
-        toggle.checked = tool.getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || false);
+        toggle.checked = tool.getNestedValue(currentData, setting.keyPath) ?? (setting.default || false);
         toggle.onchange = controlMgr.handleChange;
         return toggle;
 
       case "time":
         const timePicker = document.createElement("input");
         timePicker.type = "time";
-        timePicker.value = tool.getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || "00:00");
+        timePicker.value = tool.getNestedValue(currentData, setting.keyPath) ?? (setting.default || "00:00");
         timePicker.onchange = controlMgr.handleChange;
         return timePicker;
 
@@ -172,12 +172,12 @@ const Fcard = {
         });
         select.onchange = controlMgr.handleChange;
 
-        select.value = tool.getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default);
+        select.value = tool.getNestedValue(currentData, setting.keyPath) ?? (setting.default);
         return select;
 
       case "number":
         const numberField = document.createElement("fluent-number-field");
-        numberField.value = tool.getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || 0);
+        numberField.value = tool.getNestedValue(currentData, setting.keyPath) ?? (setting.default || 0);
         numberField.min = setting.min;
         numberField.max = setting.max;
         numberField.step = setting.step;
@@ -227,7 +227,7 @@ const Fcard = {
 
       case "html":
         const textElement = document.createElement("span");
-        textElement.innerHTML = tool.getNestedValue(currentData, "extraKey." + setting.keyPath) ?? (setting.default || "");
+        textElement.innerHTML = tool.getNestedValue(currentData, setting.keyPath) ?? (setting.default || "");
         textElement.onchange = controlMgr.handleChange;
         return textElement;
 
