@@ -1,6 +1,10 @@
 <script>
   var hasLogin = true;
 
+  // 将后端配置暴露到前端，控制登录弹窗按钮显示
+  window.ALLOWINUSER = <?php echo isset($ALLOWINUSER) && $ALLOWINUSER ? 'true' : 'false'; ?>;
+  window.ALLOWOAUTH = <?php echo isset($ALLOWOAUTH) && $ALLOWOAUTH ? 'true' : 'false'; ?>;
+
   function getUserInfo() {
     confirm(
       `用户标识: <?php echo $_SESSION['user']['id'] ?><br>
@@ -33,10 +37,10 @@
       if (noNotice) return;
       if (result.success) {
         // alert("配置保存成功！");
-        saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-check-circle"></i>&nbsp;保存成功</span><span class="mobile-only"><i class="bi bi-check-circle"></i></span>`;
+        saveButton.innerHTML = `<span class=\"desktop-only\"><i class=\"bi bi-check-circle\"></i>&nbsp;保存成功</span><span class=\"mobile-only\"><i class=\"bi bi-check-circle\"></i></span>`;
         clearTimeout(tid);
         tid = setTimeout(() => {
-          saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>`;
+          saveButton.innerHTML = `<span class=\"desktop-only\"><i class=\"bi bi-cloud-upload\"></i>&nbsp;保存到云</span><span class=\"mobile-only\"><i class=\"bi bi-cloud-upload\"></i></span>`;
           saveButton.disabled = false;
         }, 1000);
       } else {
@@ -47,6 +51,44 @@
       alert("保存配置时发生错误");
     }
   }
+
+  // 离线下手动重新打开登录弹窗
+  window.openLoginDialog = function () {
+    showAuthDialog(
+      async (a) => {
+        if (!a.username || !a.password) {
+          alert("用户名或密码不能为空");
+          return;
+        }
+        const res = await fetch('./function.php?login=' + encodeURIComponent(a.username) + "&pass=" + encodeURIComponent(a.password), {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message || "登录失败");
+        }
+      },
+      async (a) => {
+        if (!a.username || !a.password) {
+          alert("用户名或密码不能为空");
+          return;
+        }
+        const res = await fetch('./function.php?regist=' + encodeURIComponent(a.username) + "&pass=" + encodeURIComponent(a.password), {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message || "注册失败");
+        }
+      },
+      "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email"
+    );
+  };
+
   document.addEventListener("DOMContentLoaded", (event) => {
     if (!"<?php echo $_SESSION['user']['id'] ?? null ?>") {
       showAuthDialog(
@@ -82,18 +124,28 @@
         },
         "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email"
       );
-      // confirm(
-      //   "您好，您尚未登录，云功能将不可用。如需加载云功能，请点击“确认”按钮登录",
-      //   (r) => {
-      //     if (r)
-      //       window.location.href =
-      //         "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email";
-      //   }
-      // );
       hasLogin = false;
+      // 禁用并隐藏 .online 控件，但保留并改造 #save-button
       document.querySelectorAll(".online").forEach((element) => {
-        element.disabled = true;
+        if (element.id === "save-button") {
+          element.disabled = false;
+          element.style.display = "";
+          element.classList.remove("online");
+        } else {
+          element.disabled = true;
+          element.style.display = "none";
+        }
       });
+      // 隐藏移动端底栏中的“终端管理/集控管理”
+      document.querySelectorAll("#mobile-bottomBar [data-view='control'], #mobile-bottomBar [data-view='cloud']").forEach((el) => {
+        el.style.display = "none";
+      });
+      // 替换右上角保存为导出
+      const saveButton = document.getElementById("save-button");
+      if (saveButton) {
+        saveButton.innerHTML = `<span class=\"desktop-only\"><i class=\"bi bi-box-arrow-up-right\"></i>&nbsp;导出文件</span><span class=\"mobile-only\"><i class=\"bi bi-box-arrow-up-right\"></i></span>`;
+        saveButton.onclick = () => file.exportL();
+      }
     }
     if (hasLogin) {
       terminal.init();

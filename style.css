@@ -281,7 +281,8 @@ button:disabled {
 }
 
 #subject-list,
-#schedule-list {
+#schedule-list,
+#timetable-list {
   width: 100%;
 }
 
@@ -557,6 +558,7 @@ fluent-text-field {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+  margin-left: 5px;
 }
 
 #webTitle {

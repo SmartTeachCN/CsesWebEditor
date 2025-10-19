@@ -1,6 +1,47 @@
 let currentScheduleIndex = -1;
 let currentClassIndex = -1;
-
+let timeEditorCollapsed = true;
+const TIMETABLE_LOCAL_KEY = 'cses_timetable_state';
+let timetableState = (() => {
+  try { return JSON.parse(localStorage.getItem(TIMETABLE_LOCAL_KEY)) || { schedules: {} }; } catch { return { schedules: {} }; }
+})();
+const TIMETABLE_CUSTOM_KEY = 'cses_timetable_templates';
+let customTimetables = (() => {
+  try {
+    const d = JSON.parse(localStorage.getItem(TIMETABLE_CUSTOM_KEY));
+    if (Array.isArray(d)) return d;
+    if (d && Array.isArray(d.templates)) return d.templates;
+    return [];
+  } catch {
+    return [];
+  }
+})();
+function saveCustomTimetables(){
+  try { localStorage.setItem(TIMETABLE_CUSTOM_KEY, JSON.stringify(customTimetables)); } catch {}
+  try {
+    // 同步到导出数据结构：times 使用包含 starttime/endtime 的对象
+    const toExport = customTimetables.map(t => {
+      const key = (t.key || t.name || '').trim();
+      const timesObj = Array.isArray(t.times) ? t.times.map(([s,e]) => ({ starttime: s, endtime: e })) : [];
+      return { key, name: t.name, times: timesObj };
+    });
+    currentData.timetables = toExport;
+    storage.save();
+  } catch (e) {
+    console.warn('Failed to sync timetables to currentData', e);
+  }
+}
+const timetableTemplates = [
+  { name: '标准8节', times: [
+      ['08:00','08:45'], ['08:55','09:40'], ['10:00','10:45'], ['10:55','11:40'],
+      ['13:30','14:15'], ['14:25','15:10'], ['15:30','16:15'], ['16:25','17:10'],
+  ]},
+  { name: '标准10节', times: [
+      ['08:00','08:45'], ['08:55','09:40'], ['10:00','10:45'], ['10:55','11:40'],
+      ['13:00','13:45'], ['13:55','14:40'], ['14:50','15:35'], ['15:45','16:30'], ['18:30','19:15'], ['19:25','20:10'],
+  ]},
+];
+function saveTimetableState(){ try{ localStorage.setItem(TIMETABLE_LOCAL_KEY, JSON.stringify(timetableState)); }catch{} }
 const schedule = {
   weekMap: {
     odd: "单周",
@@ -25,7 +66,32 @@ const schedule = {
     6: "Saturday",
     7: "Sunday",
   },
+  currentTimetableName: null,
   init() {
+    // 同步时间表模板到 currentData 并从 currentData 载入
+    try {
+      if (Array.isArray(currentData?.timetables) && currentData.timetables.length > 0) {
+        // 从导出结构（对象形式的 times）恢复为编辑器内部使用的数组形式
+        customTimetables = currentData.timetables.map(t => {
+          const timesArr = Array.isArray(t.times) ? t.times.map(it => {
+            if (Array.isArray(it)) return it;
+            const s = (it && it.starttime) ? it.starttime : '';
+            const e = (it && it.endtime) ? it.endtime : '';
+            return [s, e];
+          }) : [];
+          return { key: t.key || t.name, name: t.name, times: timesArr };
+        });
+        localStorage.setItem(TIMETABLE_CUSTOM_KEY, JSON.stringify(customTimetables));
+      } else if (Array.isArray(customTimetables) && customTimetables.length > 0) {
+        // 将编辑器内部数组形式转换为导出结构（对象形式的 times）
+        currentData.timetables = customTimetables.map(t => ({
+          key: t.key || t.name,
+          name: t.name,
+          times: (t.times || []).map(([s,e]) => ({ starttime: s, endtime: e }))
+        }));
+        storage.save();
+      }
+    } catch (e) { console.warn('sync timetables on init failed', e); }
     const container = document.getElementById("schedule-list");
     container.innerHTML = "";
     if (storage.getOutputMode() == "es") { } else {
@@ -37,6 +103,9 @@ const schedule = {
         document.getElementById(`subject-editor`).style.display = "none";
         document.getElementById(`source-editor`).style.display = "none";
         document.getElementById(`change-editor`).style.display = "block";
+        // 隐藏时间表编辑器（切换到非时间编辑视图）
+        const timeEl = document.getElementById('time-editor');
+        if (timeEl) timeEl.style.display = 'none';
         if (checkDeviceType()) {
           location.href = "#schedule-editor";
           document.getElementById("change-editor").style.display = "block";
@@ -62,8 +131,8 @@ const schedule = {
         const dayMode = schedule2.enable_day;
         div.innerHTML =
           this.weekMap[weekMode] && this.dayMap[dayMode]
-            ? `<i class="bi bi-calendar3-week"></i>&nbsp;` + this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
-            : `<i class="bi bi-calendar3-week"></i>&nbsp;` + `无规则计划 ${index + 1}`;
+          ? `<i class="bi bi-calendar3-week"></i>&nbsp;${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`
+          : `<i class="bi bi-calendar3-week"></i>&nbsp;无规则计划 ${index + 1}`;
       }
       div.addEventListener("click", () => {
         this.load(index);
@@ -74,20 +143,21 @@ const schedule = {
       });
       div.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-
+        let label;
+        if (storage.getOutputMode() == "es") {
+          label = schedule2.date ? schedule2.date : `未设定日期 ${index + 1}`;
+        } else {
+          const weekMode = schedule2.weeks;
+          const dayMode = schedule2.enable_day;
+          label = (this.weekMap[weekMode] && this.dayMap[dayMode])
+            ? `${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`
+            : `无规则计划 ${index + 1}`;
+        }
         confirm(
-          storage.getOutputMode() == "es" ? (
-            `确定要删除计划 ${schedule2.date
-              ? schedule2.date
-              : `未设定日期 ${index + 1}`
-            } 吗？`) : (
-            `确定要删除计划 ${this.weekMap[weekMode] && this.dayMap[dayMode]
-              ? this.weekMap[weekMode] + "_" + this.dayMap[dayMode]
-              : `无规则计划 ${index + 1}`
-            } 吗？`),
-          (result, index) => {
+          `确定要删除计划 ${label} 吗？`,
+          (result, idx) => {
             if (result) {
-              currentData.schedules.splice(index, 1);
+              currentData.schedules.splice(idx, 1);
               storage.save();
               schedule.init();
             }
@@ -101,6 +171,10 @@ const schedule = {
       }
       container.appendChild(div);
     });
+    // 保证时间表列表与下拉选择在初始化后已加载
+    this.renderTimetableList();
+    this.loadTimetableOptions();
+    this.updateTimetableLabel();
   },
   viewMode: "odd",
   view(viewMode = 'odd') {
@@ -304,6 +378,9 @@ const schedule = {
     document.getElementById(`schedule-editor`).style.display = "block";
     document.getElementById(`subject-editor`).style.display = "none";
     document.getElementById(`source-editor`).style.display = "none";
+    // 隐藏时间表编辑器（选择课程表时）
+    const timeEl2 = document.getElementById('time-editor');
+    if (timeEl2) timeEl2.style.display = 'none';
     if (checkDeviceType()) {
       location.href = "#schedule-editor";
       document.getElementById("schedule-editor").style.display = "block";
@@ -315,8 +392,6 @@ const schedule = {
     const schedule = currentData.schedules[index];
     const weekMode = schedule.weeks;
     const dayMode = schedule.enable_day;
-    // const selectedWeekMode = this.weekMap[weekMode];
-    // const selectedDayMode = this.dayMap[dayMode];
     document.getElementById("week-mode").value = weekMode;
     document.getElementById("day-mode").value = `${dayMode}`;
     this.refresh();
@@ -328,17 +403,23 @@ const schedule = {
       option.textContent = s.name;
       select.appendChild(option);
     });
+    this.ensureTimeEditorCollapsedDefault();
+    this.loadTimetableOptions();
+    this.updateTimetableLabel();
     this.quickPanel();
     const dateSelector = document.getElementById('card-schedule2');
+    const dateInput = document.getElementById('schedule-date');
+    const card0 = document.getElementById("card-schedule0");
+    const card1 = document.getElementById("card-schedule1");
     if (storage.getOutputMode() == "es") {
-      dateSelector.style.display = checkDeviceType() ? 'block' : 'flex';
-      document.getElementById('schedule-date').value = schedule.date;
-      document.getElementById("card-schedule0").style.display = 'none';
-      document.getElementById("card-schedule1").style.display = 'none';
+      if (dateSelector) dateSelector.style.display = checkDeviceType() ? 'block' : 'flex';
+      if (dateInput) dateInput.value = schedule.date || "";
+      if (card0) card0.style.display = 'none';
+      if (card1) card1.style.display = 'none';
     } else {
-      dateSelector.style.display = 'none';
-      document.getElementById("card-schedule0").style.display = checkDeviceType() ? 'block' : 'flex';
-      document.getElementById("card-schedule1").style.display = checkDeviceType() ? 'block' : 'flex';
+      if (dateSelector) dateSelector.style.display = 'none';
+      if (card0) card0.style.display = checkDeviceType() ? 'block' : 'flex';
+      if (card1) card1.style.display = checkDeviceType() ? 'block' : 'flex';
     }
   },
   refresh() {
@@ -377,9 +458,14 @@ const schedule = {
       end_time: document.querySelectorAll('.time-input')[1].value ?? "",
     });
     currentClassIndex =
-      currentData.schedules[currentScheduleIndex].classes.length - 1; // 设置新增课程为当前选中
+      currentData.schedules[currentScheduleIndex].classes.length - 1;
     storage.save();
     schedule.refresh();
+    // 标记时间表已更改（新增课时视为课时编辑器变更）
+    const st = timetableState.schedules[currentScheduleIndex];
+    if (st) st.modified = true; else timetableState.schedules[currentScheduleIndex] = { templateName: '未选择', modified: true };
+    saveTimetableState();
+    this.updateTimetableLabel();
   },
   delClass() {
     if (currentClassIndex === -1) return;
@@ -390,7 +476,12 @@ const schedule = {
     );
     storage.save();
     schedule.refresh();
-    currentClassIndex = -1; // 重置课程索引
+    currentClassIndex = -1;
+    // 标记时间表已更改（删除课时视为课时编辑器变更）
+    const st = timetableState.schedules[currentScheduleIndex];
+    if (st) st.modified = true; else timetableState.schedules[currentScheduleIndex] = { templateName: '未选择', modified: true };
+    saveTimetableState();
+    this.updateTimetableLabel();
   },
   clone() {
     const newSchedule = JSON.parse(
@@ -458,5 +549,500 @@ const schedule = {
     ].end_time = document.querySelectorAll(".time-input")[1].value;
     storage.save();
     schedule.refresh();
+    const st = timetableState.schedules[currentScheduleIndex];
+    if (st) {
+      st.modified = true;
+    } else {
+      timetableState.schedules[currentScheduleIndex] = { templateName: '未选择', modified: true };
+    }
+    saveTimetableState();
+    this.updateTimetableLabel();
+  },
+  loadTimetableOptions() {
+    const sel = document.getElementById('timetable-mode');
+    if (!sel) return;
+    sel.innerHTML = '';
+    const noneOpt = document.createElement('fluent-option');
+    noneOpt.value = '';
+    noneOpt.textContent = '未选择';
+    sel.appendChild(noneOpt);
+    getAllTimetables().forEach(t => {
+      const opt = document.createElement('fluent-option');
+      opt.value = t.name;
+      opt.textContent = t.name;
+      sel.appendChild(opt);
+    });
+    const st = timetableState.schedules[currentScheduleIndex];
+    sel.value = st?.templateName || '';
+  },
+  applyTimetableFromSelect(name) {
+    if (!name) return; // 选择未选择则不应用
+    this.applyTimetable(name);
+  },
+  createTimetableUI() {
+    prompt('输入新时间表名称', (val) => {
+      const name = (val || '').trim();
+      if (!name) return;
+      schedule.createTimetableConfirmName(name);
+    }, '保存为时间表');
+  },
+  createTimetableConfirm() {
+    const input = document.getElementById('new-timetable-name');
+    const name = (input?.value || '').trim();
+    if (!name) return;
+    this.createTimetableConfirmName(name);
+  },
+  createTimetableConfirmName(name) {
+    const sch = currentData.schedules[currentScheduleIndex];
+    const times = (sch.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    if (times.length === 0) {
+      // 若当前课表没有时间，创建空模板也允许
+    }
+    let newName = name;
+    let counter = 1;
+    while (getAllTimetables().some(t => t.name === newName)) {
+      newName = `${name}(${counter++})`;
+    }
+    customTimetables.push({ key: newName, name: newName, times });
+    saveCustomTimetables();
+    this.loadTimetableOptions();
+    const sel = document.getElementById('timetable-mode');
+    if (sel) sel.value = newName;
+    timetableState.schedules[currentScheduleIndex] = { templateName: newName, modified: false };
+    saveTimetableState();
+    this.updateTimetableLabel();
+  },
+  applyTimetable(name) {
+    if (currentScheduleIndex === -1) return;
+    const tmpl = getAllTimetables().find(t => t.name === name);
+    if (!tmpl) return;
+    const sch = currentData.schedules[currentScheduleIndex];
+    const times = tmpl.times || [];
+    const tmplLen = times.length;
+    const beforeLen = (sch.classes || []).length;
+    for (let i = 0; i < tmplLen; i++) {
+      const [start, end] = times[i];
+      if (!sch.classes[i]) {
+        sch.classes[i] = {
+          subject: document.querySelector('#current-subject')?.value || '-',
+          start_time: start,
+          end_time: end,
+        };
+      } else {
+        sch.classes[i].start_time = start;
+        sch.classes[i].end_time = end;
+      }
+    }
+    const finish = (keepExtra) => {
+      if (!keepExtra && beforeLen > tmplLen) {
+        sch.classes = sch.classes.slice(0, tmplLen);
+      }
+      storage.save();
+      this.refresh();
+      timetableState.schedules[currentScheduleIndex] = { templateName: name, modified: false };
+      saveTimetableState();
+      this.updateTimetableLabel();
+    };
+    if (beforeLen > tmplLen) {
+      confirm('所选时间表课时短于当前课时，是否保留多余课时？', (ok) => finish(ok));
+    } else {
+      finish(true);
+    }
+  },
+  updateTimetableLabel() {
+    const el = document.getElementById('timetable-status');
+    if (!el) return;
+    const st = timetableState.schedules[currentScheduleIndex];
+    if (!st) {
+      el.textContent = '已选:未选择';
+    } else {
+      el.textContent = `已选:${st.templateName}${st.modified ? '(已更改)' : ''}`;
+    }
+  },
+  toggleTimeEditor() {
+    timeEditorCollapsed = !timeEditorCollapsed;
+    document.querySelectorAll('.time-input').forEach((el) => {
+      el.style.display = timeEditorCollapsed ? 'none' : 'inline-block';
+    });
+    const addBtn = document.getElementById('add-class-btn');
+    const delBtn = document.getElementById('del-class-btn');
+    if (addBtn) addBtn.style.display = timeEditorCollapsed ? 'none' : 'inline-block';
+    if (delBtn) delBtn.style.display = timeEditorCollapsed ? 'none' : 'inline-block';
+    const btn = document.getElementById('toggle-time-editor');
+    if (btn) btn.textContent = timeEditorCollapsed ? '显示课时编辑器' : '收起课时编辑器';
+  },
+  ensureTimeEditorCollapsedDefault() {
+    timeEditorCollapsed = true;
+    document.querySelectorAll('.time-input').forEach((el) => {
+      el.style.display = 'none';
+    });
+    const addBtn = document.getElementById('add-class-btn');
+    const delBtn = document.getElementById('del-class-btn');
+    if (addBtn) addBtn.style.display = 'none';
+    if (delBtn) delBtn.style.display = 'none';
+    const btn = document.getElementById('toggle-time-editor');
+    if (btn) btn.textContent = '显示课时编辑器';
+  },
+  // 根据输出模式切换卡片显示
+  toggleOutputCards() {
+    const dateSelector = document.getElementById('card-schedule2');
+    const card0 = document.getElementById('card-schedule0');
+    const card1 = document.getElementById('card-schedule1');
+    const isES = storage.getOutputMode() === 'es';
+    if (isES) {
+      if (dateSelector) dateSelector.style.display = checkDeviceType() ? 'block' : 'flex';
+      if (card0) card0.style.display = 'none';
+      if (card1) card1.style.display = 'none';
+    } else {
+      if (dateSelector) dateSelector.style.display = 'none';
+      if (card0) card0.style.display = checkDeviceType() ? 'block' : 'flex';
+      if (card1) card1.style.display = checkDeviceType() ? 'block' : 'flex';
+    }
+  },
+  renderTimetableList() {
+    const panel = document.getElementById('timetable-list');
+    if (!panel) return;
+    panel.innerHTML = '';
+    if (customTimetables.length === 0) {
+      const empty = document.createElement('fluent-option');
+      empty.innerHTML = '<i class="bi bi-clock-history"></i>&nbsp;暂无时间表，点上方 + 新建';
+      panel.appendChild(empty);
+      return;
+    }
+    customTimetables.forEach(t => {
+      const opt = document.createElement('fluent-option');
+      opt.className = 'explorer-item';
+      opt.style.display = 'flex';
+      opt.style.width = '100%';
+      opt.value = t.name;
+      opt.innerHTML = `<i class="bi bi-clock-history"></i>&nbsp;${t.name}`;
+      opt.addEventListener('click', () => schedule.showTimeEditor(t.name));
+      opt.addEventListener('contextmenu', (e) => { e.preventDefault(); confirm(`确定要删除时间表 ${t.name} 吗？`, (ok)=>{ if(ok) schedule.deleteTimetable(t.name); }); });
+      panel.appendChild(opt);
+    });
+  },
+  addTimetableUI() {
+    prompt('输入新时间表名称', (val) => {
+      const name = (val || '').trim();
+      if (!name) return;
+      schedule.createTimetableFromCurrent(name);
+    }, '新建时间表');
+  },
+  createTimetableConfirm2() {
+    const input = document.getElementById('new-timetable-name2');
+    const name = (input?.value || '').trim();
+    if (!name) return;
+    const sch = currentData.schedules[currentScheduleIndex];
+    const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    let newName = name;
+    let counter = 1;
+    while (getAllTimetables().some(t => t.name === newName)) { newName = `${name}(${counter++})`; }
+    customTimetables.push({ name: newName, times });
+    saveCustomTimetables();
+    schedule.renderTimetableList();
+    schedule.loadTimetableOptions();
+  },
+  editTimetableUI(name) {
+    this.showTimeEditor(name);
+  },
+  renameTimetable(oldName) {
+    const input = document.getElementById('edit-timetable-name');
+    const newName = (input?.value || '').trim();
+    if (!newName) return;
+    if (getAllTimetables().some(t => t.name === newName)) { alert('已存在同名的时间表，请更换名称'); return; }
+    const idx = customTimetables.findIndex(t => t.name === oldName);
+    if (idx !== -1) { customTimetables[idx].name = newName; customTimetables[idx].key = newName; saveCustomTimetables(); schedule.renderTimetableList(); schedule.loadTimetableOptions(); schedule.updateTimetableLabel(); }
+  },
+  overwriteTimetable(name) {
+    const sch = currentData.schedules[currentScheduleIndex];
+    const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    const idx = customTimetables.findIndex(t => t.name === name);
+    if (idx !== -1) { customTimetables[idx].times = times; saveCustomTimetables(); schedule.renderTimetableList(); }
+  },
+  deleteTimetable(name) {
+    const idx = customTimetables.findIndex(t => t.name === name);
+    if (idx !== -1) { customTimetables.splice(idx, 1); saveCustomTimetables(); schedule.renderTimetableList(); schedule.loadTimetableOptions(); }
+  },
+  createTimetableFromCurrent(name) {
+    const sch = currentData.schedules[currentScheduleIndex];
+    const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    let newName = name;
+    let counter = 1;
+    while (getAllTimetables().some(t => t.name === newName)) { newName = `${name}(${counter++})`; }
+    customTimetables.push({ name: newName, times });
+    saveCustomTimetables();
+    schedule.renderTimetableList();
+    schedule.loadTimetableOptions();
+  },
+  showTimeEditor(name) {
+    const t = customTimetables.find(x => x.name === name);
+    this.currentTimetableName = name;
+    document.getElementById('change-editor')?.style && (document.getElementById('change-editor').style.display = 'none');
+    document.getElementById('schedule-editor')?.style && (document.getElementById('schedule-editor').style.display = 'none');
+    document.getElementById('subject-editor')?.style && (document.getElementById('subject-editor').style.display = 'none');
+    document.getElementById('source-editor')?.style && (document.getElementById('source-editor').style.display = 'none');
+    const timeEl = document.getElementById('time-editor');
+    if (timeEl) timeEl.style.display = 'block';
+    if (checkDeviceType()) {
+      location.href = '#time-editor';
+      const explorer = document.getElementsByClassName('explorer')[0];
+      const area = document.getElementsByClassName('editor-area')[0];
+      if (explorer) explorer.style.display = 'none';
+      if (area) area.style.display = 'block';
+    }
+    const nameField = document.getElementById('time-template-name');
+    if (nameField) nameField.value = name || '';
+    this.renderTimeEditorRows(t?.times || []);
+  },
+  renderTimeEditorRows(times) {
+    const container = document.getElementById('time-rows');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!times || times.length === 0) {
+      this.addTimeRow();
+      return;
+    }
+    times.forEach(([s,e]) => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.gap = '8px';
+      row.style.alignItems = 'center';
+      const start = document.createElement('input'); start.type = 'time'; start.className = 'time-row-start'; start.value = s || '';
+      const end = document.createElement('input'); end.type = 'time'; end.className = 'time-row-end'; end.value = e || '';
+      const del = document.createElement('fluent-button'); del.textContent = '删除';
+      del.addEventListener('click', () => { row.remove(); });
+      row.appendChild(start); row.appendChild(end); row.appendChild(del);
+      container.appendChild(row);
+    });
+  },
+  addTimeRow() {
+    const container = document.getElementById('time-rows');
+    if (!container) return;
+
+    const parseHHMM = (t) => {
+      if (!/^\d{2}:\d{2}$/.test(t)) return null;
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const fmt = (mins) => {
+      const h = Math.floor(mins / 60) % 24;
+      const m = mins % 60;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    };
+    const addMins = (t, add) => {
+      const b = parseHHMM(t);
+      if (b == null) return '';
+      return fmt(b + add);
+    };
+
+    const courseMin = parseInt(document.getElementById('quick-course-min')?.value || localStorage.getItem('quick-course-min') || '0') || 0;
+    const breakMin = parseInt(document.getElementById('quick-break-min')?.value || localStorage.getItem('quick-break-min') || '0') || 0;
+
+    const ends = container.querySelectorAll('.time-row-end');
+    const lastEnd = ends.length ? ends[ends.length - 1].value : '';
+
+    let startVal = '';
+    let endVal = '';
+
+    if (lastEnd && parseHHMM(lastEnd) != null) {
+      startVal = breakMin > 0 ? addMins(lastEnd, breakMin) : lastEnd;
+    }
+    if (courseMin > 0 && startVal) {
+      endVal = addMins(startVal, courseMin);
+    }
+
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.gap = '8px';
+    row.style.alignItems = 'center';
+    const start = document.createElement('input'); start.type = 'time'; start.className = 'time-row-start'; start.value = startVal || '';
+    const end = document.createElement('input'); end.type = 'time'; end.className = 'time-row-end'; end.value = endVal || '';
+    const del = document.createElement('fluent-button'); del.textContent = '删除';
+    del.addEventListener('click', () => { row.remove(); });
+    row.appendChild(start); row.appendChild(end); row.appendChild(del);
+    container.appendChild(row);
+  },
+  saveTimeTemplate() {
+    const nameField = document.getElementById('time-template-name');
+    const name = (nameField?.value || '').trim();
+    if (!name) { alert('请输入时间表名称'); return; }
+    const rows = Array.from(document.querySelectorAll('#time-rows > div'));
+    const times = rows.map(r => {
+      const s = r.querySelector('.time-row-start')?.value || '';
+      const e = r.querySelector('.time-row-end')?.value || '';
+      return [s, e];
+    }).filter(([s,e]) => s && e);
+    const doSave = () => {
+      const existingIdx = customTimetables.findIndex(t => t.name === schedule.currentTimetableName);
+      if (schedule.currentTimetableName !== name && getAllTimetables().some(t => t.name === name)) {
+        alert('已存在同名时间表，请更换名称');
+        return;
+      }
+      if (existingIdx !== -1) {
+        customTimetables[existingIdx] = { key: name, name, times };
+      } else {
+        customTimetables.push({ key: name, name, times });
+      }
+      schedule.currentTimetableName = name;
+      saveCustomTimetables();
+      schedule.renderTimetableList();
+      schedule.loadTimetableOptions();
+      schedule.updateTimetableLabel();
+    };
+    if (times.length === 0) {
+      confirm('当前没有有效课时，仍要保存为空模板吗？', (ok) => { if (ok) doSave(); });
+    } else {
+      doSave();
+    }
+  },
+  // 导出当前时间表为 JSON（复制到剪贴板并提示）
+  exportTimeTemplateJSON() {
+    try {
+      const nameField = document.getElementById('time-template-name');
+      const nameFromField = (nameField?.value || '').trim();
+      const name = nameFromField || this.currentTimetableName || '未命名时间表';
+      // 优先以编辑器当前行生成导出
+      const rows = Array.from(document.querySelectorAll('#time-rows > div'));
+      let timesObj = rows.map(r => {
+        const s = r.querySelector('.time-row-start')?.value || '';
+        const e = r.querySelector('.time-row-end')?.value || '';
+        return { starttime: s, endtime: e };
+      }).filter(t => t.starttime && t.endtime);
+      // 如果编辑器为空，则尝试从已保存模板读取
+      if (timesObj.length === 0 && this.currentTimetableName) {
+        const t = customTimetables.find(x => x.name === this.currentTimetableName);
+        if (t && Array.isArray(t.times)) {
+          timesObj = t.times.map(([s,e]) => ({ starttime: s, endtime: e })).filter(t => t.starttime && t.endtime);
+        }
+      }
+      const data = { key: name, name, times: timesObj };
+      const json = JSON.stringify(data, null, 2);
+      // 优先使用 execCommand 方案复制；随后询问是否下载文件
+      let copiedByTextarea = false;
+      try {
+        if (typeof copyToClip === 'function') {
+          copyToClip([json], '已复制JSON到剪贴板');
+          copiedByTextarea = true;
+        }
+      } catch {}
+      const afterCopy = () => {
+        confirm('是否同时下载为文件？', (ok) => { if (ok) this.downloadTimeTemplateJSON(json); });
+      };
+      if (copiedByTextarea) {
+        afterCopy();
+      } else {
+        // 回退到 Clipboard API；如失败则提示下载
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(json).then(() => {
+              alert('已复制JSON到剪贴板');
+              afterCopy();
+            }).catch(() => {
+              confirm('复制失败，是否下载JSON文件？', (ok) => { if (ok) this.downloadTimeTemplateJSON(json); });
+            });
+          } else {
+            confirm('复制失败，是否下载JSON文件？', (ok) => { if (ok) this.downloadTimeTemplateJSON(json); });
+          }
+        } catch (e) {
+          confirm('复制失败，是否下载JSON文件？', (ok) => { if (ok) this.downloadTimeTemplateJSON(json); });
+        }
+      }
+      return json;
+    } catch (e) {
+      alert('导出失败：' + (e?.message || e));
+    }
+  },
+  // 触发下载当前时间表为 JSON 文件（支持传入已有json避免重复导出）
+  downloadTimeTemplateJSON(jsonOverride) {
+    const json = typeof jsonOverride === 'string' ? jsonOverride : this.exportTimeTemplateJSON();
+    if (!json) return;
+    const nameField = document.getElementById('time-template-name');
+    const name = (nameField?.value || '').trim() || this.currentTimetableName || '未命名时间表';
+    const blob = new Blob([json], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${name}.timetable.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  },
+  // 从剪贴板读取 JSON 并导入（使用 confirm）
+  importTimeTemplateJSONUI() {
+    // 改为使用编辑框粘贴导入
+    prompt('粘贴时间表JSON并确认导入', (val) => {
+      if (!val || !val.trim()) return;
+      schedule.importTimeTemplateJSON(val);
+    }, '导入时间表');
+  },
+  importTimeTemplateJSON(jsonStr) {
+    try {
+      const obj = JSON.parse(jsonStr);
+      const nameRaw = (obj?.name || obj?.key || '导入时间表').trim();
+      const name = nameRaw || '导入时间表';
+      const timesArr = Array.isArray(obj?.times) ? obj.times.map(it => {
+        if (Array.isArray(it)) return it;
+        const s = (it && it.starttime) ? it.starttime : '';
+        const e = (it && it.endtime) ? it.endtime : '';
+        return [s, e];
+      }).filter(([s,e]) => s && e) : [];
+      // 若无有效课时，提示用户
+      if (timesArr.length === 0) { alert('导入失败：没有有效的课时'); return; }
+      // 确保名称唯一
+      let newName = name;
+      let counter = 1;
+      while (getAllTimetables().some(t => t.name === newName)) newName = `${name}(${counter++})`;
+      const tpl = { key: newName, name: newName, times: timesArr };
+      customTimetables.push(tpl);
+      saveCustomTimetables();
+      schedule.currentTimetableName = newName;
+      schedule.renderTimetableList();
+      schedule.loadTimetableOptions();
+      schedule.showTimeEditor(newName);
+      schedule.updateTimetableLabel();
+      alert('导入成功');
+    } catch (e) {
+      alert('导入失败：JSON格式不正确或内容无效');
+      console.error(e);
+    }
+  },
+  deleteTimeTemplateInEditor() {
+    if (!this.currentTimetableName) return;
+    const name = this.currentTimetableName;
+    confirm(`确定要删除时间表 ${name} 吗？`, (ok) => {
+      if (!ok) return;
+      const idx = customTimetables.findIndex(t => t.name === name);
+      if (idx !== -1) {
+        customTimetables.splice(idx, 1);
+        saveCustomTimetables();
+        schedule.renderTimetableList();
+        schedule.loadTimetableOptions();
+        const timeEl = document.getElementById('time-editor');
+        const schedEl = document.getElementById('schedule-editor');
+        if (timeEl) timeEl.style.display = 'none';
+        if (schedEl) schedEl.style.display = 'block';
+      }
+    });
+  },
+};
+window.schedule = schedule;
+function getAllTimetables(){ try { return [...timetableTemplates, ...customTimetables]; } catch { return timetableTemplates.slice(); } }
+
+function copyToClip(contentArray, message) {
+  var contents = "";
+  for (var i = 0; i < contentArray.length; i++) {
+    contents += contentArray[i] + "\n";
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = contents;
+  document.body.appendChild(textarea);
+  textarea.select();
+  if (document.execCommand('copy')) {
+    document.execCommand('copy');
+  }
+  document.body.removeChild(textarea);
+  if (message == null) {
+    alert("复制成功");
+  } else {
+    alert(message);
   }
 }

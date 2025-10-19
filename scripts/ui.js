@@ -162,11 +162,13 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
   modal.setAttribute("modal", "");
 
   // 欢迎表单 HTML
+  const showInUser = typeof window.ALLOWINUSER !== "undefined" ? window.ALLOWINUSER : true;
+  const welcomeButtons = showInUser ? `<fluent-button id="switch-to-login2" appearance="accent" style="width: 100px;">使用独立账户继续</fluent-button>` : "";
   const welcomeFormHTML = `
         <h2>欢迎使用CSES Cloud</h2>
         <p style="margin-bottom:20px">CSES Cloud是一个面向学校/教室的课表与终端管理平台，支持云端存储、导入导出、终端分组、集控配置等功能。适用于教师、管理员和开发者进行课表管理与终端配置。</p>
         <div style="display: flex; justify-content: space-between;margin-top:10px">
-            <fluent-button id="switch-to-login2" appearance="accent" style="width: 100px;">使用独立账户继续</fluent-button>
+            ${welcomeButtons}
         </div>
     `;
 
@@ -195,16 +197,18 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
         </div>
     `;
 
+  const showOAuth = typeof window.ALLOWOAUTH !== "undefined" ? window.ALLOWOAUTH : true;
+  const oauthBtnHTML = showOAuth ? `<fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>` : "";
+
   modal.innerHTML = `
         <div style="margin: 20px;">
             <div id="auth-form-container">${welcomeFormHTML}</div>
             <div style="text-align:left;margin-top:15px;">
-                <fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>
-                <fluent-button id="close-btn" appearance="neutral">本地模式</fluent-button>
+                ${oauthBtnHTML}
+                <fluent-button id="local-mode-btn" appearance="neutral">以本地模式继续</fluent-button>
             </div>
         </div>
     `;
-  //                 <fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>
   document.body.appendChild(modal);
   modal.hidden = false;
 
@@ -258,21 +262,52 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
     modal.querySelector("#switch-to-login").onclick = switchToLogin;
   }
 
-  modal.querySelector("#switch-to-login2").onclick = switchToLogin;
+  const switchBtn2 = modal.querySelector("#switch-to-login2");
+  if (switchBtn2) switchBtn2.onclick = switchToLogin;
 
-  // 关闭按钮
-  modal.querySelector("#close-btn").onclick = () => {
-    modal.hidden = true;
-    document.body.removeChild(modal);
-  };
+  // 本地模式按钮：关闭弹窗并切换到离线模式
+  const localModeBtn = modal.querySelector("#local-mode-btn");
+  if (localModeBtn) {
+    localModeBtn.onclick = () => {
+      try {
+        // 明确标记为未登录
+        window.hasLogin = false;
+        // 禁用并隐藏所有云相关控件，但保留并改造 #save-button
+        document.querySelectorAll(".online").forEach((element) => {
+          if (element.id === "save-button") {
+            element.removeAttribute("disabled");
+            element.classList.remove("online");
+            element.style.display = "";
+            element.innerHTML = `<span class=\"desktop-only\"><i class=\"bi bi-box-arrow-up-right\"></i>&nbsp;导出文件</span><span class=\"mobile-only\"><i class=\"bi bi-box-arrow-up-right\"></i></span>`;
+            element.onclick = () => file.exportL();
+          } else {
+            element.setAttribute("disabled", "true");
+            element.style.display = "none";
+          }
+        });
+        // 隐藏移动端底栏中的“终端管理/集控管理”
+        document.querySelectorAll("#mobile-bottomBar [data-view=\"control\"], #mobile-bottomBar [data-view=\"cloud\"]").forEach((el) => {
+          el.style.display = "none";
+        });
+        // 切换到课程档案视图（离线默认视图）
+        if (typeof activityBar !== "undefined" && activityBar.toggle) {
+          activityBar.toggle("schedule");
+        }
+      } catch (e) {
+        console.warn("切换本地模式时出现问题:", e);
+      }
+      // 关闭弹窗
+      modal.hidden = true;
+      document.body.removeChild(modal);
+    };
+  }
 
-  // 键盘监听
+  // 键盘监听（保留为注释，不影响按钮行为）
   // bindDialogEvents(modal,
   //   () => {
-  //     // 处理 .active-submit
   //     const active = modal.querySelector(".active-submit");
   //     if (active) active.click();
   //   },
-  //   () => modal.querySelector("#close-btn").click()
+  //   () => modal.querySelector("#local-mode-btn").click()
   // );
 }

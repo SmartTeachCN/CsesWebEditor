@@ -1,12 +1,5 @@
 <p class="pageTitle pageTitle_main2">导出设定</p>
 <h3 class="offline">本地导出</h3>
-<fluent-button
-  class="offline"
-  id="config_preview2"
-  onclick="storage.preview()"
-  style="display: none"
-  >在线预览</fluent-button
->
 <span class="offline">导出格式:</span><br class="offline" />
 <fluent-select
   class="offline"
@@ -14,10 +7,9 @@
   onchange="storage.outputSet()"
   title="选择导出格式"
 >
+  <fluent-option value="cy" selected>标准YAML</fluent-option>
   <fluent-option value="ci">ClassIsland课表档案</fluent-option>
   <fluent-option value="es">ExamSchedule</fluent-option>
-  <fluent-option value="cy">通用CSES</fluent-option>
-  <fluent-option value="cj">通用CSES(JSON)</fluent-option>
 </fluent-select>
 <br class="offline" />
 <h3>导出预览</h3>

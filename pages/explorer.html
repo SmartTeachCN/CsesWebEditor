@@ -33,7 +33,25 @@
     </fluent-tab-panel>
 
     <!-- 时间表 -->
-    <fluent-tab-panel id="timeBPanel"> </fluent-tab-panel>
+    <fluent-tab-panel id="timeBPanel">
+      <fluent-listbox id="timetable-list" style="margin-top: 5px"></fluent-listbox>
+      <!-- <fluent-button
+        id="export-timetable-json-btn"
+        class="explorer-item"
+        onclick="schedule.exportTimeTemplateJSON()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-filetype-json"></i>&nbsp;导出JSON
+      </fluent-button> -->
+      <fluent-button
+        id="import-timetable-json-btn"
+        class="explorer-item"
+        onclick="schedule.importTimeTemplateJSONUI()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-filetype-json"></i>&nbsp;导入JSON
+      </fluent-button>
+    </fluent-tab-panel>
 
     <!-- 科目 -->
     <fluent-tab-panel id="subjectBPanel">

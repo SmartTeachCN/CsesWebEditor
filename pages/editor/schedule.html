@@ -38,12 +38,20 @@
     <div class="description">为课表选择一个具体日期</div>
   </div>
   <div class="right-section">
-    <fluent-text-field
-      type="date"
-      id="schedule-date"
-      onchange="schedule.save()"
-      style="width: 180px"
-    ></fluent-text-field>
+    <fluent-text-field type="date" id="schedule-date" onchange="schedule.save()"
+      style="width: 180px"></fluent-text-field>
+  </div>
+</div>
+<div class="settings-card" id="card-timetable">
+  <i class="bi bi-clock-history"></i>
+  <div class="left-section">
+    <div class="title">应用时间表</div>
+    <div class="description">选择时间表并应用至当前课时，或保存为模板</div>
+  </div>
+  <div class="right-section">
+    <span id="timetable-status" style="color:#666; margin-left:8px;">未选择</span>
+    <fluent-select id="timetable-mode" onchange="schedule.applyTimetableFromSelect(this.value)"
+      style="width: 180px"></fluent-select>
   </div>
 </div>
 <br />
@@ -54,25 +62,15 @@
     </span>
 
     <div class="class-controls">
-      <fluent-button appearance="accent" onclick="schedule.addClass()">
+      <fluent-button appearance="accent" id="add-class-btn" onclick="schedule.addClass()">
         + 添加课时
       </fluent-button>
-      <fluent-select
-        onchange="schedule.setSubject(this.value)"
-        id="current-subject"
-        style="width: 150px"
-      ></fluent-select>
-      <fluent-button onclick="schedule.delClass()">删除当前</fluent-button>
-      <input
-        type="time"
-        class="time-input"
-        onchange="schedule.setTime(currentClassIndex)"
-      />
-      <input
-        type="time"
-        class="time-input"
-        onchange="schedule.setTime(currentClassIndex)"
-      />
+      <fluent-select onchange="schedule.setSubject(this.value)" id="current-subject"
+        style="width: 150px"></fluent-select>
+      <fluent-button id="toggle-time-editor" onclick="schedule.toggleTimeEditor()">显示课时编辑器</fluent-button>
+      <fluent-button id="del-class-btn" onclick="schedule.delClass()">删除当前</fluent-button>
+      <input type="time" class="time-input" onchange="schedule.setTime(currentClassIndex)" />
+      <input type="time" class="time-input" onchange="schedule.setTime(currentClassIndex)" />
     </div>
   </div>
 
@@ -82,9 +80,7 @@
     <div class="subject-grid"></div>
   </div>
 </div>
-<fluent-button
-  onclick="schedule.clone()"
-  style="margin-top: 1rem; margin-left: 5px"
->
+<fluent-button onclick="schedule.clone()" style="margin-top: 1rem; margin-left: 5px">
   克隆
 </fluent-button>
+<fluent-button appearance="accent" id="save-timetable-btn" onclick="schedule.createTimetableUI()">保存为时间表</fluent-button>

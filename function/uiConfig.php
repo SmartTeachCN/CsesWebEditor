@@ -4,11 +4,12 @@ class uiConfig
     public static function editors()
     {
         return [
-            'cloud' => ['display' => 'block'],
-            'schedule' => ['display' => 'none'],
+            'cloud' => ['display' => 'none'],
+            'schedule' => ['display' => 'block'],
             'source' => ['display' => 'none'],
             'control' => ['display' => 'none'],
             'subject' => ['display' => 'none'],
+            'time' => ['display' => 'none'],
             'change' => ['display' => 'none']
         ];
     }
@@ -20,7 +21,6 @@ class uiConfig
                 'des' => '终端管理',
                 'icon' => 'bi-cloud',
                 'text' => '终端',
-                'selected' => true,
                 'online' => true
             ],
             [
@@ -32,9 +32,10 @@ class uiConfig
             ],
             [
                 'view' => 'schedule',
-                'des' => '课程档案',
+                'des' => '档案管理',
                 'icon' => 'bi-calendar',
-                'text' => '档案'
+                'text' => '档案',
+                'selected' => true
             ],
             [
                 'view' => 'source',

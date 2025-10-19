@@ -64,6 +64,9 @@ const subjects = {
     document.getElementById(`schedule-editor`).style.display = "none";
     document.getElementById(`subject-editor`).style.display = "block";
     document.getElementById(`source-editor`).style.display = "none";
+    // 隐藏时间表编辑器（选择科目时）
+    const timeEl = document.getElementById('time-editor');
+    if (timeEl) timeEl.style.display = 'none';
     if (checkDeviceType()) {
       location.href = "#subject-editor";
       document.getElementById("subject-editor").style.display = "block";

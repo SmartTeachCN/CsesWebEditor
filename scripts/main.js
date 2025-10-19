@@ -33,6 +33,9 @@ const activityBar = {
     });
   },
   toggle(view) {
+    const titleMap = { schedule: '档案管理', source: '文件预览', cloud: '终端管理', control: '集控配置' };
+    const titleEl = document.getElementById('explorerTitle');
+    if (titleEl) titleEl.innerHTML = titleMap[view] || titleEl.innerHTML;
     document.querySelectorAll(".editor-area > div").forEach((div) => {
       div.style.display = "none";
     });

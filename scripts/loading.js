@@ -74,8 +74,10 @@ function createLoadingModal(text) {
 function showLoading(mode = 1, text = '正在下载配置') {
   if (mode === 1) {
     const saveButton = document.getElementById("save-button");
-    saveButton.disabled = true;
-    saveButton.innerHTML = '<span class="desktop-only"><i class="bi bi-arrow-clockwise" style="display: inline-block; animation: spin 1s linear infinite"></i>&nbsp;正在拉取</span><span class="mobile-only"><i class="bi bi-arrow-clockwise" style="display: inline-block; animation: spin 1s linear infinite"></i></span>';
+    if (window.hasLogin && saveButton) {
+      saveButton.disabled = true;
+      saveButton.innerHTML = '<span class="desktop-only"><i class="bi bi-arrow-clockwise" style="display: inline-block; animation: spin 1s linear infinite"></i>&nbsp;正在拉取</span><span class="mobile-only"><i class="bi bi-arrow-clockwise" style="display: inline-block; animation: spin 1s linear infinite"></i></span>';
+    }
   } else if (mode === 2) {
     if (!loadingInstance) {
       // 如果实例不存在，创建并显示
@@ -90,8 +92,10 @@ function showLoading(mode = 1, text = '正在下载配置') {
 function closeLoading(mode = 1) {
   if (mode === 1) {
     const saveButton = document.getElementById("save-button");
-    saveButton.disabled = false;
-    saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>`;
+    if (window.hasLogin && saveButton) {
+      saveButton.disabled = false;
+      saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>`;
+    }
   } else if (mode === 2) {
     if (loadingInstance) {
       loadingInstance.style.display = 'none';
@@ -99,8 +103,10 @@ function closeLoading(mode = 1) {
     }
   }
   const saveButton = document.getElementById("save-button");
-  saveButton.disabled = false;
-  saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>`;
+  if (window.hasLogin && saveButton) {
+    saveButton.disabled = false;
+    saveButton.innerHTML = `<span class="desktop-only"><i class="bi bi-cloud-upload"></i>&nbsp;保存到云</span><span class="mobile-only"><i class="bi bi-cloud-upload"></i></span>`;
+  }
 }
 
 // 拦截 fetch 请求

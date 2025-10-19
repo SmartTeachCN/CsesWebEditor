@@ -2,6 +2,7 @@ let currentData = {
   version: 1,
   subjects: [],
   schedules: [],
+  timetables: [], // 时间表模板（导出/导入）
 };
 var tempData;
 
@@ -14,6 +15,8 @@ const storage = {
         currentData.version = 1;
         localStorage.setItem("csesData", currentData);
       }
+      // 兼容旧数据结构
+      if (!Array.isArray(currentData.timetables)) currentData.timetables = [];
     } catch (error) {
       console.log(error);
     }
@@ -26,81 +29,57 @@ const storage = {
     confirm("确定要清空所有数据吗？", (result) => {
       if (result) {
         localStorage.clear();
-        currentData = { version: 1, subjects: [], schedules: [] };
+        currentData = { version: 1, subjects: [], schedules: [], timetables: [] };
         location.reload();
       }
     });
   },
   initEnv() {
-    if (
-      localStorage.getItem("output-mode") == "cy" ||
-      localStorage.getItem("output-mode") == undefined
-    ) {
-      document.getElementById("yaml-editor").value = jsyaml.dump(currentData);
-    } else if (localStorage.getItem("output-mode") == "cj") {
-      document.getElementById("yaml-editor").value = JSON.stringify(
-        currentData,
-        null,
-        2
-      );
-    } else if (localStorage.getItem("output-mode") == "ci") {
-      document.getElementById("yaml-editor").value = JSON.stringify(
-        CsestoCiFromat(currentData),
-        null,
-        2
-      );
-    }
-
-    document.getElementById("output-mode").value =
-      localStorage.getItem("output-mode") ?? "cy";
-  },
-  outputSet() {
-    const mode = document.getElementById(
-      hasLogin ? "output-mode" : "output-mode2"
-    ).value;
-    // document.getElementById("donwCiCB").style.display = "none";
-    // document.getElementById("config_preview").style.display = "none";
-    document.getElementById("config_preview2").style.display = "none";
-    localStorage.setItem("output-mode", mode);
-    controlMgr.init(true);
-    if (
-      localStorage.getItem("output-mode") == "cy" ||
-      localStorage.getItem("output-mode") == undefined
-    ) {
-      document.getElementById("yaml-editor").value = jsyaml.dump(currentData);
-    } else if (localStorage.getItem("output-mode") == "cj") {
-      document.getElementById("yaml-editor").value = JSON.stringify(
-        currentData,
-        null,
-        2
-      );
-    } else if (localStorage.getItem("output-mode") == "ci") {
-      document.getElementById("yaml-editor").value = JSON.stringify(
-        CsestoCiFromat(currentData),
-        null,
-        2
-      );
-      // document.getElementById("donwCiCB").style.display = "inline-flex";
-    } else if (localStorage.getItem("output-mode") == "es") {
-      document.getElementById("yaml-editor").value = JSON.stringify(
-        es_procees(currentData),
-        null,
-        2
-      );
-      // document.getElementById("config_preview").style.display = "inline-flex";
-      if (!hasLogin) {
-        document.getElementById("config_preview2").style.display =
-          "inline-flex";
+    const modeRaw = localStorage.getItem("output-mode") ?? "cy";
+    const mode = modeRaw === "cj" ? "cy" : modeRaw; // 隐藏cj，回退到cy
+    if (modeRaw === "cj") localStorage.setItem("output-mode", mode);
+    const yamlEditor = document.getElementById("yaml-editor");
+    if (yamlEditor) {
+      if (mode === "cy") {
+        yamlEditor.value = jsyaml.dump(currentData);
+      } else if (mode === "ci") {
+        yamlEditor.value = JSON.stringify(CsestoCiFromat(currentData), null, 2);
+      } else if (mode === "es") {
+        yamlEditor.value = JSON.stringify(es_procees(currentData), null, 2);
       }
     }
+    const login = window.hasLogin ?? false;
+    const selectId = login ? "output-mode" : "output-mode2";
+    const select = document.getElementById(selectId);
+    if (select) {
+      select.value = mode;
+    }
+  },
+  outputSet() {
+    const login = window.hasLogin ?? false;
+    const selectId = login ? "output-mode" : "output-mode2";
+    const select = document.getElementById(selectId);
+    const modeRaw = select?.value ?? localStorage.getItem("output-mode") ?? "cy";
+    const mode = modeRaw === "cj" ? "cy" : modeRaw; // 隐藏cj，回退到cy
+    localStorage.setItem("output-mode", mode);
+    try { controlMgr.init(true); } catch (e) { console.warn("controlMgr.init failed", e); }
+    const yamlEditor = document.getElementById("yaml-editor");
+    if (!yamlEditor) return;
+    if (mode === "cy") {
+      yamlEditor.value = jsyaml.dump(currentData);
+    } else if (mode === "ci") {
+      yamlEditor.value = JSON.stringify(CsestoCiFromat(currentData), null, 2);
+    } else if (mode === "es") {
+      yamlEditor.value = JSON.stringify(es_procees(currentData), null, 2);
+    }
+    try { schedule.toggleOutputCards && schedule.toggleOutputCards(); } catch (e) { console.warn("schedule.toggleOutputCards failed", e); }
   },
   getOutputMode() {
-    return localStorage.getItem("output-mode") ?? "cy";
+    const modeRaw = localStorage.getItem("output-mode") ?? "cy";
+    return modeRaw === "cj" ? "cy" : modeRaw;
   },
   preview() {
-    const mode = document.getElementById(
-      hasLogin ? "output-mode" : "output-mode2"
-    ).value;
+    const mode = localStorage.getItem("output-mode") ?? "cy";
     const terminalId = localStorage.getItem("currentTerminalId");
     if (mode == "es") {
       const url = `https://cloud.smart-teach.cn/es/link.php?id=${document.querySelectorAll(".directoryId")[0].innerHTML + "/" + terminalId}`
@@ -119,7 +98,6 @@ const storage = {
         const btn = document.getElementById("download-manifest-btn");
         if (btn) {
           btn.onclick = function () {
-            // 创建一个JSON对象
             const data = {
               ManagementServerKind: 0,
               ManagementServer: "",
@@ -129,19 +107,18 @@ const storage = {
                 document.querySelectorAll(".directoryId")[0].innerHTML,
             };
 
-            // 将JSON对象转换为字符串
             const jsonString = JSON.stringify(data, null, 2);
 
-            // 创建一个Blob对象，设置文件类型为JSON
             const blob = new Blob([jsonString], { type: "application/json" });
 
-            // 创建一个下载链接
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
+            document.body.appendChild(a);
             a.href = url;
-            a.download = "file.json"; // 设置下载文件的名称
-            a.click(); // 触发下载
-            URL.revokeObjectURL(url); // 释放对象URL
+            a.download = "file.json";
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
           };
         }
       }, 0);
@@ -198,13 +175,12 @@ const tool = {
 const file = {
   preview(outputMode) {
     if (!outputMode) outputMode = localStorage.getItem("output-mode");
-    if (outputMode == "cy" || outputMode == undefined) {
+    const mode = (outputMode === "cj") ? "cy" : (outputMode || "cy");
+    if (mode == "cy" || mode == undefined) {
       return jsyaml.dump(currentData);
-    } else if (outputMode == "cj") {
-      return JSON.stringify(currentData, null, 2);
-    } else if (outputMode == "ci") {
+    } else if (mode == "ci") {
       return JSON.stringify(CsestoCiFromat(currentData), null, 2);
-    } else if (outputMode == "es") {
+    } else if (mode == "es") {
       return JSON.stringify(es_procees(currentData), null, 2);
     }
   },
@@ -219,10 +195,9 @@ const file = {
     saveToCloud(dataToExport, cloudFormat, noNotice);
   },
   exportL() {
-    if (
-      localStorage.getItem("output-mode") == "ci" ||
-      localStorage.getItem("output-mode") == undefined
-    ) {
+    let mode = localStorage.getItem("output-mode") || "cy";
+    if (mode === "cj") mode = "cy"; // 隐藏cj，回退到cy
+    if (mode == "ci") {
       const Str = JSON.stringify(CsestoCiFromat(currentData), null, 2);
       const blob = new Blob([Str], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -231,19 +206,16 @@ const file = {
       a.download = "file.json";
       a.click();
       URL.revokeObjectURL(url);
-    } else if (
-      localStorage.getItem("output-mode") == "cj" ||
-      localStorage.getItem("output-mode" == "es")
-    ) {
-      const Str = JSON.stringify(currentData, null, 2);
+    } else if (mode == "es") {
+      const Str = JSON.stringify(es_procees(currentData), null, 2);
       const blob = new Blob([Str], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "file.json";
+      a.download = "exam_config.json";
       a.click();
       URL.revokeObjectURL(url);
-    } else if (localStorage.getItem("output-mode") == "cy") {
+    } else {
       const Str = jsyaml.dump(currentData);
       const blob = new Blob([Str], { type: "application/yaml" });
       const url = URL.createObjectURL(blob);
@@ -271,14 +243,17 @@ const file = {
         data = CiToCsesFromat(JSON.parse(source));
         format = "ClassIsland课表档案";
         format2 = "ci";
-      } else if (tool.isJson(source && source.examInfos !== null)) {
-        data = JSON.parse(source);
-        format = "ExamSchedule";
-        format2 = "es";
       } else if (tool.isJson(source)) {
-        data = JSON.parse(source);
-        format = "JSON";
-        format2 = "cj";
+        const parsed = JSON.parse(source);
+        if (parsed && (parsed.examInfos !== undefined || parsed.examName !== undefined)) {
+          data = parsed;
+          format = "ExamSchedule";
+          format2 = "es";
+        } else {
+          data = parsed;
+          format = "JSON";
+          format2 = "cj";
+        }
       } else if (tool.isYaml(source)) {
         data = jsyaml.load(source);
         format = "YAML";
@@ -309,21 +284,7 @@ const file = {
       if (tempData.schedules && tempData.schedules.length !== 0) {
         tempData.schedules.forEach((schedule, index) => {
           if (!schedule.name) throw new Error(`课程${index}中缺少课程名称`);
-          // if (!schedule.enable_day)
-          //   throw new Error(`解析出错:课程${schedule.name}中缺少课程启用时间`);
-          // if (!schedule.weeks)
-          //   throw new Error(`解析出错:课程${schedule.name}中缺少课程启用时间`);
           schedule.classes.forEach((classe, index2) => {
-            // if (!classe.subject)
-            //   throw new Error(`解析出错:课程${schedule.name}中节次${index2}缺少科目`);
-            // if (!classe.start_time)
-            //   throw new Error(
-            //     `解析出错:课程${schedule.name}中节次${index2}缺少开始时间`
-            //   );
-            // if (!classe.end_time)
-            //   throw new Error(
-            //     `解析出错:课程${schedule.name}中节次${index2}缺少结束时间`
-            //   );
             if (classe.subject == "") classe.subject = "-";
             if (
               !knownSubjects.includes(classe.subject) &&
@@ -337,6 +298,8 @@ const file = {
       } else {
         tempData.schedules = [];
       }
+      // 兼容：确保时间表模板字段存在
+      if (!Array.isArray(tempData.timetables)) tempData.timetables = [];
       let unknownSubjectsStr;
       if (unknownSubjects) {
         unknownSubjects.forEach((s) => {
@@ -361,6 +324,8 @@ const file = {
             if (result) {
               currentData = tempData;
               storage.save();
+              // 初始化并刷新界面（包含时间表列表）
+              try { schedule.init && schedule.init(); } catch (e) { console.warn('schedule.init failed after import', e); }
               // location.reload();
             }
           }
@@ -368,8 +333,22 @@ const file = {
       } else {
         currentData = tempData;
         storage.save();
+        // 初始化并刷新界面（包含时间表列表）
+        try { schedule.init && schedule.init(); } catch (e) { console.warn('schedule.init failed after import', e); }
       }
-      document.getElementById("output-mode").value = format2;
+      // 在成功解析并保存之后，设置输出模式选择与localStorage（隐藏cj -> cy）
+      // 原有代码：
+      // document.getElementById("output-mode").value = format2;
+      // const offlineSel = document.getElementById("output-mode2");
+      // if (offlineSel) offlineSel.value = format2;
+      // localStorage.setItem("output-mode", format2);
+      // 修改为：
+      const effectiveFormat = (typeof format2 !== "undefined" && format2 === "cj") ? "cy" : format2;
+      const onlineSel = document.getElementById("output-mode");
+      if (onlineSel) onlineSel.value = effectiveFormat;
+      const offlineSel = document.getElementById("output-mode2");
+      if (offlineSel) offlineSel.value = effectiveFormat;
+      if (effectiveFormat) localStorage.setItem("output-mode", effectiveFormat);
       // document.getElementById("donwCiCB").style.display =
       // format2 == "ci" ? "inline-flex" : "none";
     } catch (error) {

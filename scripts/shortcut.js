@@ -81,6 +81,8 @@ function handleAdd() {
       currentView = "schedule";
     } else if (currentView2 === "subjectB") {
       currentView = "subject";
+    } else if (currentView2 === "timeB") {
+      currentView = "time";
     }
   } else if (activeAct === "cloud") {
     currentView = "cloud";
@@ -89,6 +91,8 @@ function handleAdd() {
     schedule.add();
   } else if (currentView === "subject") {
     subjects.add();
+  } else if (currentView === "time") {
+    schedule.addTimetableUI();
   } else if (currentView === "cloud") {
     terminal.addUI();
   }

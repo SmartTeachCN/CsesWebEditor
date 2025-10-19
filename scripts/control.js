@@ -1,9 +1,11 @@
 const controlMgr = {
   async init(recall) {
     try {
-      const configType = document.getElementById(
-        hasLogin ? "output-mode" : "output-mode2"
-      ).value ?? 'ci';
+      const login = window.hasLogin ?? false;
+      const selectId = login ? "output-mode" : "output-mode2";
+      const select = document.getElementById(selectId);
+      const rawType = select?.value ?? localStorage.getItem("output-mode") ?? "ci";
+      const configType = rawType === "cj" ? "cy" : rawType; // 隐藏cj，回退到cy
       const settingsData = await this.load(configType, recall);
       if (!settingsData) return;
 
