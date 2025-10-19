@@ -166,6 +166,7 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
         <h2>欢迎使用CSES Cloud</h2>
         <p style="margin-bottom:20px">CSES Cloud是一个面向学校/教室的课表与终端管理平台，支持云端存储、导入导出、终端分组、集控配置等功能。适用于教师、管理员和开发者进行课表管理与终端配置。</p>
         <div style="display: flex; justify-content: space-between;margin-top:10px">
+            <fluent-button id="switch-to-login2" appearance="accent" style="width: 100px;">使用独立账户继续</fluent-button>
         </div>
     `;
 
@@ -203,7 +204,7 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
             </div>
         </div>
     `;
-
+  //                 <fluent-button onclick="window.location.href = '${oauth}'" appearance="neutral">智教联盟 授权登录</fluent-button>
   document.body.appendChild(modal);
   modal.hidden = false;
 

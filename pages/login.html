@@ -8,7 +8,7 @@
                     点击“确认”清除登录痕迹`,
       (r) => {
         if (r) {
-          location.href = "./?action=logout";
+          location.href = "function.php/?action=logout";
         }
       }
     );
@@ -48,27 +48,38 @@
     }
   }
   document.addEventListener("DOMContentLoaded", (event) => {
-    if (!"<?php echo $_SESSION['user']['id'] ?>") {
+    if (!"<?php echo $_SESSION['user']['id'] ?? null ?>") {
       showAuthDialog(
-        async (modal) => {
-          console.log(modal);
-            const username = modal.username.trim();
-            const password = modal.password;
-            if (!username || !password) return alert("请输入用户名和密码");
-
-            const res = await fetch(`/function.php?login=${username}&pass=${password}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                alert(data.user);
-            } else {
-                alert(data.message);
-            }
+        async (a) => {
+          if (!a.username || !a.password) {
+            alert("用户名或密码不能为空");
+            return;
+          }
+          const res = await fetch('./function.php?login=' + encodeURIComponent(a.username) + "&pass=" + encodeURIComponent(a.password), {
+            method: 'POST'
+          });
+          const data = await res.json();
+          if (data.success) {
+            location.reload();
+          } else {
+            alert(data.message || "登录失败");
+          }
         },
-        async () => {},
+        async (a) => {
+          if (!a.username || !a.password) {
+            alert("用户名或密码不能为空");
+            return;
+          }
+          const res = await fetch('./function.php?regist=' + encodeURIComponent(a.username) + "&pass=" + encodeURIComponent(a.password), {
+            method: 'POST'
+          });
+          const data = await res.json();
+          if (data.success) {
+            location.reload();
+          } else {
+            alert(data.message || "注册失败");
+          }
+        },
         "https://auth.smart-teach.cn/login/oauth/authorize?client_id=3e92d3464c6adb036f8e&response_type=code&redirect_uri=<?PHP echo $REDIRECT_URI2 ?>&scope=openid%20profile%20email"
       );
       // confirm(

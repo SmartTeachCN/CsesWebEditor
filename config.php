@@ -15,4 +15,4 @@ $ICP_BEIAN = '';
 $prodConfigFile = __DIR__ . '/config.prod.php';
 if (file_exists($prodConfigFile)) {
     include $prodConfigFile;
-}
+};
