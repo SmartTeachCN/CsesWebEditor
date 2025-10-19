@@ -152,6 +152,10 @@
       document.querySelectorAll(".offline").forEach((element) => {
         element.style.display = "none";
       });
+      // 登录状态默认切换到“终端”视图
+      if (typeof activityBar !== "undefined" && activityBar.toggle) {
+        activityBar.toggle("cloud");
+      }
     } else {
       activityBar.toggle("schedule");
     }

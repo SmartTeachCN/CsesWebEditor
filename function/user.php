@@ -76,9 +76,15 @@ class user
 
     public static function logout()
     {
+        // 清除会话与访问令牌
+        $_SESSION = [];
+        session_unset();
         session_destroy();
-        setcookie('accessToken', "");
+        // 正确删除 accessToken Cookie（设为过期）
+        setcookie('accessToken', '', time() - 3600, '/');
+        // 返回主页
         header('Location: /');
+        exit;
     }
 
     public static function getCid()

@@ -605,11 +605,15 @@ const schedule = {
     }
     customTimetables.push({ key: newName, name: newName, times });
     saveCustomTimetables();
+    this.renderTimetableList();
     this.loadTimetableOptions();
     const sel = document.getElementById('timetable-mode');
     if (sel) sel.value = newName;
     timetableState.schedules[currentScheduleIndex] = { templateName: newName, modified: false };
     saveTimetableState();
+    // 同步到当前课程表，便于导出/预览包含所选时间表名称
+    currentData.schedules[currentScheduleIndex].timetable_name = newName;
+    storage.save();
     this.updateTimetableLabel();
   },
   applyTimetable(name) {
@@ -637,6 +641,8 @@ const schedule = {
       if (!keepExtra && beforeLen > tmplLen) {
         sch.classes = sch.classes.slice(0, tmplLen);
       }
+      // 同步到当前课程表，便于导出/预览包含所选时间表名称
+      sch.timetable_name = name;
       storage.save();
       this.refresh();
       timetableState.schedules[currentScheduleIndex] = { templateName: name, modified: false };
@@ -758,6 +764,8 @@ const schedule = {
     const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
     const idx = customTimetables.findIndex(t => t.name === name);
     if (idx !== -1) { customTimetables[idx].times = times; saveCustomTimetables(); schedule.renderTimetableList(); }
+    // 新增：保存时间表后，自动更新所有选中该时间表且未修改的课程表
+    try { this._propagateTimetableToSchedules(name, times); storage.save(); } catch (e) { console.warn('propagate on overwrite failed', e); }
   },
   deleteTimetable(name) {
     const idx = customTimetables.findIndex(t => t.name === name);
@@ -888,6 +896,8 @@ const schedule = {
       schedule.renderTimetableList();
       schedule.loadTimetableOptions();
       schedule.updateTimetableLabel();
+      // 新增：保存时间表后，自动更新所有选中该时间表且未修改的课程表
+      try { schedule._propagateTimetableToSchedules(name, times); storage.save(); } catch (e) { console.warn('propagate on save failed', e); }
     };
     if (times.length === 0) {
       confirm('当前没有有效课时，仍要保存为空模板吗？', (ok) => { if (ok) doSave(); });
@@ -1020,6 +1030,42 @@ const schedule = {
         const schedEl = document.getElementById('schedule-editor');
         if (timeEl) timeEl.style.display = 'none';
         if (schedEl) schedEl.style.display = 'block';
+      }
+    });
+  },
+  _propagateTimetableToSchedules(name, times) {
+    if (!name || !Array.isArray(times)) return;
+    const stAll = timetableState?.schedules || {};
+    Object.keys(stAll).forEach((k) => {
+      const idx = parseInt(k);
+      const st = stAll[k];
+      if (!st || st.templateName !== name || st.modified) return;
+      const sch = currentData.schedules[idx];
+      if (!sch) return;
+      const tmplLen = times.length;
+      const beforeLen = (sch.classes || []).length;
+      for (let i = 0; i < tmplLen; i++) {
+        const [start, end] = times[i];
+        if (!sch.classes) sch.classes = [];
+        if (!sch.classes[i]) {
+          sch.classes[i] = {
+            subject: sch.classes[i]?.subject || '-',
+            start_time: start,
+            end_time: end,
+          };
+        } else {
+          sch.classes[i].start_time = start;
+          sch.classes[i].end_time = end;
+        }
+      }
+      if (beforeLen > tmplLen) {
+        sch.classes = sch.classes.slice(0, tmplLen);
+      }
+      timetableState.schedules[idx] = { templateName: name, modified: false };
+      sch.timetable_name = name;
+      if (idx === currentScheduleIndex) {
+        try { schedule.refresh && schedule.refresh(); } catch {}
+        try { schedule.updateTimetableLabel && schedule.updateTimetableLabel(); } catch {}
       }
     });
   },

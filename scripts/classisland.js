@@ -107,6 +107,10 @@ function CsestoCiFromat(target) {
         Name: schedule.name,
         Layouts: [],
       };
+      // 将所选时间表名称写入时间布局的额外键
+      if (schedule.timetable_name) {
+        timeLayout.TimetableName = schedule.timetable_name;
+      }
 
       // 创建课程计划
       const classPlan = {
@@ -123,6 +127,10 @@ function CsestoCiFromat(target) {
         IsOverlay: false,
         IsEnabled: true,
       };
+      // 将所选时间表名称写入课程计划的额外键
+      if (schedule.timetable_name) {
+        classPlan.TimetableName = schedule.timetable_name;
+      }
 
       // 处理课程时间段
       let lastEnd = "";
@@ -149,6 +157,10 @@ function CsestoCiFromat(target) {
       // 将生成的布局和计划添加到输出
       outputJson.TimeLayouts[timeLayoutId] = timeLayout;
       outputJson.ClassPlans[classPlanId] = classPlan;
+      // 在 extraKey 中维护时间表名称映射（ClassPlanId -> TimetableName）
+      outputJson.extraKey = outputJson.extraKey || {};
+      outputJson.extraKey.TimetableMap = outputJson.extraKey.TimetableMap || {};
+      outputJson.extraKey.TimetableMap[classPlanId] = schedule.timetable_name || null;
     });
 
     return outputJson;

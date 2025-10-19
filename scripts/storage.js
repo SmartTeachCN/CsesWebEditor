@@ -176,12 +176,24 @@ const file = {
   preview(outputMode) {
     if (!outputMode) outputMode = localStorage.getItem("output-mode");
     const mode = (outputMode === "cj") ? "cy" : (outputMode || "cy");
+    // 克隆 currentData，合并本地时间表选择到导出数据
+    const data = JSON.parse(JSON.stringify(currentData));
+    try {
+      if (Array.isArray(data.schedules) && typeof timetableState !== "undefined" && timetableState && timetableState.schedules) {
+        data.schedules.forEach((sch, idx) => {
+          const st = timetableState.schedules[idx];
+          if (st && st.templateName) sch.timetable_name = st.templateName;
+        });
+      }
+    } catch (e) {
+      console.warn('merge timetable_name failed in preview', e);
+    }
     if (mode == "cy" || mode == undefined) {
-      return jsyaml.dump(currentData);
+      return jsyaml.dump(data);
     } else if (mode == "ci") {
-      return JSON.stringify(CsestoCiFromat(currentData), null, 2);
+      return JSON.stringify(CsestoCiFromat(data), null, 2);
     } else if (mode == "es") {
-      return JSON.stringify(es_procees(currentData), null, 2);
+      return JSON.stringify(es_procees(data), null, 2);
     }
   },
   export(noNotice) {
@@ -197,34 +209,23 @@ const file = {
   exportL() {
     let mode = localStorage.getItem("output-mode") || "cy";
     if (mode === "cj") mode = "cy"; // 隐藏cj，回退到cy
-    if (mode == "ci") {
-      const Str = JSON.stringify(CsestoCiFromat(currentData), null, 2);
-      const blob = new Blob([Str], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "file.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    } else if (mode == "es") {
-      const Str = JSON.stringify(es_procees(currentData), null, 2);
-      const blob = new Blob([Str], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "exam_config.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    } else {
-      const Str = jsyaml.dump(currentData);
-      const blob = new Blob([Str], { type: "application/yaml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "file.yaml";
-      a.click();
-      URL.revokeObjectURL(url);
+    const Str = file.preview(mode);
+    let mime = "application/yaml";
+    let filename = "file.yaml";
+    if (mode === "ci") {
+      mime = "application/json";
+      filename = "file.json";
+    } else if (mode === "es") {
+      mime = "application/json";
+      filename = "exam_config.json";
     }
+    const blob = new Blob([Str], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   },
   importS(str, showNotice = false) {
     if (!str) return;

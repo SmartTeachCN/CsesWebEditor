@@ -3,9 +3,10 @@ class uiConfig
 {
     public static function editors()
     {
+        $isLoggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
         return [
-            'cloud' => ['display' => 'none'],
-            'schedule' => ['display' => 'block'],
+            'cloud' => ['display' => $isLoggedIn ? 'block' : 'none'],
+            'schedule' => ['display' => $isLoggedIn ? 'none' : 'block'],
             'source' => ['display' => 'none'],
             'control' => ['display' => 'none'],
             'subject' => ['display' => 'none'],
@@ -15,13 +16,15 @@ class uiConfig
     }
     public static function leftBar()
     {
+        $isLoggedIn = isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
         return [
             [
                 'view' => 'cloud',
                 'des' => '终端管理',
                 'icon' => 'bi-cloud',
                 'text' => '终端',
-                'online' => true
+                'online' => true,
+                'selected' => $isLoggedIn ? true : false
             ],
             [
                 'view' => 'control',
@@ -35,7 +38,7 @@ class uiConfig
                 'des' => '档案管理',
                 'icon' => 'bi-calendar',
                 'text' => '档案',
-                'selected' => true
+                'selected' => $isLoggedIn ? false : true
             ],
             [
                 'view' => 'source',

@@ -15,6 +15,11 @@ function es_procees(config) {
         }
     });
 
+    const timetableInfo = (config.schedules || []).map(s => ({
+        scheduleName: s.name,
+        timetableName: s.timetable_name || null,
+    }));
+
     return {
         subjects: [...config.subjects],
         schedules: [...config.schedules],
@@ -22,5 +27,6 @@ function es_procees(config) {
         examName: config.examName,
         message: config.message,
         room: config.room,
+        timetableInfo
     };
 }
