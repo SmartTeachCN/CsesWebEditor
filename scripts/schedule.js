@@ -23,7 +23,7 @@ function saveCustomTimetables(){
     const toExport = customTimetables.map(t => {
       const key = (t.key || t.name || '').trim();
       const timesObj = Array.isArray(t.times) ? t.times.map(([s,e]) => ({ starttime: s, endtime: e })) : [];
-      return { key, name: t.name, times: timesObj };
+      return { name: t.name, times: timesObj };
     });
     currentData.timetables = toExport;
     storage.save();
@@ -85,7 +85,6 @@ const schedule = {
       } else if (Array.isArray(customTimetables) && customTimetables.length > 0) {
         // 将编辑器内部数组形式转换为导出结构（对象形式的 times）
         currentData.timetables = customTimetables.map(t => ({
-          key: t.key || t.name,
           name: t.name,
           times: (t.times || []).map(([s,e]) => ({ starttime: s, endtime: e }))
         }));
@@ -123,17 +122,29 @@ const schedule = {
     currentData.schedules.forEach((schedule2, index) => {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
+      // 使用flex以便右侧显示标签
+      div.style.display = 'flex';
+      div.style.width = '100%';
+      div.style.alignItems = 'center';
+      let leftLabel;
       if (storage.getOutputMode() == "es") {
-        div.innerHTML = schedule2.date ? `<i class="bi bi-calendar3-week"></i>&nbsp;` + schedule2.date
-          : `<i class="bi bi-calendar3-week"></i>&nbsp;` + `未设定日期 ${index + 1}`;;
+        leftLabel = schedule2.date
+          ? `<i class="bi bi-calendar3-week"></i>&nbsp;${schedule2.date}`
+          : `<i class="bi bi-calendar3-week"></i>&nbsp;未设定日期 ${index + 1}`;
       } else {
         const weekMode = schedule2.weeks;
         const dayMode = schedule2.enable_day;
-        div.innerHTML =
+        leftLabel =
           this.weekMap[weekMode] && this.dayMap[dayMode]
-          ? `<i class="bi bi-calendar3-week"></i>&nbsp;${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`
-          : `<i class="bi bi-calendar3-week"></i>&nbsp;无规则计划 ${index + 1}`;
+            ? `<i class="bi bi-calendar3-week"></i>&nbsp;${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`
+            : `<i class="bi bi-calendar3-week"></i>&nbsp;无规则计划 ${index + 1}`;
       }
+      const st = timetableState?.schedules?.[index];
+      const tagText = (st && st.templateName && st.templateName !== '' && st.templateName !== '未选择')
+        ? `${st.modified ? '*' : ''}${st.templateName}` : '';
+      div.innerHTML = tagText
+        ? `${leftLabel}<span class="schedule-timetable-tag" style="margin-left:auto;color:#666;">&nbsp;${tagText}</span>`
+        : leftLabel;
       div.addEventListener("click", () => {
         this.load(index);
         document
@@ -664,6 +675,39 @@ const schedule = {
     } else {
       el.textContent = `已选:${st.templateName}${st.modified ? '(已更改)' : ''}`;
     }
+    // 同步更新左侧列表当前项的标签
+    try { this.updateScheduleListTimetableTag(currentScheduleIndex); } catch {}
+  },
+  updateScheduleListTimetableTag(idx) {
+    try {
+      const container = document.getElementById('schedule-list');
+      if (!container || typeof idx !== 'number' || idx < 0) return;
+      const isES = storage.getOutputMode() === 'es';
+      const childIndex = isES ? idx : idx + 1; // 非ES模式首项为表格视图
+      const item = container.children[childIndex];
+      if (!item) return;
+      item.style.display = 'flex';
+      item.style.width = '100%';
+      item.style.alignItems = 'center';
+      const st = timetableState?.schedules?.[idx];
+      const tagText = (st && st.templateName && st.templateName !== '' && st.templateName !== '未选择')
+        ? `${st.modified ? '*' : ''}${st.templateName}` : '';
+      let tagEl = item.querySelector('.schedule-timetable-tag');
+      if (tagText) {
+        if (!tagEl) {
+          tagEl = document.createElement('span');
+          tagEl.className = 'schedule-timetable-tag';
+          tagEl.style.marginLeft = 'auto';
+          tagEl.style.color = '#666';
+          item.appendChild(tagEl);
+        }
+        tagEl.innerHTML = `&nbsp;${tagText}`; // 标签前加入一个空格
+      } else {
+        if (tagEl) tagEl.remove();
+      }
+    } catch (e) {
+      console.warn('updateScheduleListTimetableTag failed', e);
+    }
   },
   toggleTimeEditor() {
     timeEditorCollapsed = !timeEditorCollapsed;
@@ -925,7 +969,7 @@ const schedule = {
           timesObj = t.times.map(([s,e]) => ({ starttime: s, endtime: e })).filter(t => t.starttime && t.endtime);
         }
       }
-      const data = { key: name, name, times: timesObj };
+      const data = { name, times: timesObj };
       const json = JSON.stringify(data, null, 2);
       // 优先使用 execCommand 方案复制；随后询问是否下载文件
       let copiedByTextarea = false;
