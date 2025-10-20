@@ -436,6 +436,26 @@ async function push(options = {}) {
         // 获取远程文件列表和映射
         const remoteFiles = await listRemoteFiles();
         const remoteMap = Object.fromEntries(remoteFiles.map(f => [f.path, f]));
+
+        // 删除远程 bundle 文件（根目录与 pages/**），避免旧版本被引用
+        try {
+            const bundleRegex = /(^|\/)bundle-.*\.min\.(js|css)(\.map)?$/i;
+            const toDelete = remoteFiles.filter(f => f && f.type === 'file' && bundleRegex.test(f.path) && (f.path.startsWith('pages/') || !f.path.includes('/')));
+            if (toDelete.length > 0) {
+                log(`清理远程 bundle 文件: ${toDelete.length} 个`, 'info');
+                for (const f of toDelete) {
+                    if (dryRun) {
+                        log(`将删除远程: ${f.path}`, 'info');
+                    } else {
+                        await deleteRemoteFile(f.path);
+                    }
+                }
+            } else {
+                if (DEBUG) log('远程无 bundle 文件需要清理', 'info');
+            }
+        } catch (e) {
+            log(`清理远程 bundle 文件失败: ${e.message}`, 'warning');
+        }
         
         let totalFiles = 0;
         let updatedFiles = 0;

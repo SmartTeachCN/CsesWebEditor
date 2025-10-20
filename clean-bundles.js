@@ -4,6 +4,12 @@ const glob = require('glob');
 
 const ROOT = __dirname;
 const patterns = [
+  // 根目录 bundle
+  'bundle-*.min.js',
+  'bundle-*.min.js.map',
+  'bundle-*.min.css',
+  'bundle-*.min.css.map',
+  // pages 下的 bundle
   'pages/**/bundle-*.min.js',
   'pages/**/bundle-*.min.js.map',
   'pages/**/bundle-*.min.css',
