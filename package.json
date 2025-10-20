@@ -7,6 +7,16 @@
   "scripts": {
     "sync": "node sync.js sync",
     "pull": "node sync.js pull",
-    "push": "node sync.js push"
+    "push": "node sync.js push",
+    "clean": "node clean-bundles.js",
+    "build": "node build.js",
+    "prebuild": "npm run clean"
+  },
+  "devDependencies": {
+    "cheerio": "^1.1.2",
+    "clean-css": "^5.3.3",
+    "glob": "^11.0.3",
+    "html-minifier-terser": "^7.2.0",
+    "terser": "^5.44.0"
   }
 }

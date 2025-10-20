@@ -1,4 +1,5 @@
-<html><head><script>var hasLogin = true;
+<script>
+  var hasLogin = true;
 
   // 将后端配置暴露到前端，控制登录弹窗按钮显示
   window.ALLOWINUSER = <?php echo isset($ALLOWINUSER) && $ALLOWINUSER ? 'true' : 'false'; ?>;
@@ -190,4 +191,5 @@
     requestAnimationFrame(animate);
   }
 
-  trickAnimation();</script></head><body></body></html>
+  trickAnimation();
+</script>

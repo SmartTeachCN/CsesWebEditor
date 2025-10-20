@@ -1,0 +1,66 @@
+<div class="explorer">
+  <!-- 管理器标题 -->
+  <p class="pageTitle" style="display: flex">
+    <span id="explorerTitle" style="flex: 1">终端管理</span>
+    <button onclick="handleAdd()">+</button>
+  </p>
+  <!-- 档案编辑组 -->
+  <fluent-tabs activeid="scheduleB" id="explorerB" style="display: none">
+    <fluent-tab id="scheduleB">
+      &nbsp;&nbsp;<i class="bi bi-calendar"></i>&nbsp;课程表&nbsp;</fluent-tab
+    >
+    <fluent-tab id="timeB"
+      >&nbsp;<i class="bi bi-clock-history"></i>&nbsp;时间表&nbsp;</fluent-tab
+    >
+    <fluent-tab id="subjectB"
+      >&nbsp;<i class="bi bi-journal-bookmark"></i>&nbsp;科目&nbsp;</fluent-tab
+    >
+
+    <!-- 课程表 -->
+    <fluent-tab-panel id="scheduleBPanel">
+      <fluent-listbox
+        id="schedule-list"
+        style="margin-top: 5px"
+      ></fluent-listbox>
+      <fluent-button
+        id="auto-fill-btn"
+        class="explorer-item"
+        onclick="schedule.fastFillUI()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-lightning-fill"></i>&nbsp;快速填充
+      </fluent-button>
+    </fluent-tab-panel>
+
+    <!-- 时间表 -->
+    <fluent-tab-panel id="timeBPanel">
+      <fluent-listbox id="timetable-list" style="margin-top: 5px"></fluent-listbox>
+      <!-- <fluent-button
+        id="export-timetable-json-btn"
+        class="explorer-item"
+        onclick="schedule.exportTimeTemplateJSON()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-filetype-json"></i>&nbsp;导出JSON
+      </fluent-button> -->
+      <fluent-button
+        id="import-timetable-json-btn"
+        class="explorer-item"
+        onclick="schedule.importTimeTemplateJSONUI()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-filetype-json"></i>&nbsp;导入JSON
+      </fluent-button>
+    </fluent-tab-panel>
+
+    <!-- 科目 -->
+    <fluent-tab-panel id="subjectBPanel">
+      <fluent-listbox
+        id="subject-list"
+        style="margin-top: 5px"
+      ></fluent-listbox>
+    </fluent-tab-panel>
+  </fluent-tabs>
+  <!-- 终端编辑组 -->
+  <fluent-listbox id="cloud-list" style="display: block"></fluent-listbox>
+</div>
