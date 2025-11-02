@@ -154,7 +154,7 @@
       "keyPath": "extraKey.credentials.ExitManagementAuthorizeLevel",
       "name": "退出管理授权等级",
       "description": "输入退出管理授权等级",
-      "icon": "bi-exit-fullscreen",
+      "icon": "bi-exit",
       "default": "User",
       "options": [
         {
@@ -220,7 +220,7 @@
       "keyPath": "extraKey.credentials.ExitApplicationAuthorizeLevel",
       "name": "退出应用授权等级",
       "description": "输入退出应用授权等级",
-      "icon": "bi-exit-fullscreen",
+      "icon": "bi-exit",
       "default": "User",
       "options": [
         {
