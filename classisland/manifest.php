@@ -37,23 +37,27 @@ $output = [
     "ServerKind" => 0,
     "OrganizationName" => "CSES Cloud (" . $_GET['id'] . ")",
     "ClassPlanSource" => [
-        "Value" => "https://cloud.cses-org.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=ClassPlans",
+        "Value" => "https://cloud.smart-teach.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=ClassPlans",
         "Version" => $latest_mtime
     ],
     "TimeLayoutSource" => [
-        "Value" => "https://cloud.cses-org.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=TimeLayouts",
+        "Value" => "https://cloud.smart-teach.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=TimeLayouts",
         "Version" => $latest_mtime
     ],
     "SubjectsSource" => [
-        "Value" => "https://cloud.cses-org.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Subjects",
+        "Value" => "https://cloud.smart-teach.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Subjects",
         "Version" => $latest_mtime
     ],
     "DefaultSettingsSource" => [
-        "Value" => "https://cloud.cses-org.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Settings",
+        "Value" => "https://cloud.smart-teach.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Settings",
         "Version" => $latest_mtime
     ],
     "PolicySource" => [
-        "Value" => "https://cloud.cses-org.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Policy",
+        "Value" => "https://cloud.smart-teach.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Policy",
+        "Version" => $latest_mtime
+    ],
+    "CredentialSource" => [
+        "Value" => "https://cloud.smart-teach.cn/classisland/file.php?id=".$_GET['id']."/{id}&key=Credentials",
         "Version" => $latest_mtime
     ]
 ];

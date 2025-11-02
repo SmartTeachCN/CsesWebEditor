@@ -27,13 +27,13 @@ $jsonData = json_decode($fileContent, true);
 $requestedKey = isset($_GET['key']) ? $_GET['key'] : null;
 
 // 检查请求的键是否有效
-$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts', 'Policy', 'Settings'];
+$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts', 'Policy', 'Settings', 'Credentials'];
 if ($requestedKey && !in_array($requestedKey, $validKeys)) {
     die(json_encode(['error' => 'Invalid key parameter. Valid keys are: Subjects, ClassPlans, TimeLayouts'], JSON_PRETTY_PRINT));
 }
 
 // 构建输出数据
-$output = $requestedKey == "Policy" ? [] : [
+$output = ($requestedKey == "Policy" || $requestedKey == "Credentials" || $requestedKey == "Settings") ? new stdClass() : [
     "Name" => "",
     "TimeLayouts" => new stdClass(),
     "ClassPlans" => new stdClass(),

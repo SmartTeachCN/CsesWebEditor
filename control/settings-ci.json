@@ -16,6 +16,22 @@
         "extraKey.Policy.AllowExitManagement"
       ]
     },
+        {
+      "name": "认证设置",
+      "eng_name": "Credentials",
+      "icon": "bi-lock",
+      "settings": [
+        "extraKey.credentials.UserCredential",
+        "extraKey.credentials.AdminCredential",
+        "extraKey.credentials.EditAuthorizeSettingsAuthorizeLevel",
+        "extraKey.credentials.EditPolicyAuthorizeLevel",
+        "extraKey.credentials.ExitManagementAuthorizeLevel",
+        "extraKey.credentials.EditProfileAuthorizeLevel",
+        "extraKey.credentials.EditSettingsAuthorizeLevel",
+        "extraKey.credentials.ExitApplicationAuthorizeLevel",
+        "extraKey.credentials.ChangeLessonsAuthorizeLevel"
+      ]
+    },
     {
       "name": "常规设置",
       "eng_name": "basic",
@@ -71,6 +87,178 @@
     }
   ],
   "settings": [
+    {
+      "type": "text",
+      "keyPath": "extraKey.credentials.UserCredential",
+      "name": "用户凭证",
+      "description": "输入用户凭证",
+      "icon": "bi-key",
+      "default": "",
+      "placeholder": "请输入用户凭证"
+    },
+    {
+      "type": "text",
+      "keyPath": "extraKey.credentials.AdminCredential",
+      "name": "管理员凭证",
+      "description": "输入管理员凭证",
+      "icon": "bi-key",
+      "default": "",
+      "placeholder": "请输入管理员凭证"
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.EditAuthorizeSettingsAuthorizeLevel",
+      "name": "编辑授权等级",
+      "description": "输入编辑授权等级",
+      "icon": "bi-lock",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.EditPolicyAuthorizeLevel",
+      "name": "编辑策略授权等级",
+      "description": "输入编辑策略授权等级",
+      "icon": "bi-lock",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.ExitManagementAuthorizeLevel",
+      "name": "退出管理授权等级",
+      "description": "输入退出管理授权等级",
+      "icon": "bi-exit-fullscreen",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.EditProfileAuthorizeLevel",
+      "name": "编辑配置文件授权等级",
+      "description": "输入编辑配置文件授权等级",
+      "icon": "bi-file-earmark-text",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.EditSettingsAuthorizeLevel",
+      "name": "编辑设置授权等级",
+      "description": "输入编辑设置授权等级",
+      "icon": "bi-gear-wide-connected",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.ExitApplicationAuthorizeLevel",
+      "name": "退出应用授权等级",
+      "description": "输入退出应用授权等级",
+      "icon": "bi-exit-fullscreen",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "keyPath": "extraKey.credentials.ChangeLessonsAuthorizeLevel",
+      "name": "编辑课程授权等级",
+      "description": "输入编辑课程授权等级",
+      "icon": "bi-pencil",
+      "default": "User",
+      "options": [
+        {
+          "value": 0,
+          "label": "无"
+        },
+        {
+          "value": 1,
+          "label": "用户"
+        },
+        {
+          "value": 2,
+          "label": "管理员"
+        }
+      ]
+    },
     {
       "type": "select",
       "keyPath": "extraKey.settings.SelectedProfile",
