@@ -185,7 +185,7 @@ function importFileFromStr(str, showNotice = false) {
     }
 
     if (data.success == false) {
-      throw new Error("当前终端可能已被移除，请重新点击左侧按钮打开");
+      throw new Error("当前实例可能已被移除，请重新点击左侧按钮打开");
     }
     
     console.log(data);

@@ -1,3 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/dev/style.css" />
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
+  <style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <script type="module">
+    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <script src="/assets/js-yaml.min.js"></script>
+  <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/schedule.js" defer></script>
+  <script src="/dev/scripts/subject.js" defer></script>
+  
+</head>
+<body>
 <p class="pageTitle pageTitle_main">课表编辑</p>
 <div class="settings-card" id="card-schedule0">
   <i class="bi bi-calendar-day"></i>
@@ -84,3 +103,16 @@
   克隆
 </fluent-button>
 <fluent-button appearance="accent" id="save-timetable-btn" onclick="schedule.createTimetableUI()">保存为时间表</fluent-button>
+<script>
+  try { storage.init(); storage.initEnv(); } catch {}
+  try { if (!window.__scheduleInitialized) { schedule.init(); window.__scheduleInitialized = true; } } catch {}
+  try { if (!window.__subjectsInitialized) { subjects.init(); window.__subjectsInitialized = true; } } catch {}
+  try {
+    const params = new URLSearchParams(location.search);
+    const sub = params.get('sub');
+    const schIdx = parseInt(params.get('schedule'));
+    if (sub === 'schedule' && !isNaN(schIdx)) schedule.load(schIdx, false);
+  } catch {}
+</script>
+</body>
+</html>

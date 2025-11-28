@@ -3,11 +3,7 @@ class ui
 {
     public static function renderEditors($editors): void
     {
-        foreach ($editors as $key => $editor) {
-            echo "<div class='editor' id='{$key}-editor' style='display: {$editor['display']};'>";
-            include "pages/editor/{$key}.html";
-            echo "</div>";
-        }
+        echo "<iframe id='editor-frame' class='editor-frame' style='width:100%;height:100%;border:0;display:block;background:transparent'></iframe>";
     }
     public static function renderSideBar($items, $mobile = false): void
     {

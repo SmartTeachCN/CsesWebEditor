@@ -20,9 +20,9 @@ class uiConfig
         return [
             [
                 'view' => 'cloud',
-                'des' => '终端管理',
+                'des' => '实例管理',
                 'icon' => 'bi-cloud',
-                'text' => '终端',
+                'text' => '实例',
                 'online' => true,
                 'selected' => $isLoggedIn ? true : false
             ],

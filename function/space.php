@@ -66,7 +66,7 @@ function handleJoinSpace($params)
     $configPath = "$targetUserDir/{$targetTerminalId}_share.json";
 
     if (!file_exists($configPath)) {
-        echo json_encode(['success' => false, 'error' => '目标终端未启用共享']);
+        echo json_encode(['success' => false, 'error' => '目标实例未启用共享']);
         exit;
     }
 
@@ -95,7 +95,7 @@ function handleJoinSpace($params)
         $targetPath = "$targetUserDir/{$targetTerminalId}.cses";
 
         if (!file_exists($targetPath)) {
-            echo json_encode(['success' => false, 'error' => '目标终端不存在']);
+            echo json_encode(['success' => false, 'error' => '目标实例不存在']);
             exit;
         }
 

@@ -166,7 +166,7 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
   const welcomeButtons = showInUser ? `<fluent-button id="switch-to-login2" appearance="accent" style="width: 100px;">使用独立账户继续</fluent-button>` : "";
   const welcomeFormHTML = `
         <h2>欢迎使用CSES Cloud</h2>
-        <p style="margin-bottom:20px">CSES Cloud是一个面向学校/教室的课表与终端管理平台，支持云端存储、导入导出、终端分组、集控配置等功能。适用于教师、管理员和开发者进行课表管理与终端配置。</p>
+        <p style="margin-bottom:20px">CSES Cloud是一个面向学校/教室的课表与实例管理平台，支持云端存储、导入导出、实例分组、集控配置等功能。适用于教师、管理员和开发者进行课表管理与实例配置。</p>
         <div style="display: flex; justify-content: space-between;margin-top:10px">
             ${welcomeButtons}
         </div>
@@ -310,4 +310,32 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
   //   },
   //   () => modal.querySelector("#local-mode-btn").click()
   // );
+}
+
+function saveConfirm(callback) {
+  const modal = document.createElement("fluent-dialog");
+  modal.style.setProperty("--dialog-height", "200px");
+  modal.style.setProperty("z-index", "1000");
+  modal.setAttribute("trap-focus", "");
+  modal.setAttribute("modal", "");
+  modal.innerHTML = `
+    <div style="margin: 20px">
+      <h2 style="margin-bottom:6px">是否保存更改</h2>
+      <p style="height: 90px; overflow-y: auto;">切换页面前请选择保存、放弃或取消</p>
+      <div style="display: flex; justify-content: space-between; margin-top: 0.4rem; gap:6px;">
+        <fluent-button appearance="accent" id="save-yes" style="width: 100%;">保存</fluent-button>
+        <fluent-button id="save-no" style="width: 100%;">不保存</fluent-button>
+        <fluent-button id="save-cancel" style="width: 100%;">取消</fluent-button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.hidden = false;
+  const yesBtn = modal.querySelector("#save-yes");
+  const noBtn = modal.querySelector("#save-no");
+  const cancelBtn = modal.querySelector("#save-cancel");
+  const finish = (res) => { modal.hidden = true; modal.remove(); callback(res); };
+  yesBtn.onclick = () => finish('save');
+  noBtn.onclick = () => finish('discard');
+  cancelBtn.onclick = () => finish('cancel');
+  bindDialogEvents(modal, () => yesBtn.click(), () => cancelBtn.click());
 }

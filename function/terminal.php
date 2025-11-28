@@ -38,6 +38,9 @@ class terminal
     // 创建用户目录
     $userDir = user::getDir($userId);
 
+    if (!is_dir($userDir)) {
+      mkdir($userDir, 0755, true);
+    }
     $configPath = $userDir . '/' . $terminalId . '.cses';
     file_put_contents($configPath, $config);
     echo json_encode(['success' => true]);
@@ -65,7 +68,7 @@ class terminal
   public static function vaildateId($terminalId)
   {
     if (empty($terminalId)) {
-      echo json_encode(['success' => false, 'error' => '终端ID不能为空']);
+      echo json_encode(['success' => false, 'error' => '实例ID不能为空']);
       exit;
     }
   }

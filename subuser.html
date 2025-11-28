@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+  <title>子用户面板</title>
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet">
+  <script type="module">
+    import { allComponents, provideFluentDesignSystem } from "https://npm.elemecdn.com/@fluentui/web-components";
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <style>
+    body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:20px}
+    .card{max-width:720px;margin:0 auto;border:1px solid #ddd;border-radius:8px;padding:16px}
+    .row{display:flex;gap:8px;margin:8px 0}
+    .title{font-size:18px;margin-bottom:8px}
+    #result{font-size:12px;color:#666;margin-top:8px}
+  </style>
+  <script>
+    async function subList(){
+      const dir=document.getElementById('dir').value.trim();
+      const user=document.getElementById('user').value.trim();
+      const key=document.getElementById('key').value.trim();
+      if(!dir||!user||!key){alert('请填写实例组标识、用户名与密钥');return}
+      const r=await fetch(`function.php?action=subList&directoryId=${encodeURIComponent(dir)}&subUsername=${encodeURIComponent(user)}&subSecret=${encodeURIComponent(key)}`);
+      const d=await r.json();
+      document.getElementById('result').textContent=d.success?`可管理实例：${(d.terminals||[]).join(', ')}`:`失败：${d.error||'未知错误'}`;
+    }
+    async function subLoad(){
+      const dir=document.getElementById('dir').value.trim();
+      const user=document.getElementById('user').value.trim();
+      const key=document.getElementById('key').value.trim();
+      const tid=document.getElementById('tid').value.trim();
+      if(!dir||!user||!key||!tid){alert('请填写所有字段');return}
+      const r=await fetch(`function.php?action=subLoad&directoryId=${encodeURIComponent(dir)}&subUsername=${encodeURIComponent(user)}&subSecret=${encodeURIComponent(key)}&terminalId=${encodeURIComponent(tid)}`);
+      const t=await r.text();
+      document.getElementById('config').value=t;
+    }
+    async function subSave(){
+      const dir=document.getElementById('dir').value.trim();
+      const user=document.getElementById('user').value.trim();
+      const key=document.getElementById('key').value.trim();
+      const tid=document.getElementById('tid').value.trim();
+      const cfg=document.getElementById('config').value;
+      if(!dir||!user||!key||!tid){alert('请填写所有字段');return}
+      const body=new URLSearchParams();
+      body.append('action','subSave');
+      body.append('directoryId',dir);
+      body.append('subUsername',user);
+      body.append('subSecret',key);
+      body.append('terminalId',tid);
+      body.append('config',cfg);
+      const r=await fetch('function.php',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+      const d=await r.json();
+      document.getElementById('result').textContent=d.success?'保存成功':`保存失败：${d.error||'未知错误'}`;
+    }
+    function applyUrl(){
+      try{
+        const p = new URLSearchParams(location.search);
+        const dir = p.get('dir') || p.get('directoryId') || '';
+        const user = p.get('user') || p.get('username') || '';
+        const key = p.get('key') || p.get('secret') || '';
+        const tid = p.get('tid') || p.get('terminalId') || '';
+        if (dir) document.getElementById('dir').value = dir;
+        if (user) document.getElementById('user').value = user;
+        if (key) document.getElementById('key').value = key;
+        if (tid) document.getElementById('tid').value = tid;
+        const auto = p.get('auto') || '';
+        if (dir && user && key && auto !== 'none') {
+          if (tid && (auto === 'load' || auto === '')) { subLoad(); }
+          else if (auto === 'list' || auto === '') { subList(); }
+        }
+      }catch{}
+    }
+    document.addEventListener('DOMContentLoaded', applyUrl);
+  </script>
+  </head>
+  <body>
+    <div class="card">
+      <div class="title">实例子用户面板</div>
+      <div class="row"><fluent-text-field id="dir" placeholder="实例组标识"></fluent-text-field></div>
+      <div class="row"><fluent-text-field id="user" placeholder="子用户名"></fluent-text-field></div>
+      <div class="row"><fluent-text-field id="key" type="password" placeholder="子用户密钥"></fluent-text-field></div>
+      <div class="row"><fluent-text-field id="tid" placeholder="实例ID"></fluent-text-field></div>
+      <div class="row" style="gap:12px">
+        <fluent-button onclick="subList()">可管理实例</fluent-button>
+        <fluent-button onclick="subLoad()">加载配置</fluent-button>
+        <fluent-button onclick="subSave()" appearance="accent">保存配置</fluent-button>
+      </div>
+      <fluent-text-area id="config" style="height:240px" placeholder="配置内容"></fluent-text-area>
+      <div id="result"></div>
+    </div>
+  </body>
+</html>

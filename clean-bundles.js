@@ -2,6 +2,18 @@ const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
 
+function ts() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+const _log = console.log.bind(console);
+const _warn = console.warn.bind(console);
+const _error = console.error.bind(console);
+console.log = (...args) => _log(`[${ts()}]`, ...args);
+console.warn = (...args) => _warn(`[${ts()}]`, ...args);
+console.error = (...args) => _error(`[${ts()}]`, ...args);
+
 const ROOT = __dirname;
 const patterns = [
   // 根目录 bundle

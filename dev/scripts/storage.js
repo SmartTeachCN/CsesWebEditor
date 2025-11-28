@@ -23,6 +23,7 @@ const storage = {
   },
   save() {
     localStorage.setItem("csesData", JSON.stringify(currentData));
+    try { window.__unsaved = false; } catch {}
   },
   clear() {
     // 这个函数好像没用到，但还是留着吧
@@ -57,12 +58,21 @@ const storage = {
   },
   outputSet() {
     const login = window.hasLogin ?? false;
-    const selectId = login ? "output-mode" : "output-mode2";
-    const select = document.getElementById(selectId);
-    const modeRaw = select?.value ?? localStorage.getItem("output-mode") ?? "cy";
+    const selOnline = document.getElementById("output-mode");
+    const selOffline = document.getElementById("output-mode2");
+    const modeRaw = selOnline?.value ?? selOffline?.value ?? localStorage.getItem("output-mode") ?? "cy";
     const mode = modeRaw === "cj" ? "cy" : modeRaw; // 隐藏cj，回退到cy
     localStorage.setItem("output-mode", mode);
-    try { controlMgr.init(true); } catch (e) { console.warn("controlMgr.init failed", e); }
+    try { localStorage.setItem('control_need_refresh', '1'); } catch {}
+    try {
+      const iframe = document.getElementById('editor-frame');
+      const win = iframe?.contentWindow;
+      const isControl = (()=>{ try { const src = iframe?.src || ''; return /\/pages\/editor\/control\.html/i.test(src); } catch { return false } })();
+      if (isControl) {
+        if (win && win.controlMgr) { win.controlMgr.init(true); }
+        else { try { iframe.src = `pages/editor/control.html?refresh=1`; } catch {} }
+      }
+    } catch (e) { console.warn("controlMgr.init failed", e); }
     const yamlEditor = document.getElementById("yaml-editor");
     if (!yamlEditor) return;
     if (mode === "cy") {
@@ -81,8 +91,9 @@ const storage = {
   preview() {
     const mode = localStorage.getItem("output-mode") ?? "cy";
     const terminalId = localStorage.getItem("currentTerminalId");
+    const directoryId = localStorage.getItem("directoryId") || '';
     if (mode == "es") {
-      const url = `https://cloud.smart-teach.cn/es/link.php?id=${document.querySelectorAll(".directoryId")[0].innerHTML + "/" + terminalId}`
+      const url = `https://cloud.smart-teach.cn/es/link.php?id=${directoryId}/${terminalId}`;
       showModal(`<h2>在云端ExamSchedule使用您的配置</h2>
         <li>复制链接，通过集控/手动在设备上打开链接即可</li><li>编辑配置后，无需重新复制链接，原链接为最新档案</li>
         ${url}<br>
@@ -90,7 +101,7 @@ const storage = {
         `)
     } else if (mode == "ci") {
       showModal(`<h2>在ClassIsland使用静态配置</h2>
-        <li>下载清单文件，保存到您可以访问的位置</li><li>打开ClassIsland设置页面，右上角菜单点击“加入管理”</li><li>点击“配置文件”左侧的文件夹图标</li><li>选择您刚刚下载的清单文件，点击“打开”</li><li>在“ID”处输入您在CSES Cloud创建的终端名称，无需带上目录ID</li>
+        <li>下载清单文件，保存到您可以访问的位置</li><li>打开ClassIsland设置页面，右上角菜单点击“加入管理”</li><li>点击“配置文件”左侧的文件夹图标</li><li>选择您刚刚下载的清单文件，点击“打开”</li><li>在“ID”处输入您在CSES Cloud创建的实例名称，无需带上目录ID</li>
         <fluent-button id="download-manifest-btn"><i class="bi bi-download" style="font-size: 12px;margin: 0;margin-right: 5px;"></i>下载清单文件</fluent-button>
         `);
 
@@ -124,9 +135,8 @@ const storage = {
       }, 0);
 
     } else {
-      alert("当前终端类型暂无该操作");
+      alert("当前实例类型暂无该操作");
     }
-
   },
 };
 
@@ -158,6 +168,7 @@ const tool = {
       obj = obj[key];
     }
     obj[keys[lastKeyIndex]] = value;
+    try { window.__unsynced = true; } catch {}
   },
   getNestedValue(obj, path) {
     const keys = path.split(".");
@@ -197,14 +208,11 @@ const file = {
     }
   },
   export(noNotice) {
-    const outputMode = localStorage.getItem("output-mode") || "cy";
-    const cloudFormat = "JSON"; // 云端上传始终使用普通 JSON 格式
-    let dataToExport;
-
-    dataToExport = file.preview(outputMode);
-
+    const cloudFormat = "JSON";
+    const dataToExport = buildCloudPayload();
     if (noNotice) return;
     saveToCloud(dataToExport, cloudFormat, noNotice);
+    try { window.__unsynced = false; } catch {}
   },
   exportL() {
     let mode = localStorage.getItem("output-mode") || "cy";
@@ -264,7 +272,7 @@ const file = {
       }
 
       if (data?.success == false) {
-        throw new Error("当前终端可能已被移除，请重新点击左侧按钮打开");
+        throw new Error("当前实例可能已被移除，请重新点击左侧按钮打开");
       }
       console.log(data);
 
@@ -325,6 +333,17 @@ const file = {
             if (result) {
               currentData = tempData;
               storage.save();
+              try {
+                if (Array.isArray(currentData.schedules)) {
+                  if (typeof timetableState === "object" && timetableState && typeof timetableState.schedules === "object") {
+                    currentData.schedules.forEach((sch, idx) => {
+                      const name = sch && sch.timetable_name ? sch.timetable_name : '';
+                      timetableState.schedules[idx] = { templateName: name, modified: false };
+                    });
+                    try { saveTimetableState && saveTimetableState(); } catch (e) {}
+                  }
+                }
+              } catch (e) {}
               // 初始化并刷新界面（包含时间表列表）
               try { schedule.init && schedule.init(); } catch (e) { console.warn('schedule.init failed after import', e); }
               // location.reload();
@@ -334,6 +353,17 @@ const file = {
       } else {
         currentData = tempData;
         storage.save();
+        try {
+          if (Array.isArray(currentData.schedules)) {
+            if (typeof timetableState === "object" && timetableState && typeof timetableState.schedules === "object") {
+              currentData.schedules.forEach((sch, idx) => {
+                const name = sch && sch.timetable_name ? sch.timetable_name : '';
+                timetableState.schedules[idx] = { templateName: name, modified: false };
+              });
+              try { saveTimetableState && saveTimetableState(); } catch (e) {}
+            }
+          }
+        } catch (e) {}
         // 初始化并刷新界面（包含时间表列表）
         try { schedule.init && schedule.init(); } catch (e) { console.warn('schedule.init failed after import', e); }
       }
@@ -369,3 +399,27 @@ const file = {
     fileInput.click();
   },
 };
+
+function buildCloudPayload() {
+  try {
+    const data = JSON.parse(JSON.stringify(currentData));
+    if (Array.isArray(data.schedules) && typeof timetableState !== "undefined" && timetableState && timetableState.schedules) {
+      data.schedules.forEach((sch, idx) => {
+        const st = timetableState.schedules[idx];
+        if (st && st.templateName) sch.timetable_name = st.templateName;
+      });
+    }
+    return JSON.stringify(data);
+  } catch (e) {
+    try { return JSON.stringify(currentData); } catch { return "{}"; }
+  }
+}
+function isSkipUnsaved(target){
+  try { return !!(target && target.closest('[data-skip-unsaved]')); } catch { return false }
+}
+try {
+  window.__unsaved = window.__unsaved || false;
+  window.__unsynced = window.__unsynced || false;
+  window.markUnsynced = function(){ try { window.__unsynced = true; } catch {} };
+  document.addEventListener('input', function(e){ try { if (!isSkipUnsaved(e.target)) { window.__unsaved = true; window.__unsynced = true; } } catch {} });
+} catch {}

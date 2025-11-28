@@ -1,18 +1,32 @@
-<p class="pageTitle pageTitle_main">终端信息</p>
-<p class="pageTitle" style="
-    background-color: rgba(250, 0, 0, 0.1);
-    padding: 10px;
-    border-radius: 4px;
-    height: auto;
-  ">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/dev/style.css" />
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
+  <style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <script type="module">
+    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <script src="/dev/scripts/storage.js" defer></script>
+  <script>
+    window.openOwnerSubModal = function(){ try{ if (parent && typeof parent.openOwnerSubModal === 'function') parent.openOwnerSubModal(); }catch{} };
+    window.openSubPanel = function(){ try{ if (parent && typeof parent.openSubPanel === 'function') parent.openSubPanel(); }catch{} };
+  </script>
+</head>
+<body>
+<p class="pageTitle pageTitle_main">实例信息</p>
+<p class="pageTitle" style="background-color: rgba(250, 0, 0, 0.1); padding: 10px; border-radius: 4px; height: auto;">
   <i class="bi bi-info-circle"></i>&nbsp;<b>提示:</b>&nbsp;使用CSES Cloud代表您同意将部分必要数据上传至CSES Cloud服务器
 </p>
 <h4>基本</h4>
 <div class="settings-card">
   <i class="bi bi-info-circle"></i>
   <div class="left-section">
-    <div class="title">终端组标识</div>
-    <div class="description">在受支持的程序中选择终端组,此ID是唯一的</div>
+    <div class="title">实例组标识</div>
+    <div class="description">在受支持的程序中选择实例组,此ID是唯一的</div>
   </div>
   <div class="right-section">
     <span style="user-select: text" class="directoryId"></span>
@@ -21,8 +35,8 @@
 <div class="settings-card">
   <i class="bi bi-bookmark"></i>
   <div class="left-section">
-    <div class="title">终端标识符</div>
-    <div class="description">在受支持的程序中选择终端的标识符</div>
+    <div class="title">实例标识符</div>
+    <div class="description">在受支持的程序中选择实例的标识符</div>
   </div>
   <div class="right-section">
     <span class="configId" style="user-select: text"></span>
@@ -32,37 +46,22 @@
   <i class="bi bi-link-45deg"></i>
   <div class="left-section">
     <div class="title">源文件地址</div>
-    <div class="description">可以通过此链接访问此终端的完整配置</div>
+    <div class="description">可以通过此链接访问此实例的完整配置</div>
   </div>
   <div class="right-section">
-    <fluent-button onclick="copyUrl()"> 复制 </fluent-button>
-    <span style="user-select: text; display: none" id="url2">https://cloud.smart-teach.cn/user/<span
-        class="directoryId"></span>/<span class="configId"></span>.cses</span>
+    <fluent-button class="icon-btn" onclick="copyUrl(this)"><i class="bi bi-clipboard icon-anim" style="font-size: 12px;"></i>复制</fluent-button>
+    <span style="user-select: text; display: none" id="url2">https://cloud.smart-teach.cn/user/<span class="directoryId"></span>/<span class="configId"></span>.cses</span>
   </div>
-  <script>
-    function copyUrl() {
-      navigator.clipboard
-        .writeText(document.getElementById("url2").textContent)
-        .then(() => {
-          console.log("文本已成功复制到剪贴板！");
-        })
-        .catch((err) => {
-          console.error("复制失败：", err);
-        });
-    }
-  </script>
+<link rel="stylesheet" href="../../assets/cloud.css">
 </div>
 <h4>配置</h4>
 <div class="settings-card">
   <i class="bi bi-code-slash"></i>
   <div class="left-section">
-    <div class="title">终端类型</div>
-    <div class="description">选择该终端要使用的配置类型</div>
+    <div class="title">实例类型</div>
+    <div class="description">选择该实例要使用的配置类型</div>
   </div>
   <div class="right-section">
-    <!-- <fluent-button id="donwCiCB" onclick="donwCiC()"
-      >下载配置清单</fluent-button
-    > -->
     <fluent-select id="output-mode" onchange="storage.outputSet()" title="选择导出格式">
       <fluent-option value="ci">ClassIsland静态集控</fluent-option>
       <fluent-option value="es">ExamSchedule</fluent-option>
@@ -70,10 +69,28 @@
     </fluent-select>
   </div>
 </div>
+
+<h4>子用户</h4>
+<div class="settings-card" data-skip-unsaved>
+  <i class="bi bi-people"></i>
+  <div class="left-section">
+    <div class="title">实例子用户</div>
+    <div class="description">为当前实例创建最多5个子用户，子用户使用实例组标识、用户名与密钥进行认证</div>
+  </div>
+  <div class="right-section">
+    <fluent-button onclick="openOwnerSubModal()">管理子用户</fluent-button>
+    <fluent-button onclick="openSubPanel()">打开子用户面板</fluent-button>
+  </div>
+  <div style="width:100%;margin-top:10px;display:none">
+    <div id="subuser-list"></div>
+  </div>
+  
+</div>
+
 <div class="settings-card">
   <i class="bi bi-box-arrow-down"></i>
   <div class="left-section">
-    <div class="title">部署终端</div>
+    <div class="title">部署实例</div>
     <div class="description">下载集控配置/启用在线展示软件</div>
   </div>
   <div class="right-section">
@@ -82,17 +99,44 @@
       启用向导</fluent-button>
   </div>
 </div>
+<script>
+  function copyUrl(btn){
+    try{
+      var icon = btn && btn.querySelector('i');
+      var text = document.getElementById('url2')?.textContent || '';
+      if (!text) return;
+      try{
+        var ok=false; const handler=(e)=>{try{e.clipboardData.setData('text/plain',text); e.preventDefault();}catch{}};
+        document.addEventListener('copy', handler); ok=document.execCommand('copy'); document.removeEventListener('copy', handler);
+        if (!ok && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(()=>{ if(icon){ const prev=icon.className; icon.className='bi bi-check'; setTimeout(()=>{icon.className=prev;},600);} }); }
+      }catch{}
+    }catch{}
+  }
+</script>
+<script>
+  try { storage.init(); storage.initEnv(); } catch {}
+  try {
+    var did = localStorage.getItem('directoryId') || '';
+    var tid = localStorage.getItem('currentTerminalId') || '';
+    var dEls = document.querySelectorAll('.directoryId');
+    dEls.forEach(function(el){ el.textContent = did; });
+    var cEls = document.querySelectorAll('.configId');
+    cEls.forEach(function(el){ el.textContent = tid; });
+  } catch {}
+</script>
+</body>
+</html>
 <h4 style="display: none">空间共享</h4>
 <div class="settings-card" style="display: none">
   <i class="bi bi-people"></i>
   <div class="left-section">
     <div class="title">加入其他空间</div>
-    <div class="description">输入用户ID、目标终端ID及本地终端ID</div>
+    <div class="description">输入用户ID、目标实例ID及本地实例ID</div>
   </div>
   <div class="right-section">
     <fluent-text-field id="target-user" placeholder="用户ID"></fluent-text-field>
-    <fluent-text-field id="target-terminal" placeholder="目标终端ID"></fluent-text-field>
-    <fluent-text-field id="local-terminal" placeholder="本地终端ID"></fluent-text-field>
+    <fluent-text-field id="target-terminal" placeholder="目标实例ID"></fluent-text-field>
+    <fluent-text-field id="local-terminal" placeholder="本地实例ID"></fluent-text-field>
     <fluent-button onclick="joinSpace()">加入</fluent-button>
   </div>
 </div>
@@ -148,5 +192,3 @@
   </div>
 </div>
 
-<script>
-</script>

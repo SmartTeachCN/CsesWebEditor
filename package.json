@@ -10,7 +10,8 @@
     "push": "node sync.js push",
     "clean": "node clean-bundles.js",
     "build": "node build.js",
-    "prebuild": "npm run clean"
+    "prebuild": "npm run clean",
+    "dev": "node dev-server.js"
   },
   "devDependencies": {
     "cheerio": "^1.1.2",

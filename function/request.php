@@ -12,6 +12,30 @@ class request
   public static function post($postData)
   {
     header('Content-Type: application/json');
+    if (isset($postData['action'])) {
+      switch ($postData['action']) {
+        case 'addSubUser':
+          subuser::addForOwner($postData['terminalId'] ?? '', $postData['username'] ?? '', $postData['secret'] ?? '');
+          break;
+        case 'delSubUser':
+          subuser::deleteForOwner($postData['terminalId'] ?? '', $postData['username'] ?? '');
+          break;
+        case 'subSave':
+          subuser::subSave(
+            $postData['directoryId'] ?? '',
+            $postData['subUsername'] ?? '',
+            $postData['subSecret'] ?? '',
+            $postData['terminalId'] ?? '',
+            $postData['config'] ?? ''
+          );
+          break;
+        default:
+          echo json_encode(['success' => false, 'error' => '未知操作']);
+          exit;
+      }
+      return;
+    }
+
     if (!isset($_SESSION['user'])) {
       echo json_encode(['success' => false, 'error' => '未登录']);
       exit;
@@ -48,6 +72,21 @@ class request
         break;
       case 'listTerminals':
         terminal::list();
+        break;
+      case 'getSubSecret':
+        terminal::vaildateId($getParams['terminalId'] ?? '');
+        subuser::getSecretForOwner($getParams['terminalId'] ?? '', $getParams['username'] ?? '');
+        break;
+      case 'getSubUsers':
+        terminal::vaildateId($getParams['terminalId'] ?? '');
+        subuser::getForOwner($getParams['terminalId'] ?? '');
+        break;
+      case 'subList':
+        subuser::subList($getParams['directoryId'] ?? '', $getParams['subUsername'] ?? '', $getParams['subSecret'] ?? '');
+        break;
+      case 'subLoad':
+        terminal::vaildateId($getParams['terminalId'] ?? '');
+        subuser::subLoad($getParams['directoryId'] ?? '', $getParams['subUsername'] ?? '', $getParams['subSecret'] ?? '', $getParams['terminalId'] ?? '');
         break;
       case "logout":
         user::logout();

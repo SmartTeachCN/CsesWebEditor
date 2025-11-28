@@ -1,31 +1,17 @@
-<html><head><script src="/pages/bundle-bcf4d763c3b1.min.js?time=1760975676412" defer=""></script><link href="/assets/bootstrap-icons.css" rel="stylesheet"><script src="/assets/js-yaml.min.js"></script><script type="module">import {
-    StandardLuminance,
-    baseLayerLuminance,
-    fillColor,
-    allComponents,
-    provideFluentDesignSystem,
-  } from "https://npm.elemecdn.com/@fluentui/web-components";
-
+<html><head><script src="/pages/bundle-7c4fed80f1b1.min.js?time=1764347679279" defer=""></script><link href="/assets/bootstrap-icons.css" rel="stylesheet"><script src="/assets/js-yaml.min.js"></script><script type="module">import { StandardLuminance, baseLayerLuminance, allComponents, provideFluentDesignSystem } from "https://npm.elemecdn.com/@fluentui/web-components";
   provideFluentDesignSystem().register(allComponents);
-
   const layer = document.querySelector("body");
   document.addEventListener("DOMContentLoaded", function () {
-    const darkmode = new Darkmode({
-      saveInCookies: true,
-      autoMatchOsTheme: true,
-    });
-    if (darkmode.isActivated()) {
-      baseLayerLuminance.setValueFor(layer, StandardLuminance.DarkMode);
-    } else {
-      baseLayerLuminance.setValueFor(layer, StandardLuminance.LightMode);
-    }
-    // darkmode.showWidget();
+    const hasDark = typeof window.Darkmode !== 'undefined';
+    const darkmode = hasDark ? new window.Darkmode({ saveInCookies: true, autoMatchOsTheme: true }) : null;
+    const initDark = !!(darkmode && darkmode.isActivated());
+    baseLayerLuminance.setValueFor(layer, initDark ? StandardLuminance.DarkMode : StandardLuminance.LightMode);
+    try { document.body.setAttribute('data-theme', initDark ? 'dark' : 'light'); localStorage.setItem('colorMode', initDark ? 'dark' : 'light'); } catch {}
     window.toggleColorMode = function () {
+      if (!darkmode) return;
       darkmode.toggle();
-      if (!darkmode.isActivated()) {
-        baseLayerLuminance.setValueFor(layer, StandardLuminance.LightMode);
-      } else {
-        baseLayerLuminance.setValueFor(layer, StandardLuminance.DarkMode);
-      }
+      const isDark = !!darkmode.isActivated();
+      baseLayerLuminance.setValueFor(layer, isDark ? StandardLuminance.DarkMode : StandardLuminance.LightMode);
+      try { document.body.setAttribute('data-theme', isDark ? 'dark' : 'light'); localStorage.setItem('colorMode', isDark ? 'dark' : 'light'); } catch {}
     };
-  });</script><link rel="stylesheet" href="/pages/bundle-674000bee385.min.css?time=1760975677766"></head><body></body></html>
+  });</script><link rel="stylesheet" href="/pages/bundle-9831537a1d7e.min.css?time=1764347680808"></head><body></body></html>

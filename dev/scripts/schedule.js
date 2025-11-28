@@ -92,26 +92,24 @@ const schedule = {
       }
     } catch (e) { console.warn('sync timetables on init failed', e); }
     const container = document.getElementById("schedule-list");
+    if (!container) {
+      try {
+        if (Array.isArray(currentData.schedules) && currentData.schedules.length > 0 && (typeof currentScheduleIndex !== 'number' || currentScheduleIndex < 0)) {
+          currentScheduleIndex = 0;
+        }
+        this.renderTimetableList();
+        this.loadTimetableOptions();
+        this.updateTimetableLabel();
+      } catch {}
+      return;
+    }
     container.innerHTML = "";
     if (storage.getOutputMode() == "es") { } else {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
       div.innerHTML = `<i class="bi bi-table"></i> 表格视图`;
       div.addEventListener("click", () => {
-        document.getElementById(`schedule-editor`).style.display = "none";
-        document.getElementById(`subject-editor`).style.display = "none";
-        document.getElementById(`source-editor`).style.display = "none";
-        document.getElementById(`change-editor`).style.display = "block";
-        // 隐藏时间表编辑器（切换到非时间编辑视图）
-        const timeEl = document.getElementById('time-editor');
-        if (timeEl) timeEl.style.display = 'none';
-        if (checkDeviceType()) {
-          location.href = "#schedule-editor";
-          document.getElementById("change-editor").style.display = "block";
-          document.getElementsByClassName("explorer")[0].style.display = "none";
-          document.getElementsByClassName("editor-area")[0].style.display = "block";
-        }
-        this.view(this.viewMode);
+        schedule.openTableView(true);
       });
       container.appendChild(div);
       if (currentScheduleIndex == -1) {
@@ -187,9 +185,80 @@ const schedule = {
     this.loadTimetableOptions();
     this.updateTimetableLabel();
   },
+  openTableView(push) {
+    try {
+      if (typeof setEditorSrc === 'function') {
+        const idx = (typeof currentScheduleIndex === 'number' && currentScheduleIndex >= 0) ? currentScheduleIndex : 0;
+        setEditorSrc('change', { sub: 'table', schedule: idx, week: this.viewMode || 'odd' });
+        return;
+      }
+    } catch {}
+    try {
+      if (push !== false && (window.__unsynced || window.__unsaved)) {
+        saveConfirm((res) => {
+          if (res === 'save') { try { file.export(false); } catch {} schedule.openTableView(false); }
+          else if (res === 'discard') { schedule.openTableView(false); }
+        });
+        return;
+      }
+    } catch {}
+    try { const el = document.getElementById('change-editor'); if (el) el.style.display = 'block'; } catch {}
+    try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const el = document.getElementById('subject-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const el = document.getElementById('source-editor'); if (el) el.style.display = 'none'; } catch {}
+    const timeEl = document.getElementById('time-editor');
+    if (timeEl) timeEl.style.display = 'none';
+    if (checkDeviceType()) {
+      location.href = "#schedule-editor";
+      try { const el = document.getElementById('change-editor'); if (el) el.style.display = 'block'; } catch {}
+      try { const el = document.getElementsByClassName("explorer")[0]; if (el) el.style.display = 'none'; } catch {}
+      try { const el = document.getElementsByClassName("editor-area")[0]; if (el) el.style.display = 'block'; } catch {}
+    }
+    try {
+      if (push !== false) {
+        const p = new URLSearchParams(window.location.search);
+        p.set('view', 'schedule');
+        p.set('sub', 'table');
+        const idx = (typeof currentScheduleIndex === 'number' && currentScheduleIndex >= 0) ? currentScheduleIndex : 0;
+        p.set('schedule', String(idx));
+        p.set('week', this.viewMode || 'odd');
+        p.delete('subject'); p.delete('subjectName');
+        p.delete('timetable');
+        history.pushState(null, '', `${location.pathname}?${p.toString()}${location.hash}`);
+      }
+    } catch {}
+    this.view(this.viewMode);
+  },
+  setWeekView(mode, push) {
+    try {
+      this.viewMode = (mode === 'even' || mode === 'all') ? mode : 'odd';
+      if (typeof setEditorSrc === 'function') {
+        const idx = (typeof currentScheduleIndex === 'number' && currentScheduleIndex >= 0) ? currentScheduleIndex : 0;
+        setEditorSrc('change', { sub: 'table', schedule: idx, week: this.viewMode });
+        return;
+      }
+    } catch {}
+    const m = (mode === 'even' || mode === 'all') ? mode : 'odd';
+    this.viewMode = m;
+    this.view(m);
+    try {
+      if (push !== false) {
+        const p = new URLSearchParams(window.location.search);
+        p.set('view', 'schedule');
+        p.set('sub', 'table');
+        const idx = (typeof currentScheduleIndex === 'number' && currentScheduleIndex >= 0) ? currentScheduleIndex : 0;
+        p.set('schedule', String(idx));
+        p.set('week', m);
+        p.delete('subject'); p.delete('subjectName');
+        p.delete('timetable');
+        history.pushState(null, '', `${location.pathname}?${p.toString()}${location.hash}`);
+      }
+    } catch {}
+  },
   viewMode: "odd",
   view(viewMode = 'odd') {
     this.viewMode = viewMode;
+    try { const sel = document.getElementById('table-week-select'); if (sel) sel.value = viewMode; } catch {}
     const viewtable = document.getElementById("change-table");
     viewtable.innerHTML = "";
     const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -384,27 +453,65 @@ const schedule = {
     storage.save();
     this.init();
   },
-  load(index) {
-    document.getElementById(`change-editor`).style.display = "none";
-    document.getElementById(`schedule-editor`).style.display = "block";
-    document.getElementById(`subject-editor`).style.display = "none";
-    document.getElementById(`source-editor`).style.display = "none";
+  load(index, push) {
+    try {
+      currentScheduleIndex = index;
+      if (typeof setEditorSrc === 'function') { setEditorSrc('schedule', { sub: 'schedule', schedule: index }); return; }
+    } catch {}
+    try {
+      if (push !== false && (window.__unsynced || window.__unsaved)) {
+        saveConfirm((res) => {
+          if (res === 'save') { try { file.export(false); } catch {} schedule.load(index, false); }
+          else if (res === 'discard') { try { window.__unsaved = false; window.__unsynced = false; } catch {} schedule.load(index, false); }
+        });
+        return;
+      }
+    } catch {}
+    try { const el = document.getElementById('change-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'block'; } catch {}
+    try { const el = document.getElementById('subject-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const el = document.getElementById('source-editor'); if (el) el.style.display = 'none'; } catch {}
     // 隐藏时间表编辑器（选择课程表时）
     const timeEl2 = document.getElementById('time-editor');
     if (timeEl2) timeEl2.style.display = 'none';
     if (checkDeviceType()) {
       location.href = "#schedule-editor";
-      document.getElementById("schedule-editor").style.display = "block";
-      document.getElementsByClassName("explorer")[0].style.display = "none";
-      document.getElementsByClassName("editor-area")[0].style.display = "block";
+      try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'block'; } catch {}
+      try { const el = document.getElementsByClassName("explorer")[0]; if (el) el.style.display = 'none'; } catch {}
+      try { const el = document.getElementsByClassName("editor-area")[0]; if (el) el.style.display = 'block'; } catch {}
     }
+    try { const tabs = document.getElementById('explorerB'); if (tabs) tabs.setAttribute('activeid', 'scheduleB'); } catch {}
     currentScheduleIndex = index;
-    document.getElementById("schedule-editor").style.display = "block";
+    try {
+      if (push !== false) {
+        const p = new URLSearchParams(window.location.search);
+        p.set('view', 'schedule');
+        p.set('sub', 'schedule');
+        p.set('schedule', index);
+        p.delete('subject'); p.delete('subjectName');
+        p.delete('timetable');
+        history.pushState(null, '', `${location.pathname}?${p.toString()}${location.hash}`);
+      }
+    } catch {}
+    try {
+      const container = document.getElementById('schedule-list');
+      if (container) {
+        Array.from(container.querySelectorAll('.explorer-item')).forEach((el) => {
+          el.classList.remove('selected');
+          el.removeAttribute('aria-selected');
+        });
+        const isES = storage.getOutputMode() === 'es';
+        const childIndex = isES ? index : index + 1; // 非ES模式首项为表格视图
+        const item = container.children[childIndex];
+        if (item) { item.classList.add('selected'); item.setAttribute('aria-selected', 'true'); }
+      }
+    } catch {}
+    try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'block'; } catch {}
     const schedule = currentData.schedules[index];
     const weekMode = schedule.weeks;
     const dayMode = schedule.enable_day;
-    document.getElementById("week-mode").value = weekMode;
-    document.getElementById("day-mode").value = `${dayMode}`;
+    try { const wm = document.getElementById("week-mode"); if (wm) wm.value = weekMode; } catch {}
+    try { const dm = document.getElementById("day-mode"); if (dm) dm.value = `${dayMode}`; } catch {}
     this.refresh();
     const select = document.getElementById("current-subject");
     select.innerHTML = "";
@@ -423,14 +530,14 @@ const schedule = {
     const card0 = document.getElementById("card-schedule0");
     const card1 = document.getElementById("card-schedule1");
     if (storage.getOutputMode() == "es") {
-      if (dateSelector) dateSelector.style.display = checkDeviceType() ? 'block' : 'flex';
-      if (dateInput) dateInput.value = schedule.date || "";
-      if (card0) card0.style.display = 'none';
-      if (card1) card1.style.display = 'none';
+      try { if (dateSelector) dateSelector.style.display = checkDeviceType() ? 'block' : 'flex'; } catch {}
+      try { if (dateInput) dateInput.value = schedule.date || ""; } catch {}
+      try { if (card0) card0.style.display = 'none'; } catch {}
+      try { if (card1) card1.style.display = 'none'; } catch {}
     } else {
-      if (dateSelector) dateSelector.style.display = 'none';
-      if (card0) card0.style.display = checkDeviceType() ? 'block' : 'flex';
-      if (card1) card1.style.display = checkDeviceType() ? 'block' : 'flex';
+      try { if (dateSelector) dateSelector.style.display = 'none'; } catch {}
+      try { if (card0) card0.style.display = checkDeviceType() ? 'block' : 'flex'; } catch {}
+      try { if (card1) card1.style.display = checkDeviceType() ? 'block' : 'flex'; } catch {}
     }
   },
   refresh() {
@@ -471,6 +578,7 @@ const schedule = {
     currentClassIndex =
       currentData.schedules[currentScheduleIndex].classes.length - 1;
     storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
     // 标记时间表已更改（新增课时视为课时编辑器变更）
     const st = timetableState.schedules[currentScheduleIndex];
@@ -486,6 +594,7 @@ const schedule = {
       1
     );
     storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
     currentClassIndex = -1;
     // 标记时间表已更改（删除课时视为课时编辑器变更）
@@ -532,6 +641,7 @@ const schedule = {
     });
 
     storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
     this.init();
     alert("快速创建周一~周日通用周成功");
   },
@@ -541,6 +651,7 @@ const schedule = {
       currentClassIndex
     ].subject = subject;
     storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
     if (autoAdd) {
       const maxIndex =
@@ -559,6 +670,7 @@ const schedule = {
       currentClassIndex
     ].end_time = document.querySelectorAll(".time-input")[1].value;
     storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
     const st = timetableState.schedules[currentScheduleIndex];
     if (st) {
@@ -655,6 +767,7 @@ const schedule = {
       // 同步到当前课程表，便于导出/预览包含所选时间表名称
       sch.timetable_name = name;
       storage.save();
+      try { window.markUnsynced && window.markUnsynced(); } catch {}
       this.refresh();
       timetableState.schedules[currentScheduleIndex] = { templateName: name, modified: false };
       saveTimetableState();
@@ -768,6 +881,7 @@ const schedule = {
       opt.innerHTML = `<i class="bi bi-clock-history"></i>&nbsp;${t.name}`;
       opt.addEventListener('click', () => schedule.showTimeEditor(t.name));
       opt.addEventListener('contextmenu', (e) => { e.preventDefault(); confirm(`确定要删除时间表 ${t.name} 吗？`, (ok)=>{ if(ok) schedule.deleteTimetable(t.name); }); });
+      if (schedule.currentTimetableName === t.name) { opt.classList.add('selected'); opt.setAttribute('aria-selected', 'true'); }
       panel.appendChild(opt);
     });
   },
@@ -826,7 +940,20 @@ const schedule = {
     schedule.renderTimetableList();
     schedule.loadTimetableOptions();
   },
-  showTimeEditor(name) {
+  showTimeEditor(name, push) {
+    try {
+      this.currentTimetableName = name;
+      if (typeof setEditorSrc === 'function') { setEditorSrc('time', { sub: 'timetable', timetable: name }); return; }
+    } catch {}
+    try {
+      if (push !== false && (window.__unsynced || window.__unsaved)) {
+        saveConfirm((res) => {
+          if (res === 'save') { try { file.export(false); } catch {} schedule.showTimeEditor(name, false); }
+          else if (res === 'discard') { schedule.showTimeEditor(name, false); }
+        });
+        return;
+      }
+    } catch {}
     const t = customTimetables.find(x => x.name === name);
     this.currentTimetableName = name;
     document.getElementById('change-editor')?.style && (document.getElementById('change-editor').style.display = 'none');
@@ -842,6 +969,19 @@ const schedule = {
       if (explorer) explorer.style.display = 'none';
       if (area) area.style.display = 'block';
     }
+    try { const tabs = document.getElementById('explorerB'); if (tabs) tabs.setAttribute('activeid', 'timeB'); } catch {}
+    try {
+      if (push !== false) {
+        const p = new URLSearchParams(window.location.search);
+        p.set('view', 'schedule');
+        p.set('sub', 'timetable');
+        p.set('timetable', name || '');
+        p.delete('schedule');
+        p.delete('subject'); p.delete('subjectName');
+        p.delete('week');
+        history.pushState(null, '', `${location.pathname}?${p.toString()}${location.hash}`);
+      }
+    } catch {}
     const nameField = document.getElementById('time-template-name');
     if (nameField) nameField.value = name || '';
     this.renderTimeEditorRows(t?.times || []);

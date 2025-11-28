@@ -1,3 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/dev/style.css" />
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
+  <style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <script type="module">
+    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <script src="/assets/js-yaml.min.js"></script>
+  <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/schedule.js" defer></script>
+  
+</head>
+<body>
 <p class="pageTitle pageTitle_main">时间表编辑</p>
 
 <div class="settings-card" id="card-schedule0">
@@ -9,9 +27,8 @@
   <div class="right-section">
     <fluent-text-field id="time-template-name" placeholder="请输入名称"></fluent-text-field>
   </div>
-</div>
+  </div>
 
-<!-- 快速时长设置 -->
 <div class="settings-card" id="card-quick-time" style="margin-top:12px;">
   <i class="bi bi-speedometer2"></i>
   <div class="left-section">
@@ -22,7 +39,7 @@
     <fluent-text-field id="quick-course-min" placeholder="课程分钟数" style="width:140px"></fluent-text-field>
     <fluent-text-field id="quick-break-min" placeholder="课间分钟数" style="width:140px"></fluent-text-field>
   </div>
-</div>
+  </div>
 
 <br>
 
@@ -41,7 +58,8 @@
 </span>
 
 <script>
-  // 初始化快速时长字段（从本地存储恢复）
+  try { storage.init(); storage.initEnv(); } catch {}
+  try { const p = new URLSearchParams(location.search); const name = p.get('timetable'); if (name) schedule.showTimeEditor(name, false); } catch {}
   (function initQuickFields(){
     try {
       const c = localStorage.getItem('quick-course-min');
@@ -50,17 +68,12 @@
       if (b) document.getElementById('quick-break-min').value = b;
     } catch (e) { console.warn('恢复快速时长失败', e); }
   })();
-
-  // 变更时保存至本地存储
   document.getElementById('quick-course-min')?.addEventListener('change', (e)=>{
     localStorage.setItem('quick-course-min', (e.target.value || '').trim());
   });
   document.getElementById('quick-break-min')?.addEventListener('change', (e)=>{
     localStorage.setItem('quick-break-min', (e.target.value || '').trim());
   });
-  
-
-  // 绑定按钮到schedule脚本中的方法
   document.getElementById('add-time-row-btn')?.addEventListener('click', () => {
     if (window.schedule && typeof schedule.addTimeRow === 'function') schedule.addTimeRow();
   });
@@ -77,3 +90,5 @@
     if (window.schedule && typeof schedule.importTimeTemplateJSONUI === 'function') schedule.importTimeTemplateJSONUI();
   });
 </script>
+</body>
+</html>

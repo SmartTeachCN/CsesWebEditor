@@ -1,3 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/dev/style.css" />
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
+  <style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <script type="module">
+    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/subject.js" defer></script>
+  
+</head>
+<body>
 <p class="pageTitle pageTitle_main">科目编辑</p>
 <div id="subject-form">
   <div class="settings-card">
@@ -64,3 +81,18 @@
     </div>
   </div>
 </div>
+<script>
+  try { storage.init(); storage.initEnv(); } catch {}
+  try { if (!window.__subjectsInitialized) { subjects.init(); window.__subjectsInitialized = true; } } catch {}
+  try {
+    const p = new URLSearchParams(location.search);
+    const idx = parseInt(p.get('subject'));
+    const name = p.get('subjectName');
+    let i = idx;
+    if (isNaN(i) && name) { i = (currentData.subjects || []).findIndex(s => s && s.name === name); }
+    if (!isNaN(i) && i >= 0) subjects.load(i, false);
+  } catch {}
+  try { window.__unsaved = window.__unsaved || false; window.__unsynced = window.__unsynced || false; } catch {}
+  </script>
+</body>
+</html>

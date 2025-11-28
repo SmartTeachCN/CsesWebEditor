@@ -1,1 +1,21 @@
-<html><head><link rel="stylesheet" href="/pages/editor/bundle-07e4955e300b.min.css?time=1760975677829"></head><body><p class="pageTitle pageTitle_main">表格视图</p><fluent-select onchange="schedule.view(this.value)" title="单双周设定"><fluent-option value="odd">单周</fluent-option><fluent-option value="even">双周</fluent-option><fluent-option value="all">通用</fluent-option></fluent-select><div id="change-table"></div></body></html>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/pages/editor/bundle-4eb20f0f54c2.min.css?time=1764347680919"><link href="/assets/bootstrap-icons.css" rel="stylesheet"><style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style><script type="module">import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);</script><script src="/pages/editor/bundle-5eb122eb6477.min.js?time=1764347680914" defer=""></script><style>#change-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    #change-table th,
+    #change-table td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+    #change-table th {
+        background-color: #f5f5f5;
+        color: #333;
+        font-weight: 600;
+    }
+    #change-table tr:hover {
+        background-color: #f8f8f8;
+    }</style></head><body><p class="pageTitle pageTitle_main">表格视图</p><fluent-select id="table-week-select" onchange="schedule.setWeekView(this.value, true)" title="单双周设定"><fluent-option value="odd">单周</fluent-option><fluent-option value="even">双周</fluent-option><fluent-option value="all">通用</fluent-option></fluent-select><div id="change-table"></div></body></html>

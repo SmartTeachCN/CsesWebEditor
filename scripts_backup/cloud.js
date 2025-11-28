@@ -15,7 +15,7 @@ function getDirectoryAndTerminal() {
         });
         directoryId = data.directoryId;
 
-        // 获取终端列表
+        // 获取实例列表
         fetch(`?action=listTerminals`)
           .then((r) => r.json())
           .then((d) => {
@@ -54,7 +54,7 @@ function populateTerminalSelect(terminals) {
 }
 
 function addNewTerminal() {
-  prompt("输入新终端ID", (a) => {
+  prompt("输入新实例ID", (a) => {
     if (a) {
       addNewTerminalA(a);
     }
@@ -63,7 +63,7 @@ function addNewTerminal() {
 
 function delTerminal(b) {
   confirm(
-    "确认删除终端：" + b + " 吗？删除后不可恢复",
+    "确认删除实例：" + b + " 吗？删除后不可恢复",
     (a, b) => {
       if (a) {
         delTerminalA(b);
@@ -116,7 +116,7 @@ async function loadCloudConfig() {
   try {
     const terminalId = localStorage.getItem("currentTerminalId");
     if (terminalId == null) {
-      throw new Error("您尚未选择终端，请选择/创建一个终端");
+      throw new Error("您尚未选择实例，请选择/创建一个实例");
     }
     const response = await fetch(`?action=load&terminalId=${encodeURIComponent(terminalId)}`);
     const config = await response.text();
@@ -229,7 +229,7 @@ async function joinSpace() {
     const result = await response.json();
     if (result.success) {
       alert('成功加入共享空间！');
-      location.reload(); // 刷新以加载新终端
+      location.reload(); // 刷新以加载新实例
     } else {
       alert('加入失败: ' + result.error);
     }

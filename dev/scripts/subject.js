@@ -60,26 +60,54 @@ const subjects = {
       container.appendChild(div);
     });
   },
-  load(index) {
-    document.getElementById(`schedule-editor`).style.display = "none";
-    document.getElementById(`subject-editor`).style.display = "block";
-    document.getElementById(`source-editor`).style.display = "none";
+  load(index, push) {
+    try {
+      const name = currentData?.subjects?.[index]?.name || '';
+      if (typeof setEditorSrc === 'function') { setEditorSrc('subject', { sub: 'subject', subject: index, subjectName: name }); return; }
+    } catch {}
+    try {
+      if (push !== false && (window.__unsynced || window.__unsaved)) {
+        saveConfirm((res) => {
+          if (res === 'save') { try { file.export(false); } catch {} subjects.load(index, false); }
+          else if (res === 'discard') { try { window.__unsaved = false; window.__unsynced = false; } catch {} subjects.load(index, false); }
+        });
+        return;
+      }
+    } catch {}
+    try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const el = document.getElementById('subject-editor'); if (el) el.style.display = 'block'; } catch {}
+    try { const el = document.getElementById('source-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const changeEl = document.getElementById('change-editor'); if (changeEl) changeEl.style.display = 'none'; } catch {}
     // 隐藏时间表编辑器（选择科目时）
     const timeEl = document.getElementById('time-editor');
     if (timeEl) timeEl.style.display = 'none';
     if (checkDeviceType()) {
       location.href = "#subject-editor";
-      document.getElementById("subject-editor").style.display = "block";
-      document.getElementsByClassName("explorer")[0].style.display = "none";
-      document.getElementsByClassName("editor-area")[0].style.display = "block";
+      try { const el = document.getElementById('subject-editor'); if (el) el.style.display = 'block'; } catch {}
+      try { const el = document.getElementsByClassName("explorer")[0]; if (el) el.style.display = 'none'; } catch {}
+      try { const el = document.getElementsByClassName("editor-area")[0]; if (el) el.style.display = 'block'; } catch {}
     }
+    try { const tabs = document.getElementById('explorerB'); if (tabs) tabs.setAttribute('activeid', 'subjectB'); } catch {}
+    try {
+      if (push !== false) {
+        const p = new URLSearchParams(window.location.search);
+        p.set('view', 'schedule');
+        p.set('sub', 'subject');
+        const name = currentData?.subjects?.[index]?.name || '';
+        if (name) { p.set('subjectName', name); }
+        p.delete('schedule');
+        p.delete('timetable');
+        p.delete('subject');
+        p.delete('week');
+        history.pushState(null, '', `${location.pathname}?${p.toString()}${location.hash}`);
+      }
+    } catch {}
     const subject = currentData.subjects[index];
-    document.getElementById("subject-name").value = subject.name;
-    document.getElementById("subject-simple").value =
-      subject.simplified_name || "";
-    document.getElementById("subject-teacher").value = subject.teacher || "";
-    document.getElementById("subject-room").value = subject.room || "";
-    document.getElementById("subject-editor").style.display = "block";
+    try { const el = document.getElementById("subject-name"); if (el) el.value = subject?.name || ''; } catch {}
+    try { const el = document.getElementById("subject-simple"); if (el) el.value = subject?.simplified_name || ""; } catch {}
+    try { const el = document.getElementById("subject-teacher"); if (el) el.value = subject?.teacher || ""; } catch {}
+    try { const el = document.getElementById("subject-room"); if (el) el.value = subject?.room || ""; } catch {}
+    try { const el = document.getElementById("subject-editor"); if (el) el.style.display = "block"; } catch {}
     // trickAnimation();
   },
   save() {
@@ -100,6 +128,7 @@ const subjects = {
         subjectIndex = currentData.subjects.length - 1;
       }
       storage.save();
+      try { window.markUnsynced && window.markUnsynced(); } catch {}
       subjects.init(subjectIndex);
     } else {
       alert("请填写完整的科目信息");

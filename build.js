@@ -18,6 +18,18 @@ const terser = require('terser');
 const CleanCSS = require('clean-css');
 const htmlMinifier = require('html-minifier-terser');
 
+function ts() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+const _log = console.log.bind(console);
+const _warn = console.warn.bind(console);
+const _error = console.error.bind(console);
+console.log = (...args) => _log(`[${ts()}]`, ...args);
+console.warn = (...args) => _warn(`[${ts()}]`, ...args);
+console.error = (...args) => _error(`[${ts()}]`, ...args);
+
 const DEV_ROOT = path.join(__dirname, 'dev');
 const OUT_ROOT = path.join(__dirname);
 

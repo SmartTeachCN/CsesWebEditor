@@ -22,7 +22,7 @@ const controlMgr = {
     }
 
     try {
-      const response = await fetch(`./control/settings-${configType}.json`);
+      const response = await fetch(`../../control/settings-${configType}.json`);
       if (recall) file.export(true);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 

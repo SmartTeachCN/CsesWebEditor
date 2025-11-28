@@ -1,4 +1,4 @@
-<?php $debugMode = file_exists(__DIR__ . '/debug.flag');
+<?php $debugMode = (file_exists(__DIR__ . '/debug.flag') || true);
 $RUNDIR = __DIR__ . '/';
 // phpinfo();
 include_once 'config.php';
@@ -11,6 +11,7 @@ include_once 'function/terminal.php';
 include_once 'function/curl.php';
 include_once 'function/space.php';
 include_once 'function/user.php';
+include_once 'function/subuser.php';
 session_start();
 
 $configFile = __DIR__ . '/user/users.php';

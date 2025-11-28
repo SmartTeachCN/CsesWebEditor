@@ -152,9 +152,14 @@
       document.querySelectorAll(".offline").forEach((element) => {
         element.style.display = "none";
       });
-      // 登录状态默认切换到“终端”视图
+      // 尊重URL中的view参数；仅在未指定view时默认进入云端
+      const v = new URLSearchParams(window.location.search).get('view');
       if (typeof activityBar !== "undefined" && activityBar.toggle) {
-        activityBar.toggle("cloud");
+        if (v) {
+          activityBar.toggle(v);
+        } else {
+          activityBar.toggle("cloud");
+        }
       }
     } else {
       activityBar.toggle("schedule");

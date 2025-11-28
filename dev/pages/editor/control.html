@@ -1,5 +1,26 @@
-<p class="pageTitle pageTitle_main2">集控选项</p>
-<div id="settingsTabs">
-  <!-- 动态生成的tab和tab-panel -->
-</div>
-<div id="settingsContainer"></div>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/dev/style.css" />
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
+  <style>body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <script type="module">
+    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/control.js" defer></script>
+  
+</head>
+<body>
+  <p class="pageTitle pageTitle_main2">集控选项</p>
+  <div id="settingsTabs"></div>
+  <div id="settingsContainer"></div>
+  <script>
+    try { storage.init(); storage.initEnv(); } catch {}
+    try { controlMgr.init(); } catch {}
+  </script>
+</body>
+</html>

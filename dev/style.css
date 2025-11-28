@@ -193,7 +193,7 @@ body {
 /* 编辑区域 */
 .editor-area {
   flex: 1;
-  padding: 1rem;
+  padding: 4px 0 0 0;
   overflow-y: auto;
   background: rgb(249, 249, 249);
   border: 1px solid var(--border-color);
@@ -432,6 +432,10 @@ fluent-text-field {
   gap: 4px;
 }
 
+fluent-dialog {
+  z-index: 1000;
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none;
@@ -628,3 +632,6 @@ fluent-text-field {
     border: solid 0.2px rgb(115 115 115 / 10%);
     color: white;
 }
+
+.dev-mode-ping{display:none}
+.dev-mode-ping2{display:none}

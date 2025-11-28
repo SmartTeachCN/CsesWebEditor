@@ -1,13 +1,19 @@
-<p class="pageTitle pageTitle_main">表格视图</p>
-<fluent-select
-  onchange="schedule.view(this.value)"
-  title="单双周设定"
->
-  <fluent-option value="odd">单周</fluent-option>
-  <fluent-option value="even">双周</fluent-option>
-  <fluent-option value="all">通用</fluent-option>
-</fluent-select>
-<style>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/dev/style.css" />
+  <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
+  <style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <script type="module">
+    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+  </script>
+  <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/schedule.js" defer></script>
+  
+  <style>
     #change-table {
         width: 100%;
         border-collapse: collapse;
@@ -28,5 +34,26 @@
     #change-table tr:hover {
         background-color: #f8f8f8;
     }
-</style>
+  </style>
+</head>
+<body>
+<p class="pageTitle pageTitle_main">表格视图</p>
+<fluent-select id="table-week-select" onchange="schedule.setWeekView(this.value, true)" title="单双周设定">
+  <fluent-option value="odd">单周</fluent-option>
+  <fluent-option value="even">双周</fluent-option>
+  <fluent-option value="all">通用</fluent-option>
+</fluent-select>
 <div id="change-table"></div>
+<script>
+  try { storage.init(); storage.initEnv(); } catch {}
+  try {
+    const params = new URLSearchParams(location.search);
+    const week = params.get('week') || 'odd';
+    const schIdx = parseInt(params.get('schedule'));
+    if (!isNaN(schIdx)) { try { schedule.load(schIdx, false); } catch {} }
+    try { schedule.setWeekView(week, false); } catch {}
+    try { schedule.openTableView(false); } catch {}
+  } catch {}
+</script>
+</body>
+</html>
