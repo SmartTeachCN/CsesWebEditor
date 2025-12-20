@@ -35,6 +35,16 @@ function init() {
       }
     }
   });
+  try {
+    window.addEventListener('message', (e)=>{
+      try {
+        const d = e && e.data || {};
+        if (d && d.type === 'iframe-start') { showLoading(2, '正在加载编辑器'); }
+        else if (d && d.type === 'iframe-log') { if (typeof appendLoadingLog === 'function') appendLoadingLog(d.text || ''); }
+        else if (d && d.type === 'iframe-ready') { closeLoading(2); }
+      } catch {}
+    });
+  } catch {}
 }
 
 const activityBar = {
@@ -223,13 +233,37 @@ function loadEditor(view, params) {
   try {
     const iframe = document.getElementById('editor-frame');
     if (!iframe) return;
-    let url = `dev/pages/editor/${view}.html`;
-    if (params && typeof params === 'object') {
-      const p = new URLSearchParams();
-      Object.keys(params).forEach(k=>{ if (params[k] !== undefined && params[k] !== null) p.set(k, String(params[k])); });
-      url = `${url}?${p.toString()}`;
-    }
-    iframe.src = url;
+    try { showLoading(2, '正在加载编辑器'); } catch {}
+    try { iframe.style.visibility = 'hidden'; iframe.style.pointerEvents = 'none'; } catch {}
+    const buildUrl = () => {
+      let u = `dev/pages/editor/${view}.html`;
+      if (params && typeof params === 'object') {
+        const p = new URLSearchParams();
+        Object.keys(params).forEach(k=>{ if (params[k] !== undefined && params[k] !== null) p.set(k, String(params[k])); });
+        u = `${u}?${p.toString()}`;
+      }
+      return u;
+    };
+    const setSrc = () => { try { iframe.src = buildUrl(); } catch {} };
+    try { window.__lastEditorView = view; window.__lastEditorParams = params; iframe.onload = function(){ try { iframe.style.visibility = 'visible'; iframe.style.pointerEvents = 'auto'; } catch {} try { closeLoading(2); } catch {} }; } catch {}
+    try {
+      const area = document.getElementsByClassName('editor-area')[0];
+      let done = false;
+      const finish = () => { if (done) return; done = true; setSrc(); };
+      if (area) {
+        const handler = (e) => { try { if (e && e.propertyName && e.propertyName !== 'opacity') return; area.removeEventListener('transitionend', handler); finish(); } catch { finish(); } };
+        area.addEventListener('transitionend', handler, { once: true });
+        try {
+          const cs = getComputedStyle(area);
+          const dur = parseFloat(cs.transitionDuration || '0') * 1000;
+          const delay = parseFloat(cs.transitionDelay || '0') * 1000;
+          const total = Math.max(200, dur + delay);
+          setTimeout(finish, total + 30);
+        } catch { setTimeout(finish, 260); }
+      } else {
+        finish();
+      }
+    } catch { setSrc(); }
   } catch {}
 }
 
@@ -290,5 +324,7 @@ function applyScheduleSubRoute(params) {
 }
 
 // 文本成员路径
+
+try { window.retryEditorLoad = function(){ try { if (window.__lastEditorView) { loadEditor(window.__lastEditorView, window.__lastEditorParams || undefined); } } catch {} }; } catch {}
 
 init();

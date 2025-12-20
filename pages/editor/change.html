@@ -1,5 +1,10 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/pages/editor/bundle-c4611a4c9a08.min.css?time=1764348113199"><link href="/assets/bootstrap-icons.css" rel="stylesheet"><style>html,body{background:#f9f9f9}body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style><script type="module">import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
-    provideFluentDesignSystem().register(allComponents);</script><script src="/pages/editor/bundle-b564e979b8cf.min.js?time=1764348113194" defer=""></script><style>#change-table {
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/bundles/2025-12-20/bundle-cf51ebc6fa40.min.css?time=1766228292865"><link href="/assets/bootstrap-icons.css" rel="stylesheet"><style>html,body{background:transparent}body{padding:0 12px 12px}.pageTitle{margin-left:0;margin-right:0;width:100%}</style><script type="module">import {allComponents, provideFluentDesignSystem, baseLayerLuminance, StandardLuminance} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    provideFluentDesignSystem().register(allComponents);
+    try {
+      const layer = document.body;
+      const isDark = (()=>{ try { return !!(parent && parent.document && parent.document.body && parent.document.body.classList && parent.document.body.classList.contains('darkmode--activated')); } catch { return false } })();
+      baseLayerLuminance.setValueFor(layer, isDark ? StandardLuminance.DarkMode : StandardLuminance.LightMode);
+    } catch {}</script><script src="/bundles/2025-12-20/bundle-ea320ec1660d.min.js?time=1766228292852" defer=""></script><style>#change-table {
         width: 100%;
         border-collapse: collapse;
         margin: 20px 0;

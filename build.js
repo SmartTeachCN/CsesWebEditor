@@ -30,8 +30,16 @@ console.log = (...args) => _log(`[${ts()}]`, ...args);
 console.warn = (...args) => _warn(`[${ts()}]`, ...args);
 console.error = (...args) => _error(`[${ts()}]`, ...args);
 
+function dayStr(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
 const DEV_ROOT = path.join(__dirname, 'dev');
 const OUT_ROOT = path.join(__dirname);
+const BUNDLES_ROOT = path.join(OUT_ROOT, 'bundles');
+const BUNDLE_DAY = dayStr(new Date());
+const BUNDLE_OUT_DIR = path.join(BUNDLES_ROOT, BUNDLE_DAY);
 
 function ensureDir(p) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
@@ -70,16 +78,16 @@ function randName(prefix, ext) {
   const hex = crypto.randomBytes(6).toString('hex');
   return `${prefix}-${hex}.min.${ext}`;
 }
-function publicBundleUrl(relHtmlPath, fileName) {
-  const dirPosix = require('path').posix.dirname(relHtmlPath.replace(/\\/g, '/'));
+function publicBundleUrl(fileName) {
   const base = path.basename(fileName);
-  return '/' + (dirPosix === '.' ? '' : dirPosix + '/') + base;
+  return `/bundles/${BUNDLE_DAY}/${base}`;
 }
 
 async function processHtml(relHtmlPath) {
   const absHtmlPath = path.join(DEV_ROOT, relHtmlPath);
   const outHtmlPath = path.join(OUT_ROOT, relHtmlPath);
   ensureDir(path.dirname(outHtmlPath));
+  ensureDir(BUNDLE_OUT_DIR);
 
   const html = fs.readFileSync(absHtmlPath, 'utf-8');
   const ext = path.extname(relHtmlPath).toLowerCase();
@@ -173,7 +181,7 @@ async function processHtml(relHtmlPath) {
     }
     if (jsParts.length > 0) {
       const concat = jsParts.join('\n;\n');
-      const outDir = path.dirname(outHtmlPath);
+      const outDir = BUNDLE_OUT_DIR;
       ensureDir(outDir);
       const jsName = randName('bundle', 'js');
       const ts = Date.now();
@@ -189,7 +197,7 @@ async function processHtml(relHtmlPath) {
       // replace first included node and remove the rest
       const first = includedScriptNodes[0];
       const deferAttr = needDefer ? ' defer' : '';
-      const jsUrl = publicBundleUrl(relHtmlPath, jsName);
+      const jsUrl = publicBundleUrl(jsName);
       $(first).replaceWith(`<script src="${jsUrl}?time=${ts}"${deferAttr}></script>`);
       for (let i = 1; i < includedScriptNodes.length; i++) $(includedScriptNodes[i]).remove();
     }
@@ -197,7 +205,7 @@ async function processHtml(relHtmlPath) {
 
   // CSS merge & minify
   if (includedCssLinkNodes.length > 0 || includedStyleNodes.length > 0) {
-    const outDir = path.dirname(outHtmlPath);
+    const outDir = BUNDLE_OUT_DIR;
     ensureDir(outDir);
     const cssName = randName('bundle', 'css');
     const ts = Date.now();
@@ -235,7 +243,7 @@ async function processHtml(relHtmlPath) {
       }
       fs.writeFileSync(path.join(outDir, cssName), cssCombined, 'utf-8');
 
-      const cssUrl = publicBundleUrl(relHtmlPath, cssName);
+      const cssUrl = publicBundleUrl(cssName);
       if (includedCssLinkNodes.length > 0) {
         const first = includedCssLinkNodes[0];
         $(first).replaceWith(`<link rel="stylesheet" href="${cssUrl}?time=${ts}">`);

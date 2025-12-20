@@ -9,14 +9,27 @@ var tempData;
 const storage = {
   init() {
     try {
+      console.log('storage.init');
       const saved = localStorage.getItem("csesData");
-      if (saved) currentData = JSON.parse(saved);
+      console.log('storage.init saved exists', !!saved);
+      if (saved) {
+        try {
+          currentData = JSON.parse(saved);
+          console.log('storage.init parsed', { subjects: Array.isArray(currentData.subjects) ? currentData.subjects.length : 0, schedules: Array.isArray(currentData.schedules) ? currentData.schedules.length : 0, timetables: Array.isArray(currentData.timetables) ? currentData.timetables.length : 0 });
+        } catch {
+          currentData = { version: 1, subjects: [], schedules: [], timetables: [] };
+          localStorage.setItem("csesData", JSON.stringify(currentData));
+          console.warn('storage.init parse failed, reset default');
+        }
+      }
       if (currentData.version == undefined) {
         currentData.version = 1;
-        localStorage.setItem("csesData", currentData);
+        localStorage.setItem("csesData", JSON.stringify(currentData));
+        console.log('storage.init set version default');
       }
       // 兼容旧数据结构
       if (!Array.isArray(currentData.timetables)) currentData.timetables = [];
+      console.log('storage.init ready', { subjects: Array.isArray(currentData.subjects) ? currentData.subjects.length : 0, schedules: Array.isArray(currentData.schedules) ? currentData.schedules.length : 0, timetables: Array.isArray(currentData.timetables) ? currentData.timetables.length : 0 });
     } catch (error) {
       console.log(error);
     }
@@ -49,12 +62,11 @@ const storage = {
         yamlEditor.value = JSON.stringify(es_procees(currentData), null, 2);
       }
     }
-    const login = window.hasLogin ?? false;
-    const selectId = login ? "output-mode" : "output-mode2";
-    const select = document.getElementById(selectId);
-    if (select) {
-      select.value = mode;
-    }
+    const selOnline = document.getElementById("output-mode");
+    const selOffline = document.getElementById("output-mode2");
+    if (selOnline) selOnline.value = mode;
+    if (selOffline) selOffline.value = mode;
+    try { console.log('initEnv set mode', mode, { online: !!selOnline, offline: !!selOffline }); } catch {}
   },
   outputSet() {
     const login = window.hasLogin ?? false;
@@ -139,6 +151,8 @@ const storage = {
     }
   },
 };
+
+try { window.storage = storage; } catch {}
 
 const tool = {
   isJson(text) {
@@ -422,4 +436,9 @@ try {
   window.__unsynced = window.__unsynced || false;
   window.markUnsynced = function(){ try { window.__unsynced = true; } catch {} };
   document.addEventListener('input', function(e){ try { if (!isSkipUnsaved(e.target)) { window.__unsaved = true; window.__unsynced = true; } } catch {} });
+  if (typeof window.checkDeviceType !== 'function') {
+    window.checkDeviceType = function(){
+      try { return false; } catch { return false }
+    };
+  }
 } catch {}

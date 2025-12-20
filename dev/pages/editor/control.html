@@ -5,10 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/dev/style.css" />
   <link href="/assets/bootstrap-icons.css" rel="stylesheet" type="text/css" />
-  <style>body{padding:12px}.pageTitle{margin-left:-12px;margin-right:-12px}</style>
+  <style>html,body{background:transparent}body{padding:0 12px 12px}.pageTitle{margin-left:0;margin-right:0;width:100%}</style>
   <script type="module">
-    import {allComponents, provideFluentDesignSystem} from 'https://npm.elemecdn.com/@fluentui/web-components';
+    import {allComponents, provideFluentDesignSystem, baseLayerLuminance, StandardLuminance} from 'https://npm.elemecdn.com/@fluentui/web-components';
     provideFluentDesignSystem().register(allComponents);
+    try {
+      const layer = document.body;
+      const isDark = (()=>{ try { return !!(parent && parent.document && parent.document.body && parent.document.body.classList && parent.document.body.classList.contains('darkmode--activated')); } catch { return false } })();
+      baseLayerLuminance.setValueFor(layer, isDark ? StandardLuminance.DarkMode : StandardLuminance.LightMode);
+    } catch {}
+  </script>
+  <script>
+    try { if (parent) parent.postMessage({ type: 'iframe-start' }, '*'); } catch {}
+    (function(){
+      try {
+        var _ol = console.log; var _oe = console.error;
+        console.log = function(){ try { var msg = Array.prototype.slice.call(arguments).join(' '); if (parent) parent.postMessage({ type: 'iframe-log', text: msg }, '*'); } catch {} try { _ol.apply(console, arguments); } catch {} };
+        console.error = function(){ try { var msg = Array.prototype.slice.call(arguments).join(' '); if (parent) parent.postMessage({ type: 'iframe-log', text: msg }, '*'); } catch {} try { _oe.apply(console, arguments); } catch {} };
+      } catch {}
+    })();
   </script>
   <script src="/dev/scripts/storage.js" defer></script>
   <script src="/dev/scripts/control.js" defer></script>
@@ -21,6 +36,7 @@
   <script>
     try { storage.init(); storage.initEnv(); } catch {}
     try { controlMgr.init(); } catch {}
+    try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
   </script>
 </body>
 </html>

@@ -68,20 +68,21 @@ body {
   border-bottom: rgba(220, 220, 220, 0.5) solid 1px;
   padding: 8px 10px 10px 10px;
   margin-bottom: 5px;
+  width: 100%;
 }
 
 .pageTitle_main {
   margin-top: -11px;
-  width: calc(100vw - 328px);
-  margin-left: -12px;
+  width: 100%;
+  margin-left: 0;
   margin-bottom: 10px;
 }
 
 .pageTitle_main2 {
   margin-top: -11px;
-  margin-left: -12px;
+  margin-left: 0;
   margin-bottom: 10px;
-  width: calc(100vw - 80px);
+  width: 100%;
 }
 
 /* 主容器 */
@@ -193,7 +194,7 @@ body {
 /* 编辑区域 */
 .editor-area {
   flex: 1;
-  padding: 4px 0 0 0;
+  padding: 0;
   overflow-y: auto;
   background: rgb(249, 249, 249);
   border: 1px solid var(--border-color);
@@ -505,16 +506,16 @@ fluent-dialog {
 
   .pageTitle {
     margin-top: -11px;
-    width: calc(100vw - 25px);
-    margin-left: -12px;
+    width: 100%;
+    margin-left: 0;
   }
 
   .pageTitle_main {
-    width: calc(100vw - 30px);
+    width: 100%;
   }
 
   .pageTitle_main2 {
-    width: calc(100vw - 14px);
+    width: 100%;
   }
 
   .settings-card {

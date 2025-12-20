@@ -299,6 +299,14 @@ const schedule = {
       };
     });
 
+    const hasMatch = dailyClasses.some(dc => dc.scheduleIndex !== -1);
+    if (!hasMatch) {
+      const tip = document.createElement('div');
+      tip.style.cssText = 'padding:8px;color:#666';
+      tip.textContent = '当前周型下未找到匹配的课程表';
+      viewtable.appendChild(tip);
+    }
+
     const maxClassesPerDay = Math.max(...dailyClasses.map(day => day.classes.length));
 
     const subjectSelector = document.createElement('div');
@@ -325,7 +333,8 @@ const schedule = {
         const dayData = dailyClasses[dayIndex];
         const classData = dayData.classes[classIndex];
 
-        td.textContent = classData ? classData.subject : '';
+        td.textContent = classData ? classData.subject : (dayData.scheduleIndex === -1 ? '无匹配' : '');
+        if (dayData.scheduleIndex === -1) { td.style.color = '#999'; }
 
         td.addEventListener('click', (e) => {
           e.target.style.backgroundColor = '#f0f0f0';

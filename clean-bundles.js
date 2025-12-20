@@ -25,7 +25,12 @@ const patterns = [
   'pages/**/bundle-*.min.js',
   'pages/**/bundle-*.min.js.map',
   'pages/**/bundle-*.min.css',
-  'pages/**/bundle-*.min.css.map'
+  'pages/**/bundle-*.min.css.map',
+  // 统一 bundles 目录下的 bundle
+  'bundles/**/bundle-*.min.js',
+  'bundles/**/bundle-*.min.js.map',
+  'bundles/**/bundle-*.min.css',
+  'bundles/**/bundle-*.min.css.map'
 ];
 
 let removed = 0;

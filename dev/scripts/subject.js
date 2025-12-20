@@ -21,6 +21,13 @@ const subjects = {
   ],
   init(currentIndex) {
     const container = document.getElementById("subject-list");
+    if (!container) {
+      if (currentData.subjects.length === 0) {
+        currentData.subjects = this.defaultCourses;
+        storage.save();
+      }
+      return;
+    }
     if (currentData.subjects.length === 0) {
       currentData.subjects = this.defaultCourses;
       storage.save();
@@ -142,4 +149,5 @@ const subjects = {
       }
     });
   }
-}
+} 
+try { window.subjects = subjects; } catch {}
