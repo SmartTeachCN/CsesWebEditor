@@ -9,6 +9,8 @@ class tool
   /**
    * 输出 JSON 并结束请求。
    * 统一设置响应头，避免各分支漏设导致的乱码/类型错误。
+   * 数据里若混入非 UTF-8 字节（历史实例名/用户名可能是 GBK），json_encode 会返回
+   * false 并输出空响应，这里退化为「逐字段清洗后再编码」，保证客户端始终能拿到 JSON。
    */
   public static function json($data, $status = 200)
   {
@@ -18,8 +20,44 @@ class tool
         http_response_code($status);
       }
     }
-    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $body = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($body === false) {
+      $body = json_encode(self::utf8Safe($data), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    if ($body === false) {
+      http_response_code(500);
+      $body = '{"success":false,"error":"响应序列化失败"}';
+    }
+    echo $body;
     exit;
+  }
+
+  /** 递归把任意值清洗成可 json_encode 的 UTF-8 结构 */
+  private static function utf8Safe($value, $depth = 0)
+  {
+    if ($depth > 16) return null;
+    if (is_array($value)) {
+      $out = [];
+      foreach ($value as $k => $v) {
+        $out[self::utf8Safe($k, $depth + 1)] = self::utf8Safe($v, $depth + 1);
+      }
+      return $out;
+    }
+    if (is_object($value)) {
+      return self::utf8Safe(get_object_vars($value), $depth + 1);
+    }
+    if (is_string($value)) {
+      if ($value === '' || preg_match('//u', $value)) return $value;
+      if (function_exists('mb_convert_encoding')) {
+        return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+      }
+      if (function_exists('iconv')) {
+        $converted = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+        if ($converted !== false) return $converted;
+      }
+      return preg_replace('/[\x80-\xFF]/', '?', $value);
+    }
+    return $value;
   }
 
   /**

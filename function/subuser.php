@@ -146,7 +146,7 @@ class subuser
       'username' => $username,
       'secretHash' => isset($u['secretHash']) ? (string)$u['secretHash'] : '',
       'secretPlain' => isset($u['secretPlain']) ? (string)$u['secretPlain'] : '',
-      'allowed' => subuser::validTerminalId($terminalId) ? [$terminalId] : ['*'],
+      'allowed' => tool::validTerminalId($terminalId) ? [$terminalId] : ['*'],
       'createdAt' => isset($u['createdAt']) ? (int)$u['createdAt'] : 0,
     ];
     return $list;
