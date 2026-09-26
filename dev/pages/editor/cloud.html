@@ -20,6 +20,7 @@
       } catch {}
     })();
   </script>
+  <script src="/assets/js-yaml.min.js"></script>
   <script src="/dev/scripts/cses.js" defer></script>
   <script src="/dev/scripts/storage.js" defer></script>
   <script type="module">
@@ -91,8 +92,8 @@
   </div>
 </div>
 
-<h4>子用户</h4>
-<div class="settings-card" data-skip-unsaved>
+<h4 id="owner-subuser-heading">子用户</h4>
+<div class="settings-card" data-skip-unsaved id="owner-subuser-card">
   <i class="bi bi-people"></i>
   <div class="left-section">
     <div class="title">实例组子用户</div>
@@ -153,6 +154,17 @@
       document.querySelectorAll('.directoryId').forEach(function (el) { el.textContent = did; });
       document.querySelectorAll('.configId').forEach(function (el) { el.textContent = tid; });
     } catch {}
+    // 子用户面板复用本页作为「实例」区块（?subuser=1）：隐藏主人专属的子用户管理入口
+    try {
+      var isSubuser = false;
+      try { isSubuser = new URLSearchParams(location.search).get('subuser') === '1'; } catch (e) {}
+      if (isSubuser) {
+        var card = document.getElementById('owner-subuser-card');
+        if (card) card.style.display = 'none';
+        var heading = document.getElementById('owner-subuser-heading');
+        if (heading) heading.style.display = 'none';
+      }
+    } catch (e) {}
   });
 </script>
 </body>

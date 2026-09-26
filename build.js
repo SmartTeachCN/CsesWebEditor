@@ -277,7 +277,9 @@ async function main() {
     process.exit(1);
   }
   const files = glob.sync('**/*.{html,php}', { cwd: DEV_ROOT, nodir: true });
-  const esFiltered = files.filter(f => !f.startsWith('es/'));
+  // 跳过 es/（独立子项目）与以 __ 开头的临时调试页面（如截图辅助页），
+  // 它们只配合 dev server 使用，不参与打包，且内容往往是裸 PHP。
+  const esFiltered = files.filter(f => !f.startsWith('es/') && !/^__/.test(f.replace(/^.*[\\/]/, '')));
   console.log(`Found ${esFiltered.length} HTML files in dev`);
   for (const rel of esFiltered) {
     console.log('Building', rel);

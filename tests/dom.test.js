@@ -37,9 +37,9 @@ function buildDom(pageRelPath) {
 
 const SCRIPTS = ['cses.js', 'storage.js', 'schedule.js'];
 
-function makeRunner(dom) {
+function makeRunner(dom, scriptList) {
   const ctx = dom.getInternalVMContext();
-  for (const f of SCRIPTS) {
+  for (const f of (scriptList || SCRIPTS)) {
     const code = fs.readFileSync(path.join(ROOT, 'dev', 'scripts', f), 'utf8');
     vm.runInContext(code, ctx, { filename: f });
   }
@@ -204,5 +204,85 @@ check('时间表模板导出 JSON 时间为 HH:MM:SS', () => {
   assert.strictEqual(obj.times[1].starttime, '08:55:00');
   assert.strictEqual(obj.times[1].endtime, '09:40:00');
 });
+
+/* ---------------- 实例启动向导（cloud.html，运行在 iframe 中） ---------------- */
+console.log('实例启动向导');
+{
+  // 编辑器页面运行在 iframe 里，主页面才加载了 ui.js（showModal / alert / confirm）
+  const alertCalls = [];
+  const wizardDom = buildDom('dev/pages/editor/cloud.html');
+  wizardDom.window.alert = (msg) => { alertCalls.push(String(msg)); };
+  const wizard = makeRunner(wizardDom, ['cses.js', 'storage.js']);
+  const runW = wizard.run;
+
+  runW(`storage.init();
+        localStorage.setItem('output-mode', 'ci');
+        localStorage.setItem('directoryId', 'abc1234567');
+        localStorage.setItem('currentTerminalId', '实验班');`);
+
+  check('编辑器 iframe 内确实没有 showModal（复现前提）', () => {
+    assert.strictEqual(runW('typeof showModal'), 'undefined');
+  });
+
+  check('没有主页面可用时向导不再抛 showModal is not defined', () => {
+    alertCalls.length = 0;
+    runW('storage.preview();');
+    assert.strictEqual(alertCalls.length, 1);            // 退化为提示，而不是异常
+    assert.match(alertCalls[0], /ClassIsland/);
+  });
+
+  check('向导会交给主页面弹出模态框', () => {
+    const parentDom = new JSDOM('<!DOCTYPE html><html><body></body></html>', { runScripts: 'outside-only' });
+    let captured = null;
+    Object.defineProperty(wizardDom.window, 'parent', {
+      configurable: true,
+      value: {
+        document: parentDom.window.document,
+        showModal: (content) => {
+          captured = content;
+          const holder = parentDom.window.document.createElement('div');
+          holder.innerHTML = content;
+          parentDom.window.document.body.appendChild(holder);
+        },
+      },
+    });
+    const origSetTimeout = wizardDom.window.setTimeout;
+    wizardDom.window.setTimeout = (fn) => { fn(); return 0; };  // 立即执行，便于同步断言
+    try {
+      runW('storage.preview();');
+    } finally {
+      wizardDom.window.setTimeout = origSetTimeout;
+    }
+    assert.ok(captured, '主页面未收到模态框内容');
+    assert.match(captured, /在ClassIsland使用静态配置/);
+    // 按钮在父页面里，必须从父页面查找并绑定，否则「下载清单文件」是死的
+    const btn = parentDom.window.document.getElementById('download-manifest-btn');
+    assert.ok(btn, '父页面里没有下载按钮');
+    assert.strictEqual(typeof btn.onclick, 'function');
+
+    // 点击后应当生成含正确清单地址的清单文件
+    runW(`window.__blobText = null; window.__anchorClicked = false;
+          window.Blob = function (parts) { window.__blobText = parts.join(''); };
+          try { window.URL.createObjectURL = function () { return 'blob:test'; }; } catch (e) {}
+          try { window.URL.revokeObjectURL = function () {}; } catch (e) {}
+          var origCreate = document.createElement.bind(document);
+          document.createElement = function (tag) {
+            var el = origCreate(tag);
+            if (String(tag).toLowerCase() === 'a') { el.click = function () { window.__anchorClicked = true; }; }
+            return el;
+          };`);
+    btn.onclick();
+    assert.strictEqual(runW('window.__anchorClicked'), true);
+    assert.match(runW('window.__blobText'), /classisland\/manifest\.php\?id=abc1234567/);
+    assert.match(runW('window.__blobText'), /"ManagementServerKind": 0/);
+  });
+
+  check('编辑器页面都带上了 initEnv / 向导需要的 js-yaml', () => {
+    for (const page of ['cloud', 'control', 'change', 'subject', 'schedule', 'time', 'source']) {
+      const html = fs.readFileSync(path.join(ROOT, 'dev', 'pages', 'editor', page + '.html'), 'utf8');
+      assert.ok(/js-yaml/.test(html), `${page}.html 缺少 js-yaml`);
+    }
+  });
+}
 
 console.log('\n通过 ' + passed + ' 项检查' + (process.exitCode ? '（存在失败）' : ''));

@@ -53,6 +53,37 @@ function normalizeOutputMode(raw, fallbackVersion) {
 }
 
 /*
+ * 显示模态框。
+ *
+ * 编辑器页面（pages/editor/*.html）都运行在 iframe 里，而模态框组件（dev/scripts/ui.js 的
+ * showModal）只随主页面（include.html）加载，在 iframe 里直接调用会抛
+ * `ReferenceError: showModal is not defined`。因此这里优先把模态框交给上层页面弹出
+ * （与 cloud.html 里 openSubPanel 的做法一致），只有独立打开编辑器页面时才退回本地实现。
+ *
+ * 返回实际承载模态框的 document：模态框在父页面时，按钮需要从父页面里查找。
+ */
+function showStorageModal(content) {
+  const frames = [];
+  try { if (window.parent && window.parent !== window) frames.push(window.parent); } catch (e) {}
+  try { if (window.top && window.top !== window) frames.push(window.top); } catch (e) {}
+  for (let i = 0; i < frames.length; i++) {
+    try {
+      if (typeof frames[i].showModal === 'function') {
+        frames[i].showModal(content);
+        return frames[i].document;
+      }
+    } catch (e) { /* 跨域访问被拒绝时继续回退 */ }
+  }
+  if (typeof showModal === 'function') {
+    showModal(content);
+    return document;
+  }
+  // 最后的兜底：至少要能看到向导内容，而不是抛 ReferenceError
+  alert(String(content).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim());
+  return document;
+}
+
+/*
  * 给 fluent 自定义元素赋值。
  *
  * 这些组件来自 CDN，升级（upgrade）时机晚于内联脚本；在升级前直接 `el.value = x`
@@ -395,7 +426,7 @@ const storage = {
     const directoryId = localStorage.getItem("directoryId") || '';
     if (mode === "cy1" || mode === "cy2") {
       const version = csesModeVersion(mode);
-      showModal(`<h2>CSES v${version} 配置（YAML）</h2>
+      const modalDoc = showStorageModal(`<h2>CSES v${version} 配置（YAML）</h2>
         <li>通用 CSES 文件以 <b>YAML</b> 格式导出 / 导入，可在「文件预览 → 导出预览」查看内容</li>
         <li>点击顶部「导出文件」即可下载 <code>cses-v${version}.yaml</code></li>
         <li>保存到云后由服务端按需转换为 ClassIsland（<code>classisland/manifest.php</code>）与 ExamSchedule（<code>es/link.php</code>）结构</li>
@@ -403,14 +434,14 @@ const storage = {
         <fluent-button id="download-cses-btn"><i class="bi bi-download" style="font-size: 12px;margin: 0;margin-right: 5px;"></i>下载 YAML 文件</fluent-button>
         `);
       setTimeout(() => {
-        const btn = document.getElementById("download-cses-btn");
+        const btn = modalDoc.getElementById("download-cses-btn");
         if (btn) btn.onclick = () => { try { file.exportL(); } catch (e) { alert('导出失败：' + (e && e.message ? e.message : e)); } };
       }, 0);
       return;
     }
     if (mode == "es") {
       const url = `https://cloud.smart-teach.cn/es/link.php?id=${directoryId}/${terminalId}`;
-      showModal(`<h2>在云端ExamSchedule使用您的配置</h2>
+      showStorageModal(`<h2>在云端ExamSchedule使用您的配置</h2>
         <li>复制链接，通过集控/手动在设备上打开链接即可</li><li>编辑配置后，无需重新复制链接，原链接为最新档案</li>
         ${url}<br>
         <fluent-button onclick="navigator.clipboard.writeText('${url}')">复制</fluent-button>&nbsp;<fluent-button onclick="window.open('${url}')"><i class="bi bi-play-circle" style="font-size: 12px;margin: 0;margin-right: 5px;"></i>打开链接</fluent-button>
@@ -418,13 +449,13 @@ const storage = {
     } else if (mode == "ci") {
       const ciDirectoryId = directoryId || (document.querySelectorAll(".directoryId")[0]?.textContent || '').trim();
       const manifestUrl = `${location.origin}/classisland/manifest.php?id=${encodeURIComponent(ciDirectoryId)}`;
-      showModal(`<h2>在ClassIsland使用静态配置</h2>
+      const modalDoc = showStorageModal(`<h2>在ClassIsland使用静态配置</h2>
         <li>请先「保存到云」，否则云端还没有实例数据</li><li>下载清单文件，保存到您可以访问的位置</li><li>打开ClassIsland设置页面，右上角菜单点击“加入管理”</li><li>点击“配置文件”左侧的文件夹图标</li><li>选择您刚刚下载的清单文件，点击“打开”</li><li>在“ID”处输入您在CSES Cloud创建的实例名称（必填，无需带上实例组标识）</li><li>之后在 CSES Cloud 修改配置后，可在 ClassIsland「集控」设置页点击「立即同步」</li>
         <fluent-button id="download-manifest-btn"><i class="bi bi-download" style="font-size: 12px;margin: 0;margin-right: 5px;"></i>下载清单文件</fluent-button>
         `);
 
       setTimeout(() => {
-        const btn = document.getElementById("download-manifest-btn");
+        const btn = modalDoc.getElementById("download-manifest-btn");
         if (btn) {
           btn.onclick = function () {
             const data = {
