@@ -1,8 +1,9 @@
 <?php
 // PYLXU 5/17
-// 注意：这里必须是单个 PHP 块。旧写法 `<?php ... ?>\n<?php include(...)` 会在两个块之间
-// 输出一个换行，导致 function.php 内的 setcookie()/header() 报「headers already sent」，
-// 进而让 OAuth 回调与登出失效。
+// 注意：这里必须是单个 PHP 块。旧写法把开启标签与 include 拆成两个 PHP 段，
+// 两段之间会输出一个换行，导致 function.php 内的 setcookie()/header()
+// 报「headers already sent」，进而让 OAuth 回调与登出失效。
+// 另：本注释内不可出现 PHP 结束标签，否则会提前结束 PHP 段并触发语法错误。
 include('function.php');
 ?>
 <!DOCTYPE html>
