@@ -165,6 +165,12 @@ const activityBar = {
         }
       } catch {}
     }
+    // 格式检查器（右侧下栏）只在与档案相关的视图中显示
+    try {
+      if (typeof formatChecker !== 'undefined' && formatChecker.show) {
+        formatChecker.show(view === 'schedule' || view === 'source' || view === 'cloud');
+      }
+    } catch (e) { console.warn('formatChecker.show failed', e); }
     if (push) {
       const p = new URLSearchParams(window.location.search);
       p.set('view', view);
@@ -202,6 +208,13 @@ const activityBar = {
           p.delete('timetable');
           // 保留 week
           if (!sch) p.set('schedule', '0');
+        } else if (sub === 'doc') {
+          // CSES 文档设置不需要其它参数
+          p.delete('subject');
+          p.delete('subjectName');
+          p.delete('schedule');
+          p.delete('timetable');
+          p.delete('week');
         } else {
           // 未声明 sub 时，按最小集归一
           const name = p.get('subjectName');
@@ -308,6 +321,10 @@ function applyScheduleSubRoute(params) {
   }
   if (sub === 'timetable') {
     if (tName) { schedule.showTimeEditor(tName, false); try { const tabs = document.getElementById('explorerB'); if (tabs) tabs.setAttribute('activeid', 'timeB'); } catch {} }
+    return;
+  }
+  if (sub === 'doc') {
+    try { setEditorSrc('doc', { sub: 'doc' }); } catch {}
     return;
   }
   if (sub === 'table') {

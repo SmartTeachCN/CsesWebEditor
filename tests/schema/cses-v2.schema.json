@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+
+  "definitions": {
+    "class": {
+      "title": "课程安排",
+      "description": "由课程名、开始时间、结束时间组成的课程安排对象。",
+      "type": "object",
+      "properties": {
+        "subject": {
+          "title": "课程名称",
+          "type": "string",
+          "description": "subjects 中任一 subject 的 name 字段。",
+          "examples": ["数学", "语文"]
+        },
+        "start_time": {
+          "title": "开始时间",
+          "description": "课程开始时间，格式为 HH:MM:SS。",
+          "type": "string",
+          "pattern": "([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)",
+          "examples": ["08:00:00", "13:30:00"]
+        },
+        "end_time": {
+          "title": "结束时间",
+          "description": "课程结束时间，格式为 HH:MM:SS。",
+          "type": "string",
+          "pattern": "([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)",
+          "examples": ["08:40:00", "14:10:00"]
+        }
+      },
+      "required": ["subject", "start_time", "end_time"]
+    },
+
+    "schedule": {
+      "title": "课程表",
+      "description": "CSES 日课程表",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "名称",
+          "type": "string",
+          "description": "课程表的名称",
+          "examples": ["周一课表"]
+        },
+        "enable_day": {
+          "title": "启用日",
+          "description": "课程表启用的日期，1 代表周期里的第一个工作日，2 代表周期里的第二个工作日，以此类推。",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "classes": {
+          "title": "课程",
+          "description": "该课程在课程表内的时间安排。",
+          "type": "array",
+          "items": { "$ref": "#/definitions/class" }
+        }
+      },
+      "required": ["name", "enable_day", "classes"]
+    },
+
+    "subject": {
+      "title": "课程",
+      "description": "一个课程对象，包含课程基本信息。",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "名称",
+          "type": "string",
+          "description": "课程的名称。",
+          "examples": ["数学", "语文"]
+        },
+        "simplified_name": {
+          "title": "简化名称",
+          "type": "string",
+          "description": "课程的简化名称，适合中文科目名，ClassIsland 等紧凑课程表软件一般需要。",
+          "examples": ["数", "语文"]
+        },
+        "location": {
+          "title": "地点",
+          "type": "string",
+          "description": "课程的地点。",
+          "examples": ["A101", "B202"]
+        },
+        "teacher": {
+          "title": "教师",
+          "type": "string",
+          "description": "课程的教师。",
+          "examples": ["张三", "李四"]
+        }
+      },
+      "required": ["name"]
+    },
+
+    "span": {
+      "title": "时间跨度",
+      "description": "一个时间跨度，包含活动类型和持续时间。",
+      "type": "object",
+      "properties": {
+        "activity": {
+          "type": "string",
+          "enum": ["work", "rest"]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": ["activity", "count"]
+    },
+
+    "cycle": {
+      "title": "周期",
+      "description": "执行本配置文件的时间周期，内含工作日和休息日的总时间，以及具体的分配方式。",
+      "type": "object",
+      "properties": {
+        "work_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "rest_count": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "spans": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/span"
+          }
+        }
+      },
+      "required": ["work_count", "rest_count", "spans"]
+    }
+  },
+
+  "properties": {
+    "version": {
+      "title": "版本",
+      "description": "配置文件的 CSES 标准版本号，当前为 2。",
+      "type": "integer",
+      "const": 2
+    },
+
+    "configuration": {
+      "title": "配置",
+      "description": "CSES 配置。",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "名称",
+          "type": "string",
+          "description": "配置的名称。",
+          "examples": ["2026年下学期"]
+        },
+
+        "description": {
+          "title": "描述",
+          "type": "string",
+          "description": "配置的描述。",
+          "examples": ["2026年下学期的课程表"]
+        },
+
+        "cycle": {
+          "title": "周期",
+          "description": "执行本 CSES 文档的周期，包含工作日和休息日的总时间，以及具体的分配方式。",
+          "type": "object",
+          "$ref": "#/definitions/cycle"
+        }
+      },
+      "required": ["name", "description", "cycle"]
+    },
+
+    "subjects": {
+      "title": "课程列表",
+      "description": "罗列出了可能包含在课程表内的所有课程。",
+      "type": "array",
+      "items": { "$ref": "#/definitions/subject" }
+    },
+
+    "schedules": {
+      "title": "日课程表列表",
+      "description": "包含所有日课程表，内含名称、启用日、课程安排等。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "$ref": "#/definitions/schedule"
+      }
+    }
+  },
+  "required": ["version", "configuration", "subjects", "schedules"]
+}

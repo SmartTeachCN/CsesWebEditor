@@ -16,11 +16,11 @@ session_start();
 
 $configFile = __DIR__ . '/user/users.php';
 if (isset($_GET['login'])) {
-  if ($ALLOWINUSER)
+  if (!empty($ALLOWINUSER))
     include_once 'function/user/login.php';
   exit;
 } else if (isset($_GET['regist'])) {
-  if ($ALLOWREG)
+  if (!empty($ALLOWREG))
     include_once 'function/user/regist.php';
   exit;
 } else {
@@ -33,9 +33,16 @@ if (isset($_GET['login'])) {
   }
 
   // 用户信息
-  if ($ALLOWOAUTH || $debugMode) {
-    $debugMode ? $userData = user::debug() : $userData = user::getUserInfo();
-    user::setSession($userData);
+  // 只在「还没有会话」时解析身份，避免每个 AJAX 请求都去请求一次 OAuth userinfo。
+  if (empty($_SESSION['user']['id'])) {
+    if ($debugMode) {
+      user::setSession(user::debug());
+    } elseif (!empty($ALLOWOAUTH) && !empty($_COOKIE['accessToken'])) {
+      $userData = user::getUserInfo();
+      if (is_array($userData) && !empty($userData['sub'])) {
+        user::setSession($userData);
+      }
+    }
   }
 
 }

@@ -11,13 +11,16 @@
     "clean": "node clean-bundles.js",
     "build": "node build.js",
     "prebuild": "npm run clean",
+    "test": "node tests/cses.test.js && node tests/integration.test.js && node tests/format.test.js && node tests/schema.test.js && node tests/dom.test.js",
     "dev": "node dev-server.js"
   },
   "devDependencies": {
+    "ajv": "^8.20.0",
     "cheerio": "^1.1.2",
     "clean-css": "^5.3.3",
     "glob": "^11.0.3",
     "html-minifier-terser": "^7.2.0",
+    "jsdom": "^29.1.1",
     "terser": "^5.44.0"
   }
 }

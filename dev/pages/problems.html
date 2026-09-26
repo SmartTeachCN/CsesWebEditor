@@ -1,0 +1,18 @@
+<!-- 格式检查器：右侧编辑区下栏（由 dev/scripts/checker.js 驱动） -->
+<div id="format-checker" class="format-checker collapsed" data-skip-unsaved>
+  <div class="format-checker-bar" onclick="formatChecker.toggle()">
+    <i id="format-checker-icon" class="bi bi-clipboard-check"></i>
+    <span id="format-checker-title" class="format-checker-title">格式检查</span>
+    <span id="format-checker-summary" class="format-checker-summary">正在检查…</span>
+    <span class="format-checker-spacer"></span>
+    <button type="button" class="format-checker-btn" id="format-checker-refresh" title="重新检查">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+    <button type="button" class="format-checker-btn" id="format-checker-chevron" title="展开 / 收起">
+      <i class="bi bi-chevron-up"></i>
+    </button>
+  </div>
+  <div class="format-checker-body">
+    <div id="format-checker-list" class="format-checker-list"></div>
+  </div>
+</div>

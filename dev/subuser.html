@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+  <title>子用户面板</title>
+  <style>
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px; color: #333; }
+    .card { max-width: 640px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; padding: 18px; }
+    code { background: #f4f4f4; padding: 1px 5px; border-radius: 4px; }
+    a { color: #0078d4; }
+  </style>
+  <script>
+    // 旧地址 /subuser.html 已升级为 /subuser.php（复用主面板的配置 / 档案 / 文件区块）。
+    // 跳转时只保留实例组标识与实例ID，主动丢弃旧链接里可能存在的 key / user 等敏感查询参数。
+    (function () {
+      var dir = '', tid = '';
+      try {
+        var src = new URLSearchParams(location.search);
+        dir = src.get('dir') || src.get('directoryId') || '';
+        tid = src.get('tid') || src.get('terminalId') || '';
+      } catch (e) { }
+      var out = new URLSearchParams();
+      if (dir) out.set('dir', dir);
+      if (tid) out.set('tid', tid);
+      var target = 'subuser.php' + (out.toString() ? '?' + out.toString() : '');
+
+      function fail() {
+        document.getElementById('msg').innerHTML =
+          '子用户面板 <code>subuser.php</code> 还不存在。<br>' +
+          '它由 <code>dev/subuser.php</code> 构建而来，请先在项目根目录执行 <code>npm run build</code>（或运行 <code>npm run dev</code> 让构建自动进行）。';
+        document.getElementById('link').style.display = 'none';
+      }
+
+      function go() { location.replace(target); }
+
+      try {
+        // 先确认目标页面存在，避免构建未执行时直接 404
+        fetch('subuser.php', { method: 'HEAD' }).then(function (r) {
+          if (r && r.ok) go(); else fail();
+        }).catch(fail);
+      } catch (e) { go(); }
+    })();
+  </script>
+</head>
+
+<body>
+  <div class="card">
+    <h3>子用户面板已迁移</h3>
+    <p id="msg">正在跳转到 <a id="link" href="subuser.php">/subuser.php</a> …</p>
+  </div>
+</body>
+
+</html>

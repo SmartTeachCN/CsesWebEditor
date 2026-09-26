@@ -26,6 +26,7 @@
     })();
   </script>
   <script src="/assets/js-yaml.min.js"></script>
+  <script src="/dev/scripts/cses.js" defer></script>
   <script src="/dev/scripts/storage.js" defer></script>
   <script src="/dev/scripts/schedule.js" defer></script>
   <script src="/dev/scripts/subject.js" defer></script>
@@ -63,6 +64,16 @@
       <fluent-option value="even">双周</fluent-option>
       <fluent-option value="all">通用</fluent-option>
     </fluent-select>
+  </div>
+</div>
+<div class="settings-card" id="card-schedule-days" style="display:none">
+  <i class="bi bi-calendar-week"></i>
+  <div class="left-section">
+    <div class="title">启用日（CSES v2）</div>
+    <div class="description">v2 支持一张课表在多个工作日生效，点击切换</div>
+  </div>
+  <div class="right-section">
+    <div class="day-chip-group" id="day-mode-multi"></div>
   </div>
 </div>
 <div class="settings-card" id="card-schedule2">
@@ -103,8 +114,8 @@
         style="width: 150px"></fluent-select>
       <fluent-button id="toggle-time-editor" onclick="schedule.toggleTimeEditor()">显示课时编辑器</fluent-button>
       <fluent-button id="del-class-btn" onclick="schedule.delClass()">删除当前</fluent-button>
-      <input type="time" class="time-input" onchange="schedule.setTime(currentClassIndex)" />
-      <input type="time" class="time-input" onchange="schedule.setTime(currentClassIndex)" />
+      <input type="time" class="time-input" step="1" title="开始时间 (HH:MM:SS)" onchange="schedule.setTime(currentClassIndex)" />
+      <input type="time" class="time-input" step="1" title="结束时间 (HH:MM:SS)" onchange="schedule.setTime(currentClassIndex)" />
     </div>
   </div>
 

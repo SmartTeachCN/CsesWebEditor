@@ -1,0 +1,38 @@
+<!-- 子用户面板专用引入：与主面板 pages/include.html 保持一致，
+     但去掉 main.js / cloud.js（它们是登录用户专用的终端管理逻辑），
+     并额外引入 subuser_panel.js 作为本面板的数据来源。 -->
+<link href="assets/bootstrap-icons.css" type="text/css" rel="stylesheet" />
+<script src="scripts/jquery.js"></script>
+<script src="assets/js-yaml.min.js"></script>
+<script type="module">
+  import { StandardLuminance, baseLayerLuminance, allComponents, provideFluentDesignSystem } from "https://npm.elemecdn.com/@fluentui/web-components";
+  provideFluentDesignSystem().register(allComponents);
+  const layer = document.querySelector("body");
+  document.addEventListener("DOMContentLoaded", function () {
+    const hasDark = typeof window.Darkmode !== 'undefined';
+    const darkmode = hasDark ? new window.Darkmode({ saveInCookies: true, autoMatchOsTheme: true }) : null;
+    const initDark = !!(darkmode && darkmode.isActivated());
+    baseLayerLuminance.setValueFor(layer, initDark ? StandardLuminance.DarkMode : StandardLuminance.LightMode);
+    try { document.body.setAttribute('data-theme', initDark ? 'dark' : 'light'); localStorage.setItem('colorMode', initDark ? 'dark' : 'light'); } catch {}
+    window.toggleColorMode = function () {
+      if (!darkmode) return;
+      darkmode.toggle();
+      const isDark = !!darkmode.isActivated();
+      baseLayerLuminance.setValueFor(layer, isDark ? StandardLuminance.DarkMode : StandardLuminance.LightMode);
+      try { document.body.setAttribute('data-theme', isDark ? 'dark' : 'light'); localStorage.setItem('colorMode', isDark ? 'dark' : 'light'); } catch {}
+    };
+  });
+</script>
+<link rel="stylesheet" href="style.css?ver=251019" />
+<script src="scripts/device.js?ver=251019" defer></script>
+<script src="scripts/ui.js?ver=251019" defer></script>
+<script src="scripts/cses.js?ver=260101" defer></script>
+<script src="scripts/storage.js?ver=2510191" defer></script>
+<script src="scripts/schedule.js?ver=251020" defer></script>
+<script src="scripts/subject.js?ver=251019" defer></script>
+<script src="scripts/classisland.js?ver=2510191" defer></script>
+<script src="scripts/app-es.js?ver=2510191" defer></script>
+<script src="scripts/loading.js?ver=251019" defer></script>
+<script src="scripts/subuser_panel.js?ver=251201" defer></script>
+<script src="scripts/checker.js?ver=260101" defer></script>
+<script src="scripts/darkmode.js?ver=251019" defer></script>

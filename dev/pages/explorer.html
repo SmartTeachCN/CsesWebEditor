@@ -2,9 +2,29 @@
   <!-- 管理器标题 -->
   <p class="pageTitle" style="display: flex">
     <span id="explorerTitle" style="flex: 1">实例管理</span>
-    <button onclick="handleAdd()">+</button>
+    <!-- 主面板：新建实例；子用户面板：刷新可管理实例（两者互斥显示） -->
+    <button id="explorer-add-btn" onclick="handleAdd()">+</button>
+    <button id="explorer-refresh-btn" title="刷新可管理实例" onclick="subAuth.refresh()" style="display: none"><i class="bi bi-arrow-clockwise"></i></button>
   </p>
-  <!-- 档案编辑组 -->
+
+  <!-- 子用户面板的认证区块：主面板始终隐藏，只由 subuser_panel.js 显示 -->
+  <div class="subuser-auth" id="subuser-auth" data-skip-unsaved style="display: none">
+    <div class="subuser-hint">使用实例组标识、子用户名与密钥登录</div>
+    <fluent-text-field id="subuser-dir" placeholder="实例组标识"></fluent-text-field>
+    <fluent-text-field id="subuser-user" placeholder="子用户名"></fluent-text-field>
+    <fluent-text-field id="subuser-key" type="password" placeholder="密钥"></fluent-text-field>
+    <div class="subuser-auth-actions">
+      <fluent-button appearance="accent" onclick="subAuth.login()" id="subuser-login-btn">登录</fluent-button>
+      <fluent-button onclick="subAuth.forget()">清除凭据</fluent-button>
+    </div>
+    <label class="subuser-scope-label" style="margin-top: 6px" onclick="subToggleCheckbox(event,'subuser-remember')" title="仅保存在本标签页的 sessionStorage 中，关闭标签页即失效">
+      <fluent-checkbox id="subuser-remember"></fluent-checkbox>
+      <span>记住密钥（仅本标签页）</span>
+    </label>
+    <div id="subuser-auth-msg" class="subuser-hint"></div>
+  </div>
+
+  <!-- 档案编辑组（主面板与子用户面板共用） -->
   <fluent-tabs activeid="scheduleB" id="explorerB" style="display: none">
     <fluent-tab id="scheduleB">
       &nbsp;&nbsp;<i class="bi bi-calendar"></i>&nbsp;课程表&nbsp;</fluent-tab
@@ -61,6 +81,10 @@
       ></fluent-listbox>
     </fluent-tab-panel>
   </fluent-tabs>
-  <!-- 终端编辑组 -->
+
+  <!-- 子用户面板：可管理实例列表的标题（主面板隐藏） -->
+  <div class="subuser-hint" id="subuser-instance-caption" style="display: none"></div>
+
+  <!-- 终端编辑组（主面板）/ 可管理实例（子用户面板） -->
   <fluent-listbox id="cloud-list" style="display: block"></fluent-listbox>
 </div>

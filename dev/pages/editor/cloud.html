@@ -20,6 +20,7 @@
       } catch {}
     })();
   </script>
+  <script src="/dev/scripts/cses.js" defer></script>
   <script src="/dev/scripts/storage.js" defer></script>
   <script type="module">
     import { baseLayerLuminance, StandardLuminance, allComponents, provideFluentDesignSystem } from 'https://npm.elemecdn.com/@fluentui/web-components';
@@ -78,13 +79,14 @@
   <i class="bi bi-code-slash"></i>
   <div class="left-section">
     <div class="title">实例类型</div>
-    <div class="description">选择该实例要使用的配置类型</div>
+    <div class="description">选择该实例要使用的配置格式（CSES v1 / v2 统一为 YAML）</div>
   </div>
   <div class="right-section">
     <fluent-select id="output-mode" onchange="storage.outputSet()" title="选择导出格式">
+      <fluent-option value="cy1">通用CSES v1（YAML）</fluent-option>
+      <fluent-option value="cy2">通用CSES v2（YAML）</fluent-option>
       <fluent-option value="ci">ClassIsland静态集控</fluent-option>
       <fluent-option value="es">ExamSchedule</fluent-option>
-      <fluent-option value="cy">通用CSES</fluent-option>
     </fluent-select>
   </div>
 </div>
@@ -93,8 +95,8 @@
 <div class="settings-card" data-skip-unsaved>
   <i class="bi bi-people"></i>
   <div class="left-section">
-    <div class="title">实例子用户</div>
-    <div class="description">为当前实例创建最多5个子用户，子用户使用实例组标识、用户名与密钥进行认证</div>
+    <div class="title">实例组子用户</div>
+    <div class="description">子用户属于整个实例组（最多5个），使用「实例组标识 + 子用户名 + 密钥」认证；可在管理面板里逐个限定其可管理的实例</div>
   </div>
   <div class="right-section">
     <fluent-button onclick="openOwnerSubModal()">管理子用户</fluent-button>

@@ -5,7 +5,10 @@ const controlMgr = {
       const selectId = login ? "output-mode" : "output-mode2";
       const select = document.getElementById(selectId);
       const rawType = select?.value ?? localStorage.getItem("output-mode") ?? "ci";
-      const configType = rawType === "cj" ? "cy" : rawType; // 隐藏cj，回退到cy
+      // 导出格式已合并为 cy1 / cy2（CSES v1 / v2，统一 YAML），集控设置模板仍按 cy 读取
+      const configType = (rawType === "cy1" || rawType === "cy2" || rawType === "cy" || rawType === "cj")
+        ? "cy"
+        : rawType;
       const settingsData = await this.load(configType, recall);
       if (!settingsData) return;
 
@@ -119,6 +122,9 @@ const controlMgr = {
       value = parseInt(value, 10); // 转换为整数
     }
     tool.setNestedValue(currentData, settingKey, value);
+    // 集控设置此前只改了内存里的 currentData，从未写回 localStorage，
+    // 于是「保存到云 / 保存到实例」拿不到这些改动。这里补上持久化。
+    try { storage.save(); } catch {}
     file.export(true);
   },
   valid(control) {

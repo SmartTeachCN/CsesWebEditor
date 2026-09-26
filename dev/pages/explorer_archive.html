@@ -1,0 +1,11 @@
+<!--
+  说明（保留占位，可安全删除）：
+  档案区块（课程表 / 时间表 / 科目）现在只在 pages/explorer.html 中定义一次，
+  由主面板 (panel.php) 与子用户面板 (subuser.php) 共同 include，
+  因此本文件不再被任何页面引用。
+
+  之所以不在这里用 `<?php include ... ?>` 把 explorer.html 拆开复用：build.js 对
+  dev/**/*.html 会走 cheerio/parse5 解析，正文顶层的 `<?php ?>` 有被改写成 HTML
+  注释的风险；而入口页面 panel.php / subuser.php 是 .php（只做压缩、完整保留 PHP），
+  所以 PHP include 只放在 .php 入口里。
+-->

@@ -16,13 +16,36 @@ let customTimetables = (() => {
     return [];
   }
 })();
+
+/* ---------- CSES 格式辅助：时间统一 HH:MM:SS、enable_day 统一数组 ---------- */
+function csesTime(value) {
+  try { if (window.cses) return window.cses.normalizeTime(value); } catch {}
+  return (value === undefined || value === null) ? '' : String(value);
+}
+function csesDays(value) {
+  try { if (window.cses) return window.cses.normalizeEnableDay(value); } catch {}
+  const arr = Array.isArray(value) ? value : (value === undefined || value === null || value === '' ? [] : [value]);
+  return arr.map((x) => parseInt(x, 10)).filter((n) => n >= 1 && n <= 7);
+}
+function csesTimeToMinutes(value) {
+  try { if (window.cses) return window.cses.timeToMinutes(value); } catch {}
+  const m = /^(\d{1,2}):(\d{1,2})/.exec(String(value || ''));
+  return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+}
+function csesMinutesToTime(mins) {
+  try { if (window.cses) return window.cses.minutesToTime(mins); } catch {}
+  const total = ((Math.round(mins) % 1440) + 1440) % 1440;
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(Math.floor(total / 60))}:${p(total % 60)}:00`;
+}
+
 function saveCustomTimetables(){
   try { localStorage.setItem(TIMETABLE_CUSTOM_KEY, JSON.stringify(customTimetables)); } catch {}
   try {
-    // 同步到导出数据结构：times 使用包含 starttime/endtime 的对象
+    // 同步到导出数据结构：times 使用包含 starttime/endtime 的对象，时间统一 HH:MM:SS
     const toExport = customTimetables.map(t => {
       const key = (t.key || t.name || '').trim();
-      const timesObj = Array.isArray(t.times) ? t.times.map(([s,e]) => ({ starttime: s, endtime: e })) : [];
+      const timesObj = Array.isArray(t.times) ? t.times.map(([s,e]) => ({ starttime: csesTime(s), endtime: csesTime(e) })) : [];
       return { name: t.name, times: timesObj };
     });
     currentData.timetables = toExport;
@@ -33,12 +56,12 @@ function saveCustomTimetables(){
 }
 const timetableTemplates = [
   { name: '标准8节', times: [
-      ['08:00','08:45'], ['08:55','09:40'], ['10:00','10:45'], ['10:55','11:40'],
-      ['13:30','14:15'], ['14:25','15:10'], ['15:30','16:15'], ['16:25','17:10'],
+      ['08:00:00','08:45:00'], ['08:55:00','09:40:00'], ['10:00:00','10:45:00'], ['10:55:00','11:40:00'],
+      ['13:30:00','14:15:00'], ['14:25:00','15:10:00'], ['15:30:00','16:15:00'], ['16:25:00','17:10:00'],
   ]},
   { name: '标准10节', times: [
-      ['08:00','08:45'], ['08:55','09:40'], ['10:00','10:45'], ['10:55','11:40'],
-      ['13:00','13:45'], ['13:55','14:40'], ['14:50','15:35'], ['15:45','16:30'], ['18:30','19:15'], ['19:25','20:10'],
+      ['08:00:00','08:45:00'], ['08:55:00','09:40:00'], ['10:00:00','10:45:00'], ['10:55:00','11:40:00'],
+      ['13:00:00','13:45:00'], ['13:55:00','14:40:00'], ['14:50:00','15:35:00'], ['15:45:00','16:30:00'], ['18:30:00','19:15:00'], ['19:25:00','20:10:00'],
   ]},
 ];
 function saveTimetableState(){ try{ localStorage.setItem(TIMETABLE_LOCAL_KEY, JSON.stringify(timetableState)); }catch{} }
@@ -67,6 +90,106 @@ const schedule = {
     7: "Sunday",
   },
   currentTimetableName: null,
+  // 课表的可读标签（兼容 CSES v1 单双周 + 单日 / v2 多启用日）
+  scheduleLabel(sch, index) {
+    if (!sch) return '';
+    if (storage.getOutputMode() === 'es') {
+      return sch.date ? sch.date : `未设定日期 ${(index ?? 0) + 1}`;
+    }
+    const days = csesDays(sch.enable_day);
+    if (storage.getCsesVersion() === 2) {
+      const names = days.map((d) => this.dayMap[d]).filter(Boolean);
+      return names.length ? names.join('、') : '';
+    }
+    const weekMode = sch.weeks;
+    const dayMode = days[0];
+    if (this.weekMap[weekMode] && this.dayMap[dayMode]) {
+      return `${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`;
+    }
+    return '';
+  },
+  // CSES v1 自动命名的形式：All_Monday / Odd_Monday / Even_Monday
+  isAutoScheduleName(name) {
+    if (!name) return true;
+    if (name === '无规则计划' || name === '未命名课表') return true;
+    return /^(All|Odd|Even)_(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/.test(name);
+  },
+  autoScheduleName(days, weeks) {
+    const cn = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const list = csesDays(days).map((d) => cn[d - 1]).filter(Boolean);
+    const base = list.length ? `${list.join('、')}课表` : '课表';
+    if (weeks === 'odd') return `${base}（单周）`;
+    if (weeks === 'even') return `${base}（双周）`;
+    return base;
+  },
+  // 按输出模式与 CSES 版本切换设置卡片
+  applyVersionUI() {
+    const isES = storage.getOutputMode() === 'es';
+    const v = storage.getCsesVersion();
+    const single = document.getElementById('card-schedule0');
+    const weeksCard = document.getElementById('card-schedule1');
+    const daysCard = document.getElementById('card-schedule-days');
+    const dateCard = document.getElementById('card-schedule2');
+    const flexOrBlock = () => (checkDeviceType() ? 'block' : 'flex');
+    if (isES) {
+      if (single) single.style.display = 'none';
+      if (weeksCard) weeksCard.style.display = 'none';
+      if (daysCard) daysCard.style.display = 'none';
+      if (dateCard) dateCard.style.display = flexOrBlock();
+      return;
+    }
+    if (dateCard) dateCard.style.display = 'none';
+    if (v === 2) {
+      if (single) single.style.display = 'none';
+      if (weeksCard) weeksCard.style.display = 'none';
+      if (daysCard) daysCard.style.display = flexOrBlock();
+    } else {
+      if (daysCard) daysCard.style.display = 'none';
+      if (single) single.style.display = flexOrBlock();
+      if (weeksCard) weeksCard.style.display = flexOrBlock();
+    }
+  },
+  // CSES v2：启用日多选
+  renderDayChips() {
+    const box = document.getElementById('day-mode-multi');
+    if (!box) return;
+    const sch = currentData.schedules[currentScheduleIndex];
+    const selected = csesDays(sch && sch.enable_day);
+    box.innerHTML = '';
+    [1, 2, 3, 4, 5, 6, 7].forEach((d) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'day-chip' + (selected.indexOf(d) !== -1 ? ' selected' : '');
+      btn.dataset.day = String(d);
+      btn.textContent = this.dayMap[d];
+      btn.addEventListener('click', () => this.toggleDay(d));
+      box.appendChild(btn);
+    });
+  },
+  toggleDay(day) {
+    const sch = currentData.schedules[currentScheduleIndex];
+    if (!sch) return;
+    let days = csesDays(sch.enable_day);
+    const i = days.indexOf(day);
+    if (i === -1) days.push(day);
+    else if (days.length > 1) days.splice(i, 1);
+    days.sort((a, b) => a - b);
+    if (!days.length) days = [day];
+    sch.enable_day = days;
+    const weeks = storage.getCsesVersion() === 2 ? 'all' : sch.weeks;
+    if (this.isAutoScheduleName(sch.name)) sch.name = this.autoScheduleName(days, weeks);
+    storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
+    this.renderDayChips();
+    this.init();
+  },
+  openDocEditor(push) {
+    try {
+      if (typeof setEditorSrc === 'function') { setEditorSrc('doc', { sub: 'doc' }); return; }
+    } catch {}
+    try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'none'; } catch {}
+    try { const el = document.getElementById('doc-editor'); if (el) el.style.display = 'block'; } catch {}
+  },
   init() {
     // 同步时间表模板到 currentData 并从 currentData 载入
     try {
@@ -74,9 +197,9 @@ const schedule = {
         // 从导出结构（对象形式的 times）恢复为编辑器内部使用的数组形式
         customTimetables = currentData.timetables.map(t => {
           const timesArr = Array.isArray(t.times) ? t.times.map(it => {
-            if (Array.isArray(it)) return it;
-            const s = (it && it.starttime) ? it.starttime : '';
-            const e = (it && it.endtime) ? it.endtime : '';
+            if (Array.isArray(it)) return [csesTime(it[0]), csesTime(it[1])];
+            const s = (it && it.starttime) ? csesTime(it.starttime) : '';
+            const e = (it && it.endtime) ? csesTime(it.endtime) : '';
             return [s, e];
           }) : [];
           return { key: t.key || t.name, name: t.name, times: timesArr };
@@ -124,19 +247,10 @@ const schedule = {
       div.style.display = 'flex';
       div.style.width = '100%';
       div.style.alignItems = 'center';
-      let leftLabel;
-      if (storage.getOutputMode() == "es") {
-        leftLabel = schedule2.date
-          ? `<i class="bi bi-calendar3-week"></i>&nbsp;${schedule2.date}`
-          : `<i class="bi bi-calendar3-week"></i>&nbsp;未设定日期 ${index + 1}`;
-      } else {
-        const weekMode = schedule2.weeks;
-        const dayMode = schedule2.enable_day;
-        leftLabel =
-          this.weekMap[weekMode] && this.dayMap[dayMode]
-            ? `<i class="bi bi-calendar3-week"></i>&nbsp;${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`
-            : `<i class="bi bi-calendar3-week"></i>&nbsp;无规则计划 ${index + 1}`;
-      }
+      const plain = this.scheduleLabel(schedule2, index);
+      const leftLabel = plain
+        ? `<i class="bi bi-calendar3-week"></i>&nbsp;${plain}`
+        : `<i class="bi bi-calendar3-week"></i>&nbsp;无规则计划 ${index + 1}`;
       const st = timetableState?.schedules?.[index];
       const tagText = (st && st.templateName && st.templateName !== '' && st.templateName !== '未选择')
         ? `${st.modified ? '*' : ''}${st.templateName}` : '';
@@ -152,16 +266,7 @@ const schedule = {
       });
       div.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-        let label;
-        if (storage.getOutputMode() == "es") {
-          label = schedule2.date ? schedule2.date : `未设定日期 ${index + 1}`;
-        } else {
-          const weekMode = schedule2.weeks;
-          const dayMode = schedule2.enable_day;
-          label = (this.weekMap[weekMode] && this.dayMap[dayMode])
-            ? `${this.weekMap[weekMode]}_${this.dayMap[dayMode]}`
-            : `无规则计划 ${index + 1}`;
-        }
+        const label = this.scheduleLabel(schedule2, index) || `无规则计划 ${index + 1}`;
         confirm(
           `确定要删除计划 ${label} 吗？`,
           (result, idx) => {
@@ -283,8 +388,9 @@ const schedule = {
 
     const dailyClasses = days.map((_, dayIndex) => {
       const matchingSchedules = schedules
-        .filter(s => s.enable_day === (dayIndex + 1))
+        .filter(s => csesDays(s.enable_day).indexOf(dayIndex + 1) !== -1)
         .filter(schedule => {
+          if (storage.getCsesVersion() === 2) return true; // CSES v2 无单双周概念
           if (viewMode === 'odd' && schedule.weeks === 'odd') return true;
           if (viewMode === 'even' && schedule.weeks === 'even') return true;
           if (schedule.weeks === 'all') return true;
@@ -422,28 +528,28 @@ const schedule = {
     });
   },
   save() {
-    const weekMode = document.getElementById("week-mode").value ?? "all";
-    const dayMode = document.getElementById("day-mode").value ?? "1";
-    const ParticularDate = document.getElementById("schedule-date").value ?? null;
-    const selectedWeekMode = Object.keys(this.weekMap).find(
-      (key) => this.weekMap[key] === weekMode
-    );
-    const selectedDayMode = Object.keys(this.dayMap).find(
-      (key) => this.dayMap[key] === dayMode
-    );
+    const weekEl = document.getElementById("week-mode");
+    const dayEl = document.getElementById("day-mode");
+    const weekMode = (weekEl && weekEl.value) ? weekEl.value : "all";
+    const dayMode = (dayEl && dayEl.value) ? dayEl.value : "1";
+    const ParticularDate = document.getElementById("schedule-date")?.value ?? null;
+    const sch = currentData.schedules[currentScheduleIndex];
+    if (!sch) return;
     if (storage.getOutputMode() == "es") {
-      const scheduleName = ParticularDate;
-      console.log(scheduleName);
-      currentData.schedules[currentScheduleIndex].date = scheduleName;
+      console.log(ParticularDate);
+      sch.date = ParticularDate;
+    } else if (storage.getCsesVersion() === 2) {
+      // CSES v2：enable_day 为数组，无 weeks 字段
+      const days = csesDays(sch.enable_day);
+      sch.enable_day = days.length ? days : [1];
+      sch.weeks = 'all';
+      if (this.isAutoScheduleName(sch.name)) sch.name = this.autoScheduleName(sch.enable_day, sch.weeks);
     } else {
       const scheduleName = `${weekMode.charAt(0).toUpperCase() + weekMode.slice(1)
         }_${this.dayMap_Full[dayMode]}`;
-      currentData.schedules[currentScheduleIndex].name = scheduleName;
-      currentData.schedules[currentScheduleIndex].enable_day = parseInt(
-        dayMode,
-        10
-      );
-      currentData.schedules[currentScheduleIndex].weeks = weekMode;
+      sch.name = scheduleName;
+      sch.enable_day = [parseInt(dayMode, 10) || 1];
+      sch.weeks = weekMode;
     }
     storage.save();
     this.init();
@@ -457,7 +563,10 @@ const schedule = {
     const newSchedule = {
       name: "无规则计划",
       classes: [],
+      weeks: "all",
+      enable_day: [1],
     };
+    if (storage.getCsesVersion() === 2) newSchedule.name = this.autoScheduleName([1], 'all');
     currentData.schedules.push(newSchedule);
     storage.save();
     this.init();
@@ -518,9 +627,12 @@ const schedule = {
     try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'block'; } catch {}
     const schedule = currentData.schedules[index];
     const weekMode = schedule.weeks;
-    const dayMode = schedule.enable_day;
+    const days = csesDays(schedule.enable_day);
     try { const wm = document.getElementById("week-mode"); if (wm) wm.value = weekMode; } catch {}
-    try { const dm = document.getElementById("day-mode"); if (dm) dm.value = `${dayMode}`; } catch {}
+    try { const dm = document.getElementById("day-mode"); if (dm) dm.value = `${days[0] || 1}`; } catch {}
+    try { const dateInput = document.getElementById('schedule-date'); if (dateInput) dateInput.value = schedule.date || ''; } catch {}
+    this.renderDayChips();
+    this.applyVersionUI();
     this.refresh();
     const select = document.getElementById("current-subject");
     select.innerHTML = "";
@@ -534,20 +646,6 @@ const schedule = {
     this.loadTimetableOptions();
     this.updateTimetableLabel();
     this.quickPanel();
-    const dateSelector = document.getElementById('card-schedule2');
-    const dateInput = document.getElementById('schedule-date');
-    const card0 = document.getElementById("card-schedule0");
-    const card1 = document.getElementById("card-schedule1");
-    if (storage.getOutputMode() == "es") {
-      try { if (dateSelector) dateSelector.style.display = checkDeviceType() ? 'block' : 'flex'; } catch {}
-      try { if (dateInput) dateInput.value = schedule.date || ""; } catch {}
-      try { if (card0) card0.style.display = 'none'; } catch {}
-      try { if (card1) card1.style.display = 'none'; } catch {}
-    } else {
-      try { if (dateSelector) dateSelector.style.display = 'none'; } catch {}
-      try { if (card0) card0.style.display = checkDeviceType() ? 'block' : 'flex'; } catch {}
-      try { if (card1) card1.style.display = checkDeviceType() ? 'block' : 'flex'; } catch {}
-    }
   },
   refresh() {
     const listbox = document.getElementById("class-list");
@@ -562,10 +660,10 @@ const schedule = {
           currentData.schedules[currentScheduleIndex].classes[currentClassIndex];
         console.log(index);
         document.getElementById("current-subject").value = currentClass.subject;
-        document.querySelectorAll(".time-input")[0].value = currentClass.start_time;
-        document.querySelectorAll(".time-input")[1].value = currentClass.end_time;
+        document.querySelectorAll(".time-input")[0].value = csesTime(currentClass.start_time);
+        document.querySelectorAll(".time-input")[1].value = csesTime(currentClass.end_time);
       });
-      item.textContent = `${cls.subject} (${cls.start_time}-${cls.end_time})`;
+      item.textContent = `${cls.subject} (${csesTime(cls.start_time)}-${csesTime(cls.end_time)})`;
       listbox.appendChild(item);
     });
 
@@ -579,13 +677,23 @@ const schedule = {
     }
   },
   addClass() {
-    currentData.schedules[currentScheduleIndex].classes.push({
+    const sch = currentData.schedules[currentScheduleIndex];
+    const inputs = document.querySelectorAll('.time-input');
+    // 时间统一 HH:MM:SS；输入控件没有给出有效值时按上一节课推算，避免写入空时间
+    const prev = (sch.classes && sch.classes.length) ? sch.classes[sch.classes.length - 1] : null;
+    const fallbackStart = (prev && csesTime(prev.end_time)) || '08:00:00';
+    const start = csesTime(inputs[0] && inputs[0].value) || fallbackStart;
+    const end = csesTime(inputs[1] && inputs[1].value) || csesMinutesToTime((csesTimeToMinutes(start) || 480) + 45);
+    sch.classes.push({
       subject: document.querySelector('#current-subject').value ?? "",
-      start_time: document.querySelectorAll('.time-input')[0].value ?? "",
-      end_time: document.querySelectorAll('.time-input')[1].value ?? "",
+      start_time: start,
+      end_time: end,
     });
-    currentClassIndex =
-      currentData.schedules[currentScheduleIndex].classes.length - 1;
+    currentClassIndex = sch.classes.length - 1;
+    try {
+      if (inputs[0]) inputs[0].value = start;
+      if (inputs[1]) inputs[1].value = end;
+    } catch {}
     storage.save();
     try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
@@ -617,6 +725,8 @@ const schedule = {
       JSON.stringify(currentData.schedules[currentScheduleIndex])
     );
     newSchedule.name = "无规则计划";
+    newSchedule.enable_day = csesDays(newSchedule.enable_day);
+    newSchedule.weeks = newSchedule.weeks || 'all';
     currentData.schedules.push(newSchedule);
     storage.save();
     this.init();
@@ -638,12 +748,14 @@ const schedule = {
     }
 
     const days = ["1", "2", "3", "4", "5", "6", "7"];
+    const isV2 = storage.getCsesVersion() === 2;
     days.forEach((day) => {
+      const dayNum = parseInt(day, 10);
       const newSchedule = {
-        name: `All_${this.dayMap_Full[day]}`,
+        name: isV2 ? this.autoScheduleName([dayNum], 'all') : `All_${this.dayMap_Full[day]}`,
         classes: [],
         weeks: "all",
-        enable_day: parseInt(day, 10),
+        enable_day: [dayNum],
       };
 
       currentData.schedules.push(newSchedule);
@@ -672,12 +784,15 @@ const schedule = {
   },
   setTime() {
     if (currentClassIndex === -1) return;
-    currentData.schedules[currentScheduleIndex].classes[
-      currentClassIndex
-    ].start_time = document.querySelectorAll(".time-input")[0].value;
-    currentData.schedules[currentScheduleIndex].classes[
-      currentClassIndex
-    ].end_time = document.querySelectorAll(".time-input")[1].value;
+    const cls = currentData.schedules[currentScheduleIndex].classes[currentClassIndex];
+    if (!cls) return;
+    const inputs = document.querySelectorAll(".time-input");
+    const start = csesTime(inputs[0] && inputs[0].value);
+    const end = csesTime(inputs[1] && inputs[1].value);
+    // 输入控件未提供有效值时保持原值，避免把已有时间清空
+    if (!start || !end) return;
+    cls.start_time = start;
+    cls.end_time = end;
     storage.save();
     try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
@@ -726,7 +841,7 @@ const schedule = {
   },
   createTimetableConfirmName(name) {
     const sch = currentData.schedules[currentScheduleIndex];
-    const times = (sch.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    const times = (sch.classes || []).map(c => [csesTime(c.start_time), csesTime(c.end_time)]).filter(([s,e])=> s && e);
     if (times.length === 0) {
       // 若当前课表没有时间，创建空模板也允许
     }
@@ -757,7 +872,9 @@ const schedule = {
     const tmplLen = times.length;
     const beforeLen = (sch.classes || []).length;
     for (let i = 0; i < tmplLen; i++) {
-      const [start, end] = times[i];
+      const [rawStart, rawEnd] = times[i];
+      const start = csesTime(rawStart);
+      const end = csesTime(rawEnd);
       if (!sch.classes[i]) {
         sch.classes[i] = {
           subject: document.querySelector('#current-subject')?.value || '-',
@@ -855,21 +972,9 @@ const schedule = {
     const btn = document.getElementById('toggle-time-editor');
     if (btn) btn.textContent = '显示课时编辑器';
   },
-  // 根据输出模式切换卡片显示
+  // 根据输出模式与 CSES 版本切换卡片显示
   toggleOutputCards() {
-    const dateSelector = document.getElementById('card-schedule2');
-    const card0 = document.getElementById('card-schedule0');
-    const card1 = document.getElementById('card-schedule1');
-    const isES = storage.getOutputMode() === 'es';
-    if (isES) {
-      if (dateSelector) dateSelector.style.display = checkDeviceType() ? 'block' : 'flex';
-      if (card0) card0.style.display = 'none';
-      if (card1) card1.style.display = 'none';
-    } else {
-      if (dateSelector) dateSelector.style.display = 'none';
-      if (card0) card0.style.display = checkDeviceType() ? 'block' : 'flex';
-      if (card1) card1.style.display = checkDeviceType() ? 'block' : 'flex';
-    }
+    this.applyVersionUI();
   },
   renderTimetableList() {
     const panel = document.getElementById('timetable-list');
@@ -906,7 +1011,7 @@ const schedule = {
     const name = (input?.value || '').trim();
     if (!name) return;
     const sch = currentData.schedules[currentScheduleIndex];
-    const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    const times = (sch?.classes || []).map(c => [csesTime(c.start_time), csesTime(c.end_time)]).filter(([s,e])=> s && e);
     let newName = name;
     let counter = 1;
     while (getAllTimetables().some(t => t.name === newName)) { newName = `${name}(${counter++})`; }
@@ -928,7 +1033,7 @@ const schedule = {
   },
   overwriteTimetable(name) {
     const sch = currentData.schedules[currentScheduleIndex];
-    const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    const times = (sch?.classes || []).map(c => [csesTime(c.start_time), csesTime(c.end_time)]).filter(([s,e])=> s && e);
     const idx = customTimetables.findIndex(t => t.name === name);
     if (idx !== -1) { customTimetables[idx].times = times; saveCustomTimetables(); schedule.renderTimetableList(); }
     // 新增：保存时间表后，自动更新所有选中该时间表且未修改的课程表
@@ -940,7 +1045,7 @@ const schedule = {
   },
   createTimetableFromCurrent(name) {
     const sch = currentData.schedules[currentScheduleIndex];
-    const times = (sch?.classes || []).map(c => [c.start_time || '', c.end_time || '']).filter(([s,e])=> s && e);
+    const times = (sch?.classes || []).map(c => [csesTime(c.start_time), csesTime(c.end_time)]).filter(([s,e])=> s && e);
     let newName = name;
     let counter = 1;
     while (getAllTimetables().some(t => t.name === newName)) { newName = `${name}(${counter++})`; }
@@ -1008,8 +1113,8 @@ const schedule = {
       row.style.display = 'flex';
       row.style.gap = '8px';
       row.style.alignItems = 'center';
-      const start = document.createElement('input'); start.type = 'time'; start.className = 'time-row-start'; start.value = s || '';
-      const end = document.createElement('input'); end.type = 'time'; end.className = 'time-row-end'; end.value = e || '';
+      const start = document.createElement('input'); start.type = 'time'; start.step = '1'; start.className = 'time-row-start'; start.value = csesTime(s);
+      const end = document.createElement('input'); end.type = 'time'; end.step = '1'; end.className = 'time-row-end'; end.value = csesTime(e);
       const del = document.createElement('fluent-button'); del.textContent = '删除';
       del.addEventListener('click', () => { row.remove(); });
       row.appendChild(start); row.appendChild(end); row.appendChild(del);
@@ -1020,22 +1125,6 @@ const schedule = {
     const container = document.getElementById('time-rows');
     if (!container) return;
 
-    const parseHHMM = (t) => {
-      if (!/^\d{2}:\d{2}$/.test(t)) return null;
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    };
-    const fmt = (mins) => {
-      const h = Math.floor(mins / 60) % 24;
-      const m = mins % 60;
-      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-    };
-    const addMins = (t, add) => {
-      const b = parseHHMM(t);
-      if (b == null) return '';
-      return fmt(b + add);
-    };
-
     const courseMin = parseInt(document.getElementById('quick-course-min')?.value || localStorage.getItem('quick-course-min') || '0') || 0;
     const breakMin = parseInt(document.getElementById('quick-break-min')?.value || localStorage.getItem('quick-break-min') || '0') || 0;
 
@@ -1045,19 +1134,19 @@ const schedule = {
     let startVal = '';
     let endVal = '';
 
-    if (lastEnd && parseHHMM(lastEnd) != null) {
-      startVal = breakMin > 0 ? addMins(lastEnd, breakMin) : lastEnd;
+    if (lastEnd && csesTimeToMinutes(lastEnd) != null) {
+      startVal = breakMin > 0 ? csesMinutesToTime(csesTimeToMinutes(lastEnd) + breakMin) : csesTime(lastEnd);
     }
     if (courseMin > 0 && startVal) {
-      endVal = addMins(startVal, courseMin);
+      endVal = csesMinutesToTime(csesTimeToMinutes(startVal) + courseMin);
     }
 
     const row = document.createElement('div');
     row.style.display = 'flex';
     row.style.gap = '8px';
     row.style.alignItems = 'center';
-    const start = document.createElement('input'); start.type = 'time'; start.className = 'time-row-start'; start.value = startVal || '';
-    const end = document.createElement('input'); end.type = 'time'; end.className = 'time-row-end'; end.value = endVal || '';
+    const start = document.createElement('input'); start.type = 'time'; start.step = '1'; start.className = 'time-row-start'; start.value = startVal || '';
+    const end = document.createElement('input'); end.type = 'time'; end.step = '1'; end.className = 'time-row-end'; end.value = endVal || '';
     const del = document.createElement('fluent-button'); del.textContent = '删除';
     del.addEventListener('click', () => { row.remove(); });
     row.appendChild(start); row.appendChild(end); row.appendChild(del);
@@ -1069,8 +1158,8 @@ const schedule = {
     if (!name) { alert('请输入时间表名称'); return; }
     const rows = Array.from(document.querySelectorAll('#time-rows > div'));
     const times = rows.map(r => {
-      const s = r.querySelector('.time-row-start')?.value || '';
-      const e = r.querySelector('.time-row-end')?.value || '';
+      const s = csesTime(r.querySelector('.time-row-start')?.value || '');
+      const e = csesTime(r.querySelector('.time-row-end')?.value || '');
       return [s, e];
     }).filter(([s,e]) => s && e);
     const doSave = () => {
@@ -1107,8 +1196,8 @@ const schedule = {
       // 优先以编辑器当前行生成导出
       const rows = Array.from(document.querySelectorAll('#time-rows > div'));
       let timesObj = rows.map(r => {
-        const s = r.querySelector('.time-row-start')?.value || '';
-        const e = r.querySelector('.time-row-end')?.value || '';
+        const s = csesTime(r.querySelector('.time-row-start')?.value || '');
+        const e = csesTime(r.querySelector('.time-row-end')?.value || '');
         return { starttime: s, endtime: e };
       }).filter(t => t.starttime && t.endtime);
       // 如果编辑器为空，则尝试从已保存模板读取
@@ -1183,9 +1272,9 @@ const schedule = {
       const nameRaw = (obj?.name || obj?.key || '导入时间表').trim();
       const name = nameRaw || '导入时间表';
       const timesArr = Array.isArray(obj?.times) ? obj.times.map(it => {
-        if (Array.isArray(it)) return it;
-        const s = (it && it.starttime) ? it.starttime : '';
-        const e = (it && it.endtime) ? it.endtime : '';
+        if (Array.isArray(it)) return [csesTime(it[0]), csesTime(it[1])];
+        const s = (it && it.starttime) ? csesTime(it.starttime) : '';
+        const e = (it && it.endtime) ? csesTime(it.endtime) : '';
         return [s, e];
       }).filter(([s,e]) => s && e) : [];
       // 若无有效课时，提示用户
@@ -1238,7 +1327,9 @@ const schedule = {
       const tmplLen = times.length;
       const beforeLen = (sch.classes || []).length;
       for (let i = 0; i < tmplLen; i++) {
-        const [start, end] = times[i];
+        const [rawStart, rawEnd] = times[i];
+        const start = csesTime(rawStart);
+        const end = csesTime(rawEnd);
         if (!sch.classes) sch.classes = [];
         if (!sch.classes[i]) {
           sch.classes[i] = {

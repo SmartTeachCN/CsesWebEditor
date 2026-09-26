@@ -48,4 +48,40 @@ class uiConfig
             ]
         ];
     }
+
+    /**
+     * 子用户面板的功能栏。
+     * 与主面板同名同序（实例 / 配置 / 档案 / 文件），
+     * 因此可以直接复用主面板的 pages/editor/{cloud,control,schedule,source}.html 区块。
+     */
+    public static function subuserLeftBar()
+    {
+        return [
+            [
+                'view' => 'cloud',
+                'des' => '实例',
+                'icon' => 'bi-cloud',
+                'text' => '实例',
+                'selected' => true
+            ],
+            [
+                'view' => 'control',
+                'des' => '集控配置',
+                'icon' => 'bi-gear-wide-connected',
+                'text' => '配置'
+            ],
+            [
+                'view' => 'schedule',
+                'des' => '档案管理',
+                'icon' => 'bi-calendar',
+                'text' => '档案'
+            ],
+            [
+                'view' => 'source',
+                'des' => '文件预览',
+                'icon' => 'bi-file-earmark-text',
+                'text' => '文件'
+            ]
+        ];
+    }
 }

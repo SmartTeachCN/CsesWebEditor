@@ -195,9 +195,153 @@ body {
 .editor-area {
   flex: 1;
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden;
   background: rgb(249, 249, 249);
   border: 1px solid var(--border-color);
+  /* main.js 会给它设置 style.display = block，这里用 !important 保持纵向弹性布局，
+     以便格式检查器固定在编辑区下栏 */
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* 编辑器 iframe 占满上半部分，下栏留给格式检查器 */
+.editor-area > .editor-frame {
+  flex: 1 1 auto !important;
+  height: auto !important;
+  min-height: 0;
+}
+
+/* 格式检查器（右侧档案页面下栏） */
+.format-checker {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border-color);
+  background: rgb(246, 246, 246);
+  font-size: 13px;
+  color: var(--text-color);
+}
+
+.format-checker-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.format-checker-bar:hover {
+  background: #dadada45;
+}
+
+.format-checker-title {
+  font-weight: 600;
+}
+
+.format-checker-summary {
+  color: #666;
+}
+
+.format-checker-spacer {
+  flex: 1;
+}
+
+.format-checker.ok .format-checker-bar > i {
+  color: #107c10;
+}
+
+.format-checker.warn .format-checker-bar > i {
+  color: #a06a00;
+}
+
+.format-checker.error .format-checker-bar > i {
+  color: #d13438;
+}
+
+.format-checker.error .format-checker-summary {
+  color: #d13438;
+  font-weight: 600;
+}
+
+.format-checker.warn .format-checker-summary {
+  color: #a06a00;
+}
+
+.format-checker-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.format-checker-btn:hover {
+  background: #dadada70;
+}
+
+.format-checker-body {
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-color);
+}
+
+.format-checker.collapsed .format-checker-body {
+  display: none;
+}
+
+.format-checker-list {
+  padding: 6px 10px 10px;
+}
+
+.format-checker-empty {
+  color: #107c10;
+}
+
+.format-checker-issue {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.format-checker-badge {
+  flex: none;
+  font-size: 11px;
+  padding: 0 6px;
+  border-radius: 8px;
+  line-height: 16px;
+}
+
+.format-checker-issue.is-error .format-checker-badge {
+  background: #fde7e9;
+  color: #d13438;
+}
+
+.format-checker-issue.is-warn .format-checker-badge {
+  background: #fff4ce;
+  color: #a06a00;
+}
+
+.format-checker-text {
+  flex: 1 1 auto;
+  word-break: break-all;
+}
+
+.format-checker-jump {
+  flex: none;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: inherit;
+  border-radius: 4px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.format-checker-jump:hover {
+  background: #dadada70;
 }
 
 /* 课程卡片 */
@@ -215,6 +359,59 @@ body {
   color: var(--text-color);
   padding: 4px;
   margin: 0 4px;
+}
+
+/* CSES v2 启用日多选 */
+.day-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.day-chip {
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.day-chip.selected {
+  background: #0078d4;
+  border-color: #0078d4;
+  color: #ffffff;
+}
+
+/* CSES 文档设置（周期 span 编辑） */
+.span-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.check-issues {
+  white-space: pre-wrap;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.check-issues .ok {
+  color: #107c10;
+}
+
+.check-issues .error {
+  color: #d13438;
+}
+
+.check-issues .warn {
+  color: #a06a00;
 }
 
 /* 拖拽区域 */
