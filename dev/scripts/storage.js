@@ -238,7 +238,9 @@ const storage = {
   /**
    * 切换到某个实例时套用它的格式：
    *  - 之前为该实例选过 -> 用保存的值（不会被文件内容改掉）
-   *  - 没选过 -> 用文件自身的格式（fallbackMode），并记下来
+   *  - 没选过且给了 fallbackMode（配置文件自身的版本）-> 采用并记下来
+   *  - 既没记录也没有依据 -> 只读取当前格式、不写入
+   *    （若在这里把「当时的全局格式」提前记到新实例上，之后就再也不会跟随文件版本了）
    */
   applyInstanceOutputMode(terminalId, fallbackMode) {
     this.ensureInit();
@@ -247,7 +249,8 @@ const storage = {
     if (saved) {
       return this.setOutputMode(saved, { silent: true, noRefresh: true });
     }
-    const fallback = normalizeOutputMode(fallbackMode || this.getOutputMode(), this.docVersion());
+    if (!fallbackMode) return this.getOutputMode();
+    const fallback = normalizeOutputMode(fallbackMode, this.docVersion());
     this.setOutputMode(fallback, { silent: true, noRefresh: true, noInstanceRecord: true });
     this.setInstanceMode(id, fallback);
     return fallback;
@@ -316,10 +319,25 @@ const storage = {
     setFluentValue(el, text);
   },
   /* ---------- 导出数据 ---------- */
+  /**
+   * 以浏览器本地存储为准读取文档。
+   *
+   * 主面板的 currentData 只在页面加载 / 打开实例时更新，各编辑器 iframe 的改动
+   * 只会写进 localStorage，因此宿主页面（例如左上角的导出按钮）如果直接用内存副本，
+   * 导出的会是过期内容。导出 / 保存到云一律走这里。
+   */
+  storedData() {
+    try {
+      const raw = localStorage.getItem('csesData');
+      if (raw) return csesToInternal(JSON.parse(raw));
+    } catch (e) { console.warn('storedData failed', e); }
+    this.ensureInit();
+    return currentData;
+  },
   // 内部结构 + 本地时间表选择结果，供各导出器使用
   buildData() {
     this.ensureInit();
-    return mergeTimetableNames(currentData);
+    return mergeTimetableNames(this.storedData());
   },
   // 按指定（或当前）CSES 版本生成待写出的文档
   buildDoc(version) {
@@ -558,24 +576,35 @@ const file = {
     try { window.__unsynced = false; } catch {}
   },
   exportL() {
-    const mode = storage.getOutputMode();
-    const Str = file.preview(mode);
-    let mime = "application/yaml";
-    let filename = "cses-v" + csesModeVersion(mode) + ".yaml";
-    if (mode === "ci") {
-      mime = "application/json";
-      filename = "classisland.json";
-    } else if (mode === "es") {
-      mime = "application/json";
-      filename = "exam_config.json";
+    try {
+      const mode = storage.getOutputMode();
+      const Str = file.preview(mode);
+      let mime = "application/yaml";
+      let filename = "cses-v" + csesModeVersion(mode) + ".yaml";
+      if (mode === "ci") {
+        mime = "application/json";
+        filename = "classisland.json";
+      } else if (mode === "es") {
+        mime = "application/json";
+        filename = "exam_config.json";
+      }
+      const blob = new Blob([Str], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.rel = "noopener";
+      try { document.body.appendChild(a); } catch {}
+      a.click();
+      // 立刻 revoke 会让部分浏览器（Firefox 等）中断下载，延迟释放并移除节点
+      setTimeout(() => {
+        try { URL.revokeObjectURL(url); } catch {}
+        try { a.remove(); } catch {}
+      }, 10000);
+    } catch (e) {
+      console.error('exportL failed', e);
+      alert('导出失败：' + (e && e.message ? e.message : e));
     }
-    const blob = new Blob([Str], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
   },
   /**
    * 导入配置。
@@ -781,7 +810,8 @@ function mergeTimetableNames(base) {
 function buildCloudPayload() {
   try {
     storage.ensureInit();
-    const data = mergeTimetableNames(currentData);
+    // 以本地存储为准：父页面内存副本在多 iframe 编辑后会过期
+    const data = mergeTimetableNames(storage.storedData());
     const doc = csesFromInternal(data, storage.getCsesVersion());
     return JSON.stringify(doc);
   } catch (e) {

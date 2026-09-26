@@ -83,12 +83,13 @@
     <div class="description">选择该实例要使用的配置格式（CSES v1 / v2 统一为 YAML）</div>
   </div>
   <div class="right-section">
-    <fluent-select id="output-mode" onchange="storage.outputSet()" title="选择导出格式">
-      <fluent-option value="cy1">通用CSES v1（YAML）</fluent-option>
-      <fluent-option value="cy2">通用CSES v2（YAML）</fluent-option>
-      <fluent-option value="ci">ClassIsland静态集控</fluent-option>
-      <fluent-option value="es">ExamSchedule</fluent-option>
-    </fluent-select>
+    <!-- 用原生 select：fluent-select 在 CDN 组件升级前赋值不会体现在界面上（会显示第一项） -->
+    <select id="output-mode" class="format-select" onchange="storage.outputSet()" title="选择导出格式">
+      <option value="cy1">通用CSES v1（YAML）</option>
+      <option value="cy2">通用CSES v2（YAML）</option>
+      <option value="ci">ClassIsland静态集控</option>
+      <option value="es">ExamSchedule</option>
+    </select>
   </div>
 </div>
 
@@ -139,14 +140,26 @@
   // storage.js 是 defer 脚本，内联脚本先执行；直接调用会静默失败，
   // 导致实例类型下拉框不回填（看起来「切换不生效」），甚至用空文档覆盖本地数据。
   document.addEventListener('DOMContentLoaded', function () {
+    const syncFromStorage = () => {
+      try {
+        storage.applyInstanceOutputMode(storage.currentTerminalId());
+        storage.syncVersionSelectors();
+      } catch (e) { console.warn('sync instance type failed', e); }
+    };
     try {
       storage.init();
       storage.initEnv();
       // 当前实例的格式：优先用本机为该实例保存过的选择
-      storage.applyInstanceOutputMode(storage.currentTerminalId());
-      storage.syncVersionSelectors();
+      syncFromStorage();
       window.refreshFormatChecker && window.refreshFormatChecker();
     } catch (e) { console.error('editor:cloud init failed', e); }
+    // 父页面切换实例 / 别处改了导出格式时同步（同源 localStorage 变化会触发 storage 事件）
+    try {
+      window.addEventListener('storage', (e) => {
+        if (e && e.key && e.key !== 'output-mode' && e.key !== 'currentTerminalId' && e.key !== 'cses-instance-modes') return;
+        syncFromStorage();
+      });
+    } catch {}
     try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
     try {
       var did = localStorage.getItem('directoryId') || '';

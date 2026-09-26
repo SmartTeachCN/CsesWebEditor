@@ -11,7 +11,7 @@
     "clean": "node clean-bundles.js",
     "build": "node build.js",
     "prebuild": "npm run clean",
-    "test": "node tests/cses.test.js && node tests/integration.test.js && node tests/format.test.js && node tests/control.test.js && node tests/schema.test.js && node tests/dom.test.js",
+    "test": "node tests/cses.test.js && node tests/integration.test.js && node tests/format.test.js && node tests/control.test.js && node tests/instance.test.js && node tests/schema.test.js && node tests/dom.test.js",
     "dev": "node dev-server.js"
   },
   "devDependencies": {

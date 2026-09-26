@@ -419,6 +419,17 @@ body {
   max-width: 420px;
 }
 
+/* 实例类型 / 导出格式：用原生 select 保证选中项一定正确显示 */
+select.format-select {
+  min-width: 180px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 14px;
+}
+
 .control-container {
   display: flex;
   align-items: center;

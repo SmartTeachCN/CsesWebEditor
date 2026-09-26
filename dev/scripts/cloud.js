@@ -31,8 +31,11 @@ const terminal = {
             .then((d) => {
               if (d.success && d.terminals.length > 0) {
                 if (!currentTerminalId) currentTerminalId = d.terminals[0];
+                // 自动选中的实例必须落盘，否则 controlLoad() 读不到、刷新后又回到「未选择」
+                try { localStorage.setItem("currentTerminalId", currentTerminalId); } catch {}
                 this.updateTag();
                 this.controlLoad();
+                this.syncEditorType();
                 try {
                   const p = new URLSearchParams(window.location.search);
                   p.set('terminal', currentTerminalId);
@@ -74,12 +77,24 @@ const terminal = {
         closeLoading(2);
       });
   },
+  // 让「实例信息」iframe 里的实例类型下拉框跟上当前实例（iframe 不会随实例切换而重载）
+  syncEditorType() {
+    try {
+      const win = document.getElementById('editor-frame')?.contentWindow;
+      const st = win && win.storage;
+      if (st && typeof st.applyInstanceOutputMode === 'function') {
+        st.applyInstanceOutputMode(st.currentTerminalId ? st.currentTerminalId() : localStorage.getItem('currentTerminalId'));
+        st.syncVersionSelectors();
+      }
+    } catch (e) { console.warn('syncEditorType failed', e); }
+  },
   load(terminalId, push) {
     currentTerminalId = terminalId;
     localStorage.setItem("currentTerminalId", terminalId);
     this.updateTag();
-    // 切换实例时先套用该实例上次选择的导出格式（没有记录则跟随配置文件版本）
+    // 切换实例时先套用该实例上次选择的导出格式；已有记录才套用，否则等配置文件来确定
     try { storage.applyInstanceOutputMode(terminalId); } catch (e) { console.warn('applyInstanceOutputMode failed', e); }
+    this.syncEditorType();
     try {
       if (push !== false) {
         const p = new URLSearchParams(window.location.search);
@@ -100,6 +115,7 @@ const terminal = {
       const config = await response.text();
       // keepOutputMode：打开实例时保留本机为该实例选定的导出格式，不要被文件里的版本改掉
       file.importS(config, false, { keepOutputMode: true });
+      this.syncEditorType();
 
       // 加载共享配置
       // const shareResponse = await fetch(`function.php?action=getSpaceConfig&terminalId=${encodeURIComponent(terminalId)}`);

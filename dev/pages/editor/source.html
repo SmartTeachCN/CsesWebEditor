@@ -34,12 +34,12 @@
   <p class="pageTitle pageTitle_main2">导出设定</p>
   <h3 class="offline">本地导出</h3>
   <span class="offline">导出格式:</span><br class="offline" />
-  <fluent-select class="offline" id="output-mode2" onchange="storage.outputSet()" title="选择导出格式">
-    <fluent-option value="cy1" selected>CSES v1（YAML）</fluent-option>
-    <fluent-option value="cy2">CSES v2（YAML）</fluent-option>
-    <fluent-option value="ci">ClassIsland课表档案</fluent-option>
-    <fluent-option value="es">ExamSchedule</fluent-option>
-  </fluent-select>
+  <select class="offline format-select" id="output-mode2" onchange="storage.outputSet()" title="选择导出格式">
+    <option value="cy1">CSES v1（YAML）</option>
+    <option value="cy2">CSES v2（YAML）</option>
+    <option value="ci">ClassIsland课表档案</option>
+    <option value="es">ExamSchedule</option>
+  </select>
   <br class="offline" />
   <p class="offline" style="color:#666;font-size:12px;margin:6px 0">
     CSES v1 / v2 统一以 YAML 导出；导入时会自动识别 JSON / YAML 并选择对应版本。
@@ -55,6 +55,14 @@
         storage.init();
         storage.initEnv();
       } catch (e) { console.error('editor:source init failed', e); }
+      // 其他页面/父页面改了导出格式时同步过来
+      try {
+        window.addEventListener('storage', (e) => {
+          if (e && e.key && e.key !== 'output-mode') return;
+          storage.syncVersionSelectors();
+          storage.renderPreview();
+        });
+      } catch {}
       try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
     });
   </script>
