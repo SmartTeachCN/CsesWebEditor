@@ -52,6 +52,34 @@ function normalizeOutputMode(raw, fallbackVersion) {
   return 'cy1';
 }
 
+/*
+ * 给 fluent 自定义元素赋值。
+ *
+ * 这些组件来自 CDN，升级（upgrade）时机晚于内联脚本；在升级前直接 `el.value = x`
+ * 会在实例上创建一个「自有属性」，之后组件升级也无法读到该值（下拉框不回填、
+ * 预览框空白）。这里先删掉可能存在的自有属性，再在组件定义就绪后重试一次。
+ */
+function setFluentValue(el, value, propName) {
+  if (!el) return;
+  const prop = propName || 'value';
+  const assign = () => {
+    try {
+      if (Object.prototype.hasOwnProperty.call(el, prop)) delete el[prop];
+      el[prop] = value;
+    } catch (e) {
+      try { el.setAttribute(prop === 'checked' ? 'checked' : 'value', String(value)); } catch {}
+    }
+  };
+  assign();
+  try {
+    const name = el.tagName ? el.tagName.toLowerCase() : '';
+    if (name && window.customElements && typeof window.customElements.whenDefined === 'function') {
+      window.customElements.whenDefined(name).then(assign).catch(() => {});
+    }
+  } catch {}
+  try { setTimeout(assign, 200); setTimeout(assign, 900); } catch {}
+}
+
 let currentData = {
   version: 1,
   configuration: null,
@@ -62,6 +90,15 @@ let currentData = {
 var tempData;
 
 const storage = {
+  _initialized: false,
+  _initializing: false,
+  // 页面（尤其是 iframe 编辑器页）可能在依赖脚本就绪前就调用了 storage，
+  // 这里按需补一次 init()，避免用空文档覆盖本地数据、或导出空文档。
+  ensureInit() {
+    if (this._initialized || this._initializing) return;
+    this._initializing = true;
+    try { this.init(); } finally { this._initializing = false; }
+  },
   init() {
     try {
       console.log('storage.init');
@@ -93,13 +130,19 @@ const storage = {
           console.log('storage.init migrated local data to HH:MM:SS / CSES ' + this.getCsesVersion());
         }
       } catch (e) { console.warn('storage.init write back failed', e); }
+      this._initialized = true;
       this.mirrorVersion();
       console.log('storage.init ready', { version: this.getCsesVersion(), subjects: currentData.subjects.length, schedules: currentData.schedules.length, timetables: currentData.timetables.length });
     } catch (error) {
-      console.log(error);
+      console.error('storage.init failed', error);
     }
+    return this._initialized;
   },
   save() {
+    if (!this._initialized) {
+      console.warn('storage.save 已跳过：尚未初始化（避免覆盖本地数据）');
+      return;
+    }
     localStorage.setItem("csesData", JSON.stringify(currentData));
     try { window.__unsaved = false; } catch {}
   },
@@ -139,8 +182,48 @@ const storage = {
   mirrorVersion() {
     try { localStorage.setItem('cses-version', String(this.getCsesVersion())); } catch {}
   },
+  /* ---------- 每个云端实例记住自己的格式（切换实例后不丢） ---------- */
+  currentTerminalId() {
+    try { return localStorage.getItem('currentTerminalId') || ''; } catch { return ''; }
+  },
+  readInstanceModes() {
+    try { return JSON.parse(localStorage.getItem('cses-instance-modes')) || {}; } catch { return {}; }
+  },
+  writeInstanceModes(map) {
+    try { localStorage.setItem('cses-instance-modes', JSON.stringify(map || {})); } catch {}
+  },
+  getInstanceMode(terminalId) {
+    if (!terminalId) return null;
+    const saved = this.readInstanceModes()[terminalId];
+    return (saved && OUTPUT_MODES.indexOf(saved) !== -1) ? saved : null;
+  },
+  setInstanceMode(terminalId, mode) {
+    const id = terminalId || this.currentTerminalId();
+    if (!id) return;
+    const map = this.readInstanceModes();
+    map[id] = normalizeOutputMode(mode, this.docVersion());
+    this.writeInstanceModes(map);
+  },
+  /**
+   * 切换到某个实例时套用它的格式：
+   *  - 之前为该实例选过 -> 用保存的值（不会被文件内容改掉）
+   *  - 没选过 -> 用文件自身的格式（fallbackMode），并记下来
+   */
+  applyInstanceOutputMode(terminalId, fallbackMode) {
+    this.ensureInit();
+    const id = terminalId || this.currentTerminalId();
+    const saved = this.getInstanceMode(id);
+    if (saved) {
+      return this.setOutputMode(saved, { silent: true, noRefresh: true });
+    }
+    const fallback = normalizeOutputMode(fallbackMode || this.getOutputMode(), this.docVersion());
+    this.setOutputMode(fallback, { silent: true, noRefresh: true, noInstanceRecord: true });
+    this.setInstanceMode(id, fallback);
+    return fallback;
+  },
   // 切换导出格式（cy1 / cy2 / ci / es），CSES 模式下同步文档版本
   setOutputMode(mode, opts) {
+    this.ensureInit();
     const m = normalizeOutputMode(mode, this.docVersion());
     try { localStorage.setItem('output-mode', m); } catch {}
     if (isCsesOutputMode(m)) {
@@ -151,6 +234,7 @@ const storage = {
       this.save();
     }
     this.mirrorVersion();
+    if (!(opts && opts.noInstanceRecord)) this.setInstanceMode(null, m);
     if (!(opts && opts.silent)) {
       this.syncVersionSelectors();
       if (!(opts && opts.noRefresh)) {
@@ -160,6 +244,7 @@ const storage = {
     return m;
   },
   setCsesVersion(version, opts) {
+    this.ensureInit();
     const v = (parseInt(version, 10) === 2) ? 2 : 1;
     currentData.version = v;
     if (v === 2 && !currentData.configuration) {
@@ -181,28 +266,33 @@ const storage = {
     }
     return v;
   },
+  /**
+   * 回填下拉框（导出格式、CSES 版本）与预览框。
+   * fluent 组件来自 CDN，升级时机不确定，统一走 setFluentValue 反复对齐。
+   */
   syncVersionSelectors() {
-    const mode = this.getOutputMode();
-    const apply = () => {
-      document.querySelectorAll('#cses-version, .cses-version-select').forEach((el) => {
-        try { el.value = String(this.getCsesVersion()); } catch {}
-      });
-      // 导出格式下拉框（含历史值 cy / cj 的迁移）
-      document.querySelectorAll('#output-mode, #output-mode2, #doc-output-mode, .output-mode-select').forEach((el) => {
-        try { el.value = mode; } catch {}
-      });
-    };
-    apply();
-    // fluent 自定义元素可能晚于脚本升级，稍后再次同步
-    try { setTimeout(apply, 150); setTimeout(apply, 700); } catch {}
+    const version = String(this.getCsesVersion());
+    document.querySelectorAll('#cses-version, .cses-version-select').forEach((el) => setFluentValue(el, version));
+    // 导出格式下拉框（含历史值 cy / cj 的迁移）
+    document.querySelectorAll('#output-mode, #output-mode2, #doc-output-mode, .output-mode-select').forEach((el) => {
+      setFluentValue(el, this.getOutputMode());
+    });
+  },
+  // 预览框统一入口（避免在 fluent-text-area 升级前写入而丢失内容）
+  setPreviewText(text) {
+    const el = document.getElementById('yaml-editor');
+    if (!el) return;
+    setFluentValue(el, text);
   },
   /* ---------- 导出数据 ---------- */
   // 内部结构 + 本地时间表选择结果，供各导出器使用
   buildData() {
+    this.ensureInit();
     return mergeTimetableNames(currentData);
   },
   // 按指定（或当前）CSES 版本生成待写出的文档
   buildDoc(version) {
+    this.ensureInit();
     const v = (version === 1 || version === 2) ? version : this.getCsesVersion();
     return csesFromInternal(this.buildData(), v);
   },
@@ -243,30 +333,35 @@ const storage = {
     });
   },
   initEnv() {
+    this.ensureInit();
     const mode = this.getOutputMode(); // 归一化历史值（cy / cj）并写回
-    const yamlEditor = document.getElementById("yaml-editor");
-    if (yamlEditor) {
-      if (isCsesOutputMode(mode)) {
-        yamlEditor.value = jsyaml.dump(this.buildDoc(csesModeVersion(mode)));
-      } else if (mode === "ci") {
-        yamlEditor.value = JSON.stringify(CsestoCiFromat(this.buildData()), null, 2);
-      } else if (mode === "es") {
-        yamlEditor.value = JSON.stringify(es_procees(this.buildData()), null, 2);
-      }
-    }
-    const selOnline = document.getElementById("output-mode");
-    const selOffline = document.getElementById("output-mode2");
-    if (selOnline) selOnline.value = mode;
-    if (selOffline) selOffline.value = mode;
+    this.renderPreview(mode);
     this.syncVersionSelectors();
-    try { console.log('initEnv set mode', mode, { online: !!selOnline, offline: !!selOffline, version: this.getCsesVersion() }); } catch {}
+    try { console.log('initEnv set mode', mode, { version: this.getCsesVersion() }); } catch {}
+  },
+  // 把当前文档按指定格式渲染到「导出预览」
+  renderPreview(mode) {
+    this.ensureInit();
+    const m = normalizeOutputMode(mode || this.getOutputMode(), this.docVersion());
+    let text = '';
+    if (isCsesOutputMode(m)) {
+      text = jsyaml.dump(this.buildDoc(csesModeVersion(m)));
+    } else if (m === 'ci') {
+      text = JSON.stringify(CsestoCiFromat(this.buildData()), null, 2);
+    } else if (m === 'es') {
+      text = JSON.stringify(es_procees(this.buildData()), null, 2);
+    }
+    this.setPreviewText(text);
+    return text;
   },
   outputSet() {
+    this.ensureInit();
     const selOnline = document.getElementById("output-mode");
     const selOffline = document.getElementById("output-mode2");
     const modeRaw = selOnline?.value ?? selOffline?.value ?? localStorage.getItem("output-mode") ?? "cy1";
     const mode = normalizeOutputMode(modeRaw, this.docVersion());
     localStorage.setItem("output-mode", mode);
+    this.setInstanceMode(null, mode);
     if (isCsesOutputMode(mode)) {
       // 导出格式决定文档版本：切到 v2 时补上 configuration
       currentData.version = csesModeVersion(mode);
@@ -286,17 +381,13 @@ const storage = {
         else { try { iframe.src = `pages/editor/control.html?refresh=1`; } catch {} }
       }
     } catch (e) { console.warn("controlMgr.init failed", e); }
-    const yamlEditor = document.getElementById("yaml-editor");
-    if (!yamlEditor) return;
-    if (isCsesOutputMode(mode)) {
-      yamlEditor.value = jsyaml.dump(this.buildDoc(csesModeVersion(mode)));
-    } else if (mode === "ci") {
-      yamlEditor.value = JSON.stringify(CsestoCiFromat(this.buildData()), null, 2);
-    } else if (mode === "es") {
-      yamlEditor.value = JSON.stringify(es_procees(this.buildData()), null, 2);
-    }
+    this.renderPreview(mode);
     this.syncVersionSelectors();
-    try { schedule.toggleOutputCards && schedule.toggleOutputCards(); } catch (e) { console.warn("schedule.toggleOutputCards failed", e); }
+    // 导出格式切换后，格式检查器可能需要在 CSES / 非 CSES 之间显示或隐藏
+    try { window.refreshFormatChecker && window.refreshFormatChecker(); } catch (e) {}
+    try {
+      if (typeof schedule !== 'undefined' && schedule.toggleOutputCards) schedule.toggleOutputCards();
+    } catch (e) { console.warn("schedule.toggleOutputCards failed", e); }
   },
   preview() {
     const mode = this.getOutputMode();
@@ -455,10 +546,19 @@ const file = {
     a.click();
     URL.revokeObjectURL(url);
   },
-  importS(str, showNotice = false) {
+  /**
+   * 导入配置。
+   * @param str 文本 / FileReader 事件
+   * @param showNotice 是否弹出确认框（用户手动导入文件时为 true）
+   * @param opts.keepOutputMode 打开云端实例时为 true：保留本机为该实例选定的格式，
+   *        不要把文件格式强加给实例类型（这正是「自动选择覆盖手动选择」的根源）
+   */
+  importS(str, showNotice = false, opts = {}) {
     if (!str) return;
-    console.log("导入数据:");
+    const keepOutputMode = !!(opts && opts.keepOutputMode);
+    console.log("导入数据:", { keepOutputMode });
     try {
+      storage.ensureInit();
       let data = [];
       let source;
       if (str.target && str.target.result) {
@@ -572,14 +672,15 @@ const file = {
           currentData.configuration = CSESF ? CSESF.defaultConfiguration() : {};
         }
         storage.save();
-        // 导入时按文件本身自动选择导出格式/版本（CSES v1 -> cy1，v2 -> cy2，ci / es 保持）
-        const effectiveFormat = normalizeOutputMode(format2, currentData.version);
-        try { localStorage.setItem("output-mode", effectiveFormat); } catch {}
-        const onlineSel = document.getElementById("output-mode");
-        if (onlineSel) onlineSel.value = effectiveFormat;
-        const offlineSel = document.getElementById("output-mode2");
-        if (offlineSel) offlineSel.value = effectiveFormat;
-        storage.mirrorVersion();
+        // 文件自身的格式（CSES v1 -> cy1，v2 -> cy2，ci / es 保持）
+        const fileFormat = normalizeOutputMode(format2, currentData.version);
+        if (keepOutputMode) {
+          // 打开云端实例：优先使用本机为该实例保存的格式，没有记录才跟随文件
+          storage.applyInstanceOutputMode(storage.currentTerminalId(), fileFormat);
+        } else {
+          // 用户手动导入文件：自动选择文件对应的格式并记住
+          storage.setOutputMode(fileFormat, { silent: true, noRefresh: true });
+        }
         storage.syncVersionSelectors();
         try {
           if (Array.isArray(currentData.schedules)) {
@@ -592,9 +693,9 @@ const file = {
             }
           }
         } catch (e) {}
-        // 初始化并刷新界面（包含时间表列表）
+        // 初始化并刷新界面（包含时间表列表与导出预览）
         try { schedule.init && schedule.init(); } catch (e) { console.warn('schedule.init failed after import', e); }
-        try { storage.outputSet && storage.outputSet(); } catch (e) {}
+        try { storage.initEnv && storage.initEnv(); } catch (e) { console.warn('refresh preview failed', e); }
         try { window.refreshFormatChecker && window.refreshFormatChecker(); } catch (e) {}
       };
 
@@ -648,6 +749,7 @@ function mergeTimetableNames(base) {
 
 function buildCloudPayload() {
   try {
+    storage.ensureInit();
     const data = mergeTimetableNames(currentData);
     const doc = csesFromInternal(data, storage.getCsesVersion());
     return JSON.stringify(doc);

@@ -385,12 +385,46 @@ body {
   color: #ffffff;
 }
 
-/* CSES 文档设置（周期 span 编辑） */
+/* 配置页里的 CSES v2 周期（spans）编辑 */
 .span-row {
   display: flex;
   gap: 8px;
   align-items: center;
   margin-bottom: 6px;
+}
+
+.span-list {
+  width: 100%;
+  min-width: 260px;
+}
+
+.span-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.span-actions button.span-primary {
+  background: #0078d4;
+  border-color: #0078d4;
+  color: #ffffff;
+}
+
+/* 配置页里的静态说明 */
+.control-note {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 420px;
+}
+
+.control-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .check-issues {

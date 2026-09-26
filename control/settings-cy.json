@@ -2,21 +2,91 @@
   "mode": "common",
   "tabs": [
     {
-      "name": "获取帮助",
-      "eng_name": "policy",
-      "icon": "bi-info-circle",
+      "name": "CSES 配置",
+      "eng_name": "cses",
+      "icon": "bi-sliders",
       "settings": [
-        "extraKey.Settings.Welcome"
+        "extraKey.Settings.Format",
+        "extraKey.Settings.Welcome",
+        "configuration.name",
+        "configuration.description",
+        "configuration.cycle.work_count",
+        "configuration.cycle.rest_count",
+        "configuration.cycle.spans",
+        "extraKey.Settings.V2Hint"
       ]
     }
   ],
   "settings": [
     {
+      "type": "format-select",
+      "keyPath": "extraKey.Settings.Format",
+      "name": "导出格式 / CSES 版本",
+      "description": "CSES v1 与 v2 都使用 YAML；v2 才包含下面的 configuration 配置",
+      "icon": "bi-braces"
+    },
+    {
       "type": "html",
       "keyPath": "extraKey.Settings.Welcome",
       "name": "欢迎使用CSES Cloud",
-      "description": "您正在使用CSES-YAML格式作为云存储",
+      "description": "CSES 文档以 YAML 格式导出 / 导入，导入时会自动识别版本",
       "icon": "bi-broadcast"
+    },
+    {
+      "type": "text",
+      "keyPath": "configuration.name",
+      "name": "配置名称",
+      "description": "configuration.name，例如「2026年下学期」",
+      "icon": "bi-card-heading",
+      "placeholder": "配置名称",
+      "requiresVersion": 2
+    },
+    {
+      "type": "text",
+      "keyPath": "configuration.description",
+      "name": "配置描述",
+      "description": "configuration.description",
+      "icon": "bi-text-paragraph",
+      "placeholder": "配置描述",
+      "requiresVersion": 2
+    },
+    {
+      "type": "number",
+      "keyPath": "configuration.cycle.work_count",
+      "name": "工作日数",
+      "description": "configuration.cycle.work_count，不小于 2",
+      "icon": "bi-briefcase",
+      "min": 2,
+      "step": 1,
+      "default": 5,
+      "requiresVersion": 2
+    },
+    {
+      "type": "number",
+      "keyPath": "configuration.cycle.rest_count",
+      "name": "休息日数",
+      "description": "configuration.cycle.rest_count，不小于 2",
+      "icon": "bi-cup-hot",
+      "min": 2,
+      "step": 1,
+      "default": 2,
+      "requiresVersion": 2
+    },
+    {
+      "type": "spanlist",
+      "keyPath": "configuration.cycle.spans",
+      "name": "时间跨度分配",
+      "description": "configuration.cycle.spans：按顺序执行，work / rest 的 count 之和应等于上面两个总数",
+      "icon": "bi-diagram-3",
+      "requiresVersion": 2
+    },
+    {
+      "type": "note",
+      "keyPath": "extraKey.Settings.V2Hint",
+      "name": "关于 CSES v2 配置",
+      "description": "configuration 只在导出 CSES v2 时写入文件",
+      "icon": "bi-info-circle",
+      "note": "当前导出格式：{mode}。CSES v2 的 configuration（名称 / 描述 / 周期）会写入导出文件；选择 CSES v1 时这些字段不会出现在文件里。"
     }
   ]
 }

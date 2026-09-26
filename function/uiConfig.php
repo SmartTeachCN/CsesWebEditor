@@ -30,8 +30,7 @@ class uiConfig
                 'view' => 'control',
                 'des' => '集控配置',
                 'icon' => 'bi-gear-wide-connected',
-                'text' => '配置',
-                'online' => true
+                'text' => '配置'
             ],
             [
                 'view' => 'schedule',

@@ -48,8 +48,15 @@
   <br />
   <fluent-text-area readonly="true" aria-placeholder="生产文件的内容将在这里显示" id="yaml-editor"></fluent-text-area>
   <script>
-    try { storage.init(); storage.initEnv(); } catch {}
-    try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
+    // 注意：storage.js 是 defer 脚本，内联脚本先于它执行，直接调用会因 storage 未定义而静默失败
+    // （表现为导出预览空白、格式下拉框不回填）。这里等 DOMContentLoaded 再初始化。
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        storage.init();
+        storage.initEnv();
+      } catch (e) { console.error('editor:source init failed', e); }
+      try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
+    });
   </script>
 </body>
 </html>

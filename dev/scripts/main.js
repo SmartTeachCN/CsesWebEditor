@@ -132,10 +132,8 @@ const activityBar = {
         if (t && typeof terminal !== 'undefined') terminal.load(t, false);
       } catch {}
     } else if (view === "control") {
-      if (!(window.hasLogin ?? false)) {
-        this.toggle("schedule");
-        return;
-      }
+      // 「配置」页面现在也承担 CSES 文档配置（configuration），
+      // 离线本地模式下同样需要可用，因此不再要求登录。
       document.getElementsByClassName(`editor-area`)[0].style.borderRadius = "10px 0px 0px 0px";
       document.getElementById("explorerB").style.display = "none";
       document.getElementById("cloud-list").style.display = "none";
@@ -143,15 +141,8 @@ const activityBar = {
       if (__ef) { document.getElementsByClassName("editor-area")[0].style.display = "block"; loadEditor('control'); }
       try {
         const t = new URLSearchParams(window.location.search).get('terminal');
-        if (t && typeof terminal !== 'undefined') terminal.load(t, false);
+        if (t && typeof terminal !== 'undefined' && (window.hasLogin ?? false)) terminal.load(t, false);
       } catch {}
-      if (
-        localStorage.getItem("output-mode") == "cy" ||
-        localStorage.getItem("output-mode") == undefined
-      ) {
-      } else if (localStorage.getItem("output-mode") == "cj") {
-      } else if (localStorage.getItem("output-mode") == "ci") {
-      }
       if (checkDeviceType()) {
         location.href = "#";
         document.getElementsByClassName("editor-area")[0].style.display = "block";
@@ -208,13 +199,6 @@ const activityBar = {
           p.delete('timetable');
           // 保留 week
           if (!sch) p.set('schedule', '0');
-        } else if (sub === 'doc') {
-          // CSES 文档设置不需要其它参数
-          p.delete('subject');
-          p.delete('subjectName');
-          p.delete('schedule');
-          p.delete('timetable');
-          p.delete('week');
         } else {
           // 未声明 sub 时，按最小集归一
           const name = p.get('subjectName');
@@ -324,7 +308,8 @@ function applyScheduleSubRoute(params) {
     return;
   }
   if (sub === 'doc') {
-    try { setEditorSrc('doc', { sub: 'doc' }); } catch {}
+    // 兼容旧链接：CSES 文档配置已并入「配置」页面
+    try { activityBar.toggle('control', true); } catch {}
     return;
   }
   if (sub === 'table') {

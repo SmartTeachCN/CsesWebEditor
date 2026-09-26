@@ -35,9 +35,12 @@
   <div id="settingsTabs"></div>
   <div id="settingsContainer"></div>
   <script>
-    try { storage.init(); storage.initEnv(); } catch {}
-    try { controlMgr.init(); } catch {}
-    try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
+    // storage.js / control.js 都是 defer 脚本，内联脚本先执行；等 DOMContentLoaded 再初始化
+    document.addEventListener('DOMContentLoaded', function () {
+      try { storage.init(); storage.initEnv(); } catch (e) { console.error('editor:control storage init failed', e); }
+      try { controlMgr.init(); } catch (e) { console.error('editor:control init failed', e); }
+      try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
+    });
   </script>
 </body>
 </html>

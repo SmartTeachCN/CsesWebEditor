@@ -78,6 +78,8 @@ const terminal = {
     currentTerminalId = terminalId;
     localStorage.setItem("currentTerminalId", terminalId);
     this.updateTag();
+    // 切换实例时先套用该实例上次选择的导出格式（没有记录则跟随配置文件版本）
+    try { storage.applyInstanceOutputMode(terminalId); } catch (e) { console.warn('applyInstanceOutputMode failed', e); }
     try {
       if (push !== false) {
         const p = new URLSearchParams(window.location.search);
@@ -96,7 +98,8 @@ const terminal = {
       showLoading(2);
       const response = await fetch(`function.php?action=load&terminalId=${encodeURIComponent(terminalId)}`);
       const config = await response.text();
-      file.importS(config);
+      // keepOutputMode：打开实例时保留本机为该实例选定的导出格式，不要被文件里的版本改掉
+      file.importS(config, false, { keepOutputMode: true });
 
       // 加载共享配置
       // const shareResponse = await fetch(`function.php?action=getSpaceConfig&terminalId=${encodeURIComponent(terminalId)}`);

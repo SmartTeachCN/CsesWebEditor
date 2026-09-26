@@ -183,12 +183,15 @@ const schedule = {
     this.renderDayChips();
     this.init();
   },
+  // CSES 文档配置（v2 的 configuration）已并入「配置」页面
   openDocEditor(push) {
     try {
-      if (typeof setEditorSrc === 'function') { setEditorSrc('doc', { sub: 'doc' }); return; }
+      if (typeof activityBar !== 'undefined' && activityBar.toggle) {
+        activityBar.toggle('control', push !== false);
+        return;
+      }
     } catch {}
-    try { const el = document.getElementById('schedule-editor'); if (el) el.style.display = 'none'; } catch {}
-    try { const el = document.getElementById('doc-editor'); if (el) el.style.display = 'block'; } catch {}
+    try { if (typeof setEditorSrc === 'function') { setEditorSrc('control'); return; } } catch {}
   },
   init() {
     // 同步时间表模板到 currentData 并从 currentData 载入

@@ -1,12 +1,15 @@
 /*
  * checker.js —— 右侧档案页面下栏的「格式检查器」
  *
- * 以 localStorage 中的最新数据为准做 CSES 格式检查（避免宿主页面持有过期副本），
- * 在编辑区下方常驻显示错误/警告数量，展开后可按条目跳转到出问题的课表/科目/文档设置。
+ * 只在导出格式为 CSES（CSES v1 / v2）时显示：ClassIsland / ExamSchedule 有自己的结构，
+ * 用 CSES 规则去挑毛病没有意义。
+ * 检查以 localStorage 中的最新数据为准（避免宿主页面持有过期副本），
+ * 展开后可按条目跳转到出问题的课表 / 科目 / CSES 配置。
  */
 const formatChecker = {
   expanded: false,
-  visible: true,
+  viewVisible: true, // 当前视图是否允许显示（由 main.js 按视图切换）
+  visible: false,    // 视图允许 && 导出格式是 CSES
   lastSignature: null,
   lastErrorCount: 0,
   timer: null,
@@ -21,7 +24,7 @@ const formatChecker = {
         if (this.retry++ < 60) { setTimeout(ready, 100); }
         return;
       }
-      this.refresh(true);
+      this.applyVisibility(true);
     };
     ready();
     // 同源 iframe 修改 localStorage 会触发宿主页面的 storage 事件
@@ -35,6 +38,13 @@ const formatChecker = {
     } catch {}
     // 兜底轮询（iframe 内部的写入不一定会触发 storage 事件）
     try { this.autoTimer = setInterval(() => { if (!document.hidden) this.refresh(); }, 4000); } catch {}
+  },
+
+  isCsesMode() {
+    try {
+      if (typeof storage === 'undefined' || !storage.isCsesMode) return false;
+      return storage.isCsesMode();
+    } catch { return false; }
   },
 
   bind() {
@@ -55,6 +65,13 @@ const formatChecker = {
 
   refresh(force) {
     if (typeof storage === 'undefined' || typeof storage.validateStored !== 'function') return;
+    // 非 CSES 格式（ClassIsland / ExamSchedule）下整个下栏都不显示
+    if (!this.isCsesMode()) { this.hide(); return; }
+    if (!this.viewVisible) { this.hide(); return; }
+    this.visible = true;
+    const panel = document.getElementById('format-checker');
+    if (panel) panel.style.display = '';
+
     let result;
     try {
       result = storage.validateStored();
@@ -65,6 +82,12 @@ const formatChecker = {
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
     this.render(result);
+  },
+
+  hide() {
+    this.visible = false;
+    const panel = document.getElementById('format-checker');
+    if (panel) panel.style.display = 'none';
   },
 
   render(result) {
@@ -102,7 +125,7 @@ const formatChecker = {
     if (!issues.length) {
       const empty = document.createElement('div');
       empty.className = 'format-checker-empty';
-      empty.textContent = '当前文档符合 CSES 格式要求（时间均为 HH:MM:SS）。';
+      empty.textContent = '当前文档符合 CSES 格式要求。';
       list.appendChild(empty);
       return;
     }
@@ -147,7 +170,7 @@ const formatChecker = {
       return { label: `科目 ${idx + 1}`, go: () => this.openSubject(idx) };
     }
     if (issue.path && issue.path.indexOf('configuration') === 0) {
-      return { label: '文档设置', go: () => this.openDoc() };
+      return { label: 'CSES 配置', go: () => this.openDoc() };
     }
     return null;
   },
@@ -165,10 +188,10 @@ const formatChecker = {
     try { if (typeof subjects !== 'undefined' && subjects.load) subjects.load(index, false); } catch {}
   },
   openDoc() {
+    // CSES 文档配置（configuration）在「配置」页面里
     try {
-      if (typeof activityBar !== 'undefined' && activityBar.toggle) activityBar.toggle('schedule');
+      if (typeof activityBar !== 'undefined' && activityBar.toggle) activityBar.toggle('control');
     } catch {}
-    try { if (typeof setEditorSrc === 'function') setEditorSrc('doc', { sub: 'doc' }); } catch {}
   },
 
   toggle(force) {
@@ -180,13 +203,23 @@ const formatChecker = {
     if (chevron) chevron.className = 'bi ' + (this.expanded ? 'bi-chevron-down' : 'bi-chevron-up');
   },
 
-  // 按视图显示 / 隐藏（档案、文件预览、实例管理显示；集控配置隐藏）
-  show(visible) {
-    this.visible = !!visible;
-    const panel = document.getElementById('format-checker');
-    if (!panel) return;
-    panel.style.display = this.visible ? '' : 'none';
-    if (this.visible) this.refresh();
+  // 当前视图是否允许显示检查器（档案、文件预览、实例管理显示；集控配置隐藏）；
+  // 实际是否显示还要看导出格式是不是 CSES
+  show(viewVisible) {
+    this.viewVisible = !!viewVisible;
+    this.applyVisibility(!!viewVisible);
+  },
+
+  // 依据「视图 + 导出格式」计算最终可见性
+  applyVisibility(force) {
+    if (this.viewVisible && this.isCsesMode()) {
+      this.visible = true;
+      const panel = document.getElementById('format-checker');
+      if (panel) panel.style.display = '';
+      this.refresh(!!force);
+    } else {
+      this.hide();
+    }
   },
 };
 

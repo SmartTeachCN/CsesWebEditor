@@ -285,8 +285,8 @@ function showAuthDialog(loginCallback, registerCallback, oauth) {
             element.style.display = "none";
           }
         });
-        // 隐藏移动端底栏中的“终端管理/集控管理”
-        document.querySelectorAll("#mobile-bottomBar [data-view=\"control\"], #mobile-bottomBar [data-view=\"cloud\"]").forEach((el) => {
+        // 隐藏移动端底栏中的“实例管理”（「配置」页面离线也要可用）
+        document.querySelectorAll("#mobile-bottomBar [data-view=\"cloud\"]").forEach((el) => {
           el.style.display = "none";
         });
         // 切换到课程档案视图（离线默认视图）

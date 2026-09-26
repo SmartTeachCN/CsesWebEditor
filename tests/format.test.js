@@ -221,6 +221,50 @@ console.log('结构化校验结果');
   });
 }
 
+/* ================= 实例格式记忆 / 安全防护 ================= */
+console.log('实例格式记忆与安全防护');
+{
+  const sb = makeSandbox();
+  const run = runner(load(sb));
+  run('storage.init();');
+
+  check('未初始化时 save() 不会写入（避免覆盖本地数据）', () => {
+    const fresh = makeSandbox();
+    const r2 = runner(load(fresh));
+    r2('storage.save();');
+    assert.strictEqual(fresh.localStorage.getItem('csesData'), null);
+    r2('storage.ensureInit(); storage.save();');
+    assert.ok(fresh.localStorage.getItem('csesData') !== null);
+  });
+
+  check('每个实例记住自己的导出格式', () => {
+    sb.localStorage.setItem('currentTerminalId', 'inst-a');
+    run("storage.setOutputMode('ci', {silent:true, noRefresh:true});");
+    assert.strictEqual(JSON.parse(sb.localStorage.getItem('cses-instance-modes'))['inst-a'], 'ci');
+    // 另一个实例没有记录 -> 用文件格式，并记下来
+    assert.strictEqual(run("storage.applyInstanceOutputMode('inst-b', 'cy2')"), 'cy2');
+    assert.strictEqual(JSON.parse(sb.localStorage.getItem('cses-instance-modes'))['inst-b'], 'cy2');
+    // 回到 inst-a -> 恢复成之前选择的 ci
+    assert.strictEqual(run("storage.applyInstanceOutputMode('inst-a', 'cy1')"), 'ci');
+    assert.strictEqual(run('storage.getOutputMode()'), 'ci');
+  });
+
+  check('打开实例（keepOutputMode）不会被文件格式改掉实例类型', () => {
+    sb.localStorage.setItem('currentTerminalId', 'inst-a');
+    assert.strictEqual(run('storage.getOutputMode()'), 'ci');
+    run(`file.importS(${JSON.stringify(JSON.stringify(v2doc))}, false, { keepOutputMode: true });`);
+    assert.strictEqual(run('storage.getOutputMode()'), 'ci', '实例类型不应被改成 cy2');
+    assert.strictEqual(run('currentData.version'), 2, '文档版本仍应跟随文件');
+  });
+
+  check('用户手动导入文件会自动切换到文件对应的格式', () => {
+    run(`file.importS(${JSON.stringify(JSON.stringify(v1doc))}, false);`);
+    assert.strictEqual(run('storage.getOutputMode()'), 'cy1');
+    run(`file.importS(${JSON.stringify(JSON.stringify(v2doc))}, false);`);
+    assert.strictEqual(run('storage.getOutputMode()'), 'cy2');
+  });
+}
+
 /* ================= 格式检查器 UI ================= */
 console.log('格式检查器（右侧下栏）');
 let JSDOM;
@@ -313,8 +357,99 @@ try {
     run('formatChecker.show(true);');
     assert.notStrictEqual(w.document.getElementById('format-checker').style.display, 'none');
   });
+  check('非 CSES 格式（ClassIsland / ExamSchedule）下检查器隐藏', () => {
+    run("storage.setOutputMode('ci', {silent:true, noRefresh:true});");
+    run('formatChecker.refresh(true);');
+    assert.strictEqual(run('formatChecker.isCsesMode()'), false);
+    assert.strictEqual(w.document.getElementById('format-checker').style.display, 'none');
+    assert.strictEqual(run('formatChecker.visible'), false);
+    run("storage.setOutputMode('es', {silent:true, noRefresh:true});");
+    run('formatChecker.applyVisibility(true);');
+    assert.strictEqual(w.document.getElementById('format-checker').style.display, 'none');
+  });
+  check('切回 CSES 格式后检查器恢复显示', () => {
+    run("storage.setOutputMode('cy1', {silent:true, noRefresh:true});");
+    run('formatChecker.applyVisibility(true);');
+    assert.notStrictEqual(w.document.getElementById('format-checker').style.display, 'none');
+    assert.strictEqual(run('formatChecker.visible'), true);
+  });
+  check('无问题时提示语不再强调时间格式', () => {
+    w.localStorage.setItem('csesData', JSON.stringify(cses.fromInternal(cses.toInternal(v1doc), 1)));
+    run('formatChecker.refresh(true);');
+    const empty = w.document.querySelector('.format-checker-empty');
+    assert.ok(empty, '应有空状态提示');
+    assert.strictEqual(empty.textContent, '当前文档符合 CSES 格式要求。');
+  });
+  check('setFluentValue 会清掉组件升级前写入的自有属性', () => {
+    // 模拟：先写入 value（此时组件还没定义 -> 生成自有属性），再定义组件
+    const el = w.document.createElement('late-select-box');
+    el.value = 'stale';
+    assert.strictEqual(el.value, 'stale');
+    class LateSelectBox extends w.HTMLElement {
+      get value() { return this._v; }
+      set value(v) { this._v = v; }
+    }
+    w.customElements.define('late-select-box', LateSelectBox);
+    if (w.customElements.upgrade) w.customElements.upgrade(el); // 让分离元素也完成升级
+    el.value = 'plain'; // 自有属性仍在，会屏蔽原型上的访问器
+    assert.strictEqual(el.value, 'plain');
+    w.__fluentEl = el;
+    run('setFluentValue(window.__fluentEl, "fresh");');
+    assert.strictEqual(el.value, 'fresh', '应通过组件的 setter 赋值');
+    assert.strictEqual(Object.prototype.hasOwnProperty.call(el, 'value'), false, '自有属性应被删除');
+  });
 
   run('clearInterval(formatChecker.autoTimer);');
+  w.close();
+}
+
+/* ================= 文件预览页（source.html）能渲染预览 ================= */
+console.log('文件预览页渲染');
+{
+  const html = fs.readFileSync(path.join(ROOT, 'dev', 'pages', 'editor', 'source.html'), 'utf8');
+  const bodyStart = html.indexOf('<body>');
+  const lastScript = html.lastIndexOf('<script>');
+  const bodyHtml = html.slice(bodyStart, lastScript);
+  const inlineCode = html.slice(lastScript + '<script>'.length, html.indexOf('</script>', lastScript));
+
+  const dom = new JSDOM(`<!DOCTYPE html><html><head></head>${bodyHtml}</body></html>`, {
+    runScripts: 'outside-only',
+    url: 'http://localhost/dev/pages/editor/source.html',
+  });
+  const w = dom.window;
+  w.jsyaml = jsyaml;
+  w.alert = () => {};
+  w.localStorage.setItem('csesData', JSON.stringify(cses.fromInternal(cses.toInternal(v1doc), 1)));
+  w.localStorage.setItem('output-mode', 'cy1');
+
+  const ctx = dom.getInternalVMContext();
+  for (const f of ['cses.js', 'storage.js']) {
+    vm.runInContext(fs.readFileSync(path.join(ROOT, 'dev', 'scripts', f), 'utf8'), ctx, { filename: f });
+  }
+  const run = (code) => vm.runInContext(code, ctx);
+
+  // 模拟 defer 脚本就绪后触发的 DOMContentLoaded（页面内联脚本就是在这个时候初始化的）
+  run(inlineCode);
+  w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+
+  check('导出预览真的被渲染出来（不再是空白）', () => {
+    const text = w.document.getElementById('yaml-editor').value || '';
+    assert.ok(text.trim().length > 0, '预览内容为空');
+    const parsed = jsyaml.load(text);
+    assert.strictEqual(parsed.version, 1);
+    assert.strictEqual(parsed.schedules[0].name, 'Odd_Monday');
+    assert.strictEqual(parsed.schedules[0].classes[0].start_time, '08:00:00');
+  });
+  check('导出格式下拉框回填为当前格式', () => {
+    assert.strictEqual(w.document.getElementById('output-mode2').value, 'cy1');
+  });
+  check('切换为 CSES v2 后预览同步变化', () => {
+    run("storage.setOutputMode('cy2', {silent:true, noRefresh:true}); storage.initEnv();");
+    const parsed = jsyaml.load(w.document.getElementById('yaml-editor').value);
+    assert.strictEqual(parsed.version, 2);
+    assert.ok(parsed.configuration && parsed.configuration.cycle);
+    assert.strictEqual(parsed.subjects[0].location, '101');
+  });
   w.close();
 }
 

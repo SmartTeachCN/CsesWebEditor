@@ -340,7 +340,8 @@ const subAuth = {
           localStorage.setItem('currentTerminalId', tid);
         } catch { }
 
-        file.importS(text);
+        // keepOutputMode：打开实例时保留本机为该实例选定的导出格式
+        file.importS(text, false, { keepOutputMode: true });
         subClearUnsaved();
         try { storage.initEnv(); } catch { }
         // 让档案区块的列表跟着新实例重建

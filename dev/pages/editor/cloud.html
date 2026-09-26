@@ -135,16 +135,25 @@
   }
 </script>
 <script>
-  try { storage.init(); storage.initEnv(); } catch {}
-  try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
-  try {
-    var did = localStorage.getItem('directoryId') || '';
-    var tid = localStorage.getItem('currentTerminalId') || '';
-    var dEls = document.querySelectorAll('.directoryId');
-    dEls.forEach(function(el){ el.textContent = did; });
-    var cEls = document.querySelectorAll('.configId');
-    cEls.forEach(function(el){ el.textContent = tid; });
-  } catch {}
+  // storage.js 是 defer 脚本，内联脚本先执行；直接调用会静默失败，
+  // 导致实例类型下拉框不回填（看起来「切换不生效」），甚至用空文档覆盖本地数据。
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      storage.init();
+      storage.initEnv();
+      // 当前实例的格式：优先用本机为该实例保存过的选择
+      storage.applyInstanceOutputMode(storage.currentTerminalId());
+      storage.syncVersionSelectors();
+      window.refreshFormatChecker && window.refreshFormatChecker();
+    } catch (e) { console.error('editor:cloud init failed', e); }
+    try { if (parent) parent.postMessage({ type: 'iframe-ready' }, '*'); } catch {}
+    try {
+      var did = localStorage.getItem('directoryId') || '';
+      var tid = localStorage.getItem('currentTerminalId') || '';
+      document.querySelectorAll('.directoryId').forEach(function (el) { el.textContent = did; });
+      document.querySelectorAll('.configId').forEach(function (el) { el.textContent = tid; });
+    } catch {}
+  });
 </script>
 </body>
 </html>
