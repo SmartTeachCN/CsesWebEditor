@@ -808,6 +808,19 @@ fluent-dialog {
   margin-left: 5px;
 }
 
+/*
+ * 编辑器底部的操作按钮行（克隆课表 / 保存为时间表 等）。
+ * 以前两个按钮裸放在 body 里、只有其中一个带 margin，看起来是错位的。
+ */
+.editor-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  margin-left: 5px;
+}
+
 #webTitle {
   margin: 0;
 }

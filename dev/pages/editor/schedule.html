@@ -28,6 +28,8 @@
   <script src="/assets/js-yaml.min.js"></script>
   <script src="/dev/scripts/cses.js" defer></script>
   <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/classisland.js" defer></script>
+  <script src="/dev/scripts/app-es.js" defer></script>
   <script src="/dev/scripts/schedule.js" defer></script>
   <script src="/dev/scripts/subject.js" defer></script>
   
@@ -125,10 +127,11 @@
     <div class="subject-grid"></div>
   </div>
 </div>
-<fluent-button onclick="schedule.clone()" style="margin-top: 1rem; margin-left: 5px">
-  克隆
-</fluent-button>
-<fluent-button appearance="accent" id="save-timetable-btn" onclick="schedule.createTimetableUI()">保存为时间表</fluent-button>
+<!-- 两个操作按钮放在同一个操作行里，间距/换行由 .editor-actions 统一控制 -->
+<div class="editor-actions">
+  <fluent-button onclick="schedule.clone()">克隆课表</fluent-button>
+  <fluent-button appearance="accent" id="save-timetable-btn" onclick="schedule.createTimetableUI()">保存为时间表</fluent-button>
+</div>
 <script>
   (function(){
     console.log('editor:schedule start');

@@ -28,13 +28,15 @@
   <script src="/assets/js-yaml.min.js"></script>
   <script src="/dev/scripts/cses.js" defer></script>
   <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/classisland.js" defer></script>
+  <script src="/dev/scripts/app-es.js" defer></script>
   
 </head>
 <body>
   <p class="pageTitle pageTitle_main2">导出设定</p>
   <h3 class="offline">本地导出</h3>
   <span class="offline">导出格式:</span><br class="offline" />
-  <select class="offline format-select" id="output-mode2" onchange="storage.outputSet()" title="选择导出格式">
+  <select class="offline format-select" id="output-mode2" onchange="storage.outputSet(this)" title="选择导出格式">
     <option value="cy1">CSES v1（YAML）</option>
     <option value="cy2">CSES v2（YAML）</option>
     <option value="ci">ClassIsland课表档案</option>

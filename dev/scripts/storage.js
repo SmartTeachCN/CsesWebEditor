@@ -84,21 +84,31 @@ function showStorageModal(content) {
 }
 
 /*
- * 给 fluent 自定义元素赋值。
+ * 给 fluent 自定义元素 / 原生控件赋值。
  *
  * 这些组件来自 CDN，升级（upgrade）时机晚于内联脚本；在升级前直接 `el.value = x`
  * 会在实例上创建一个「自有属性」，之后组件升级也无法读到该值（下拉框不回填、
- * 预览框空白）。这里先删掉可能存在的自有属性，再在组件定义就绪后重试一次。
+ * 预览框空白）。所以先删掉可能存在的自有属性，再在组件定义就绪后重试，
+ * 并在 200ms / 900ms 各补一次（组件从 CDN 到位的时机不固定）。
+ *
+ * 重试必须满足两点，否则多个同步调用会互相打架，表现为「选中项反复横跳」：
+ *   1. value 允许是函数：每次赋值都重新取值，重试不会把过期快照写回去；
+ *   2. 同一元素只保留最新一次调用的重试（token），被取代的旧重试直接丢弃。
  */
 function setFluentValue(el, value, propName) {
   if (!el) return;
   const prop = propName || 'value';
+  const resolve = () => (typeof value === 'function' ? value() : value);
+  const token = (el.__setValueToken = (el.__setValueToken || 0) + 1);
   const assign = () => {
+    // 已有更新的赋值请求，这次重试已过期，不能再覆盖界面
+    if (el.__setValueToken !== token) return;
+    const v = resolve();
     try {
       if (Object.prototype.hasOwnProperty.call(el, prop)) delete el[prop];
-      el[prop] = value;
+      el[prop] = v;
     } catch (e) {
-      try { el.setAttribute(prop === 'checked' ? 'checked' : 'value', String(value)); } catch {}
+      try { el.setAttribute(prop === 'checked' ? 'checked' : 'value', String(v)); } catch {}
     }
   };
   assign();
@@ -258,6 +268,10 @@ const storage = {
   // 切换导出格式（cy1 / cy2 / ci / es），CSES 模式下同步文档版本
   setOutputMode(mode, opts) {
     this.ensureInit();
+    // 空值 / 未知值不能被 normalizeOutputMode 悄悄降级成 cy1，
+    // 否则一次「空下拉框」的误调用就会把实例类型改掉。
+    if (mode === undefined || mode === null || mode === '') return this.getOutputMode();
+    if (OUTPUT_MODES.indexOf(mode) === -1 && mode !== 'cy' && mode !== 'cj') return this.getOutputMode();
     const m = normalizeOutputMode(mode, this.docVersion());
     try { localStorage.setItem('output-mode', m); } catch {}
     if (isCsesOutputMode(m)) {
@@ -302,14 +316,36 @@ const storage = {
   },
   /**
    * 回填下拉框（导出格式、CSES 版本）与预览框。
-   * fluent 组件来自 CDN，升级时机不确定，统一走 setFluentValue 反复对齐。
+   * fluent 组件来自 CDN，升级时机不确定，统一走 setFluentValue 反复对齐；
+   * 传函数而不是当时的值，保证延迟重试写回的是「当前」而不是过期快照。
+   *
+   * 注意：实例页的「实例类型」下拉（#output-mode[data-instance-type]）不在这里回填，
+   * 它要显示的是「当前实例的记录」，走 syncInstanceTypeSelectors()。
    */
   syncVersionSelectors() {
-    const version = String(this.getCsesVersion());
-    document.querySelectorAll('#cses-version, .cses-version-select').forEach((el) => setFluentValue(el, version));
+    document.querySelectorAll('#cses-version, .cses-version-select').forEach((el) => {
+      setFluentValue(el, () => String(this.getCsesVersion()));
+    });
     // 导出格式下拉框（含历史值 cy / cj 的迁移）
-    document.querySelectorAll('#output-mode, #output-mode2, #doc-output-mode, .output-mode-select').forEach((el) => {
-      setFluentValue(el, this.getOutputMode());
+    document.querySelectorAll('#output-mode2, #doc-output-mode, .output-mode-select').forEach((el) => {
+      setFluentValue(el, () => this.getOutputMode());
+    });
+  },
+  /**
+   * 实例页专用：把「实例类型」下拉回填成该实例在本机的记录。
+   *
+   * 没有记录时显示「跟随实例配置」（空值）而不是别的实例留下的全局值 ——
+   * 否则刷新 / 切换实例时会先显示成上一个实例的类型，看起来像类型在反复横跳，
+   * 也容易出现「刷新后显示错误」。
+   */
+  syncInstanceTypeSelectors() {
+    const resolves = () => {
+      const id = this.currentTerminalId();
+      const rec = id ? this.getInstanceMode(id) : null;
+      return rec || '';
+    };
+    document.querySelectorAll('#output-mode[data-instance-type], .instance-type-select').forEach((el) => {
+      setFluentValue(el, resolves);
     });
   },
   // 预览框统一入口（避免在 fluent-text-area 升级前写入而丢失内容）
@@ -396,18 +432,42 @@ const storage = {
     if (isCsesOutputMode(m)) {
       text = jsyaml.dump(this.buildDoc(csesModeVersion(m)));
     } else if (m === 'ci') {
-      text = JSON.stringify(CsestoCiFromat(this.buildData()), null, 2);
+      // classisland.js 里才有 CsestoCiFromat；缺失时不能把整个初始化流程打断
+      // （实例页 initEnv 抛异常会让后面的「实例类型」回填整段被跳过）
+      if (typeof CsestoCiFromat === 'function') text = JSON.stringify(CsestoCiFromat(this.buildData()), null, 2);
+      else console.warn('CsestoCiFromat 未加载，跳过 ClassIsland 预览');
     } else if (m === 'es') {
-      text = JSON.stringify(es_procees(this.buildData()), null, 2);
+      if (typeof es_procees === 'function') text = JSON.stringify(es_procees(this.buildData()), null, 2);
+      else console.warn('es_procees 未加载，跳过 ExamSchedule 预览');
     }
     this.setPreviewText(text);
     return text;
   },
-  outputSet() {
+  /**
+   * 用户在「实例类型 / 导出格式」下拉框里选择后调用。
+   *
+   * 可以用 onchange="storage.outputSet(this)" 把发生变化的控件传进来；不传时按
+   * 在线 / 离线两个下拉框逐个取值。空值代表「跟随实例配置」（实例页的占位项），
+   * 这时不改动任何格式 —— 以前空值会被归一化成 cy1，导致类型莫名被改掉。
+   */
+  outputSet(sourceEl) {
     this.ensureInit();
     const selOnline = document.getElementById("output-mode");
     const selOffline = document.getElementById("output-mode2");
-    const modeRaw = selOnline?.value ?? selOffline?.value ?? localStorage.getItem("output-mode") ?? "cy1";
+    const candidates = [sourceEl, selOnline, selOffline];
+    let modeRaw;
+    for (let i = 0; i < candidates.length; i++) {
+      const el = candidates[i];
+      if (!el || typeof el.value !== 'string' || el.value === '') continue;
+      modeRaw = el.value;
+      break;
+    }
+    if (modeRaw === undefined) {
+      // 只有「跟随实例配置」这一个可选值（或控件还没回填）：保持现状
+      if (sourceEl && sourceEl.value === '') return this.getOutputMode();
+      modeRaw = localStorage.getItem("output-mode");
+    }
+    if (!modeRaw) return this.getOutputMode();
     const mode = normalizeOutputMode(modeRaw, this.docVersion());
     localStorage.setItem("output-mode", mode);
     this.setInstanceMode(null, mode);
@@ -431,6 +491,8 @@ const storage = {
       }
     } catch (e) { console.warn("controlMgr.init failed", e); }
     this.renderPreview(mode);
+    // 实例页的类型下拉要显示「该实例的记录」，用专用入口回填
+    this.syncInstanceTypeSelectors();
     this.syncVersionSelectors();
     // 导出格式切换后，格式检查器可能需要在 CSES / 非 CSES 之间显示或隐藏
     try { window.refreshFormatChecker && window.refreshFormatChecker(); } catch (e) {}
@@ -668,7 +730,13 @@ const file = {
       console.log("导入格式:" + format);
 
       // 归一化：时间统一 HH:MM:SS、enable_day 统一为数组、v2 location -> room、补全 configuration
-      tempData = csesToInternal(data);
+      // ExamSchedule 文件只有 examInfos，需先按日期还原成「课表 + 课时」，
+      // 否则档案页面没有任何可编辑内容，保存/导出还会把考试信息整段丢掉。
+      if (format2 === 'es' && typeof es_to_internal === 'function') {
+        tempData = csesToInternal(es_to_internal(data));
+      } else {
+        tempData = csesToInternal(data);
+      }
       let unknownSubjects = [];
       let knownSubjects = [];
       // 未知科目检查 + 格式检查

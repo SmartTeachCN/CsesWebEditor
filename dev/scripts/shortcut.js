@@ -36,13 +36,14 @@ document.addEventListener("keydown", (e) => {
       const currentView = document.querySelector(".activity-item.selected")
         .dataset.view;
       if (currentView === "schedule") {
-        const index = Array.from(
+        // 列表首项是「表格视图」（非 ES 模式），它不是课表，必须排除，
+        // 否则按下标 splice 会删错课表。
+        const items = Array.from(
           document.querySelectorAll("#schedule-list .explorer-item")
-        ).indexOf(activeItem);
+        ).filter((el) => el.dataset && el.dataset.kind !== 'table');
+        const index = items.indexOf(activeItem);
         if (index !== -1) {
-          currentData.schedules.splice(index, 1);
-          storage.save();
-          schedule.init();
+          if (schedule.removeScheduleAt(index)) schedule.init();
         }
       } else if (currentView === "subject") {
         const index = Array.from(
@@ -51,7 +52,8 @@ document.addEventListener("keydown", (e) => {
         if (index !== -1) {
           currentData.subjects.splice(index, 1);
           storage.save();
-          storage.init(currentIndex);
+          try { window.markUnsynced && window.markUnsynced(); } catch {}
+          if (typeof subjects !== "undefined" && subjects.init) subjects.init();
         }
       } else if (currentView === "cloud") {
         const index = Array.from(

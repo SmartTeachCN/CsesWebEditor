@@ -84,7 +84,9 @@ const terminal = {
       const st = win && win.storage;
       if (st && typeof st.applyInstanceOutputMode === 'function') {
         st.applyInstanceOutputMode(st.currentTerminalId ? st.currentTerminalId() : localStorage.getItem('currentTerminalId'));
-        st.syncVersionSelectors();
+        // 实例类型下拉显示的是「该实例的记录」，没有记录时显示「跟随实例配置」
+        if (typeof st.syncInstanceTypeSelectors === 'function') st.syncInstanceTypeSelectors();
+        else st.syncVersionSelectors();
       }
     } catch (e) { console.warn('syncEditorType failed', e); }
   },

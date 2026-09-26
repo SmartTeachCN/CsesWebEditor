@@ -23,6 +23,8 @@
   <script src="/assets/js-yaml.min.js"></script>
   <script src="/dev/scripts/cses.js" defer></script>
   <script src="/dev/scripts/storage.js" defer></script>
+  <script src="/dev/scripts/classisland.js" defer></script>
+  <script src="/dev/scripts/app-es.js" defer></script>
   <script type="module">
     import { baseLayerLuminance, StandardLuminance, allComponents, provideFluentDesignSystem } from 'https://npm.elemecdn.com/@fluentui/web-components';
     provideFluentDesignSystem().register(allComponents);
@@ -84,7 +86,9 @@
   </div>
   <div class="right-section">
     <!-- 用原生 select：fluent-select 在 CDN 组件升级前赋值不会体现在界面上（会显示第一项） -->
-    <select id="output-mode" class="format-select" onchange="storage.outputSet()" title="选择导出格式">
+    <select id="output-mode" class="format-select" data-instance-type="1" onchange="storage.outputSet(this)" title="选择导出格式">
+      <!-- 没有本机记录时不谎报类型：显式表示「跟随实例配置」，避免显示成别的实例的类型 -->
+      <option value="">跟随实例配置</option>
       <option value="cy1">通用CSES v1（YAML）</option>
       <option value="cy2">通用CSES v2（YAML）</option>
       <option value="ci">ClassIsland静态集控</option>
@@ -143,12 +147,17 @@
     const syncFromStorage = () => {
       try {
         storage.applyInstanceOutputMode(storage.currentTerminalId());
-        storage.syncVersionSelectors();
+        // 实例页只看「本实例的记录」：没有记录就显示「跟随实例配置」，
+        // 不要显示别的实例留下的全局值（那是类型反复横跳 / 刷新后显示错误的根源）
+        if (typeof storage.syncInstanceTypeSelectors === 'function') storage.syncInstanceTypeSelectors();
+        else storage.syncVersionSelectors();
       } catch (e) { console.warn('sync instance type failed', e); }
     };
+    // 预览渲染失败（例如转换脚本未加载）不应打断后面的实例类型回填
+    const safeInitEnv = () => { try { storage.initEnv(); } catch (e) { console.warn('initEnv failed', e); } };
     try {
       storage.init();
-      storage.initEnv();
+      safeInitEnv();
       // 当前实例的格式：优先用本机为该实例保存过的选择
       syncFromStorage();
       window.refreshFormatChecker && window.refreshFormatChecker();

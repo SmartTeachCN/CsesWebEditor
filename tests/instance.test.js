@@ -231,7 +231,8 @@ try {
     const el = w.document.getElementById('output-mode');
     assert.ok(el, '找不到 #output-mode');
     assert.strictEqual(el.tagName, 'SELECT');
-    assert.strictEqual(el.querySelectorAll('option').length, 4);
+    // 4 个真实类型 + 1 个「跟随实例配置」占位项（没有本机记录时不谎报类型）
+    assert.strictEqual(el.querySelectorAll('option').length, 5);
   });
   check('初始选中项 = 当前实例记录的类型（不是第一项）', () => {
     assert.strictEqual(w.document.getElementById('output-mode').value, 'ci');
@@ -242,24 +243,41 @@ try {
     assert.strictEqual(w.document.getElementById('output-mode').value, 'es');
     assert.strictEqual(run('storage.getOutputMode()'), 'es');
   });
+  check('没有记录的实例显示「跟随实例配置」，不显示别的实例的类型', () => {
+    w.localStorage.setItem('currentTerminalId', 'inst-new');
+    w.localStorage.setItem('output-mode', 'es'); // 上一个实例留下的全局值
+    w.dispatchEvent(new w.StorageEvent('storage', { key: 'currentTerminalId' }));
+    assert.strictEqual(w.document.getElementById('output-mode').value, '');
+    assert.strictEqual(w.localStorage.getItem('output-mode'), 'es', '全局格式不该被无依据地改写');
+    w.localStorage.setItem('currentTerminalId', 'inst-b');
+    w.dispatchEvent(new w.StorageEvent('storage', { key: 'currentTerminalId' }));
+    assert.strictEqual(w.document.getElementById('output-mode').value, 'es');
+  });
   check('刷新（重新初始化）后仍是该实例的类型', () => {
-    run('storage.init(); storage.applyInstanceOutputMode(storage.currentTerminalId()); storage.syncVersionSelectors();');
+    run('storage.init(); storage.applyInstanceOutputMode(storage.currentTerminalId()); storage.syncInstanceTypeSelectors();');
     assert.strictEqual(w.document.getElementById('output-mode').value, 'es');
   });
   check('手动改选后写入实例记录并回填', () => {
     const el = w.document.getElementById('output-mode');
     // jsdom 的 outside-only 模式不会编译 HTML 内联事件，这里直接调用它对应的处理逻辑
-    assert.strictEqual(el.getAttribute('onchange'), 'storage.outputSet()');
+    assert.strictEqual(el.getAttribute('onchange'), 'storage.outputSet(this)');
     el.value = 'cy2';
-    run('storage.outputSet();');
+    run('storage.outputSet(document.getElementById("output-mode"));');
     assert.strictEqual(run('storage.getOutputMode()'), 'cy2');
     const map = JSON.parse(w.localStorage.getItem('cses-instance-modes'));
     assert.strictEqual(map['inst-b'], 'cy2');
     assert.strictEqual(w.document.getElementById('output-mode').value, 'cy2');
   });
+  check('空值不会被降级成 cy1（「跟随实例配置」是合法状态）', () => {
+    run('storage.outputSet(document.getElementById("output-mode"));'); // 当前是 cy2
+    assert.strictEqual(run('storage.getOutputMode()'), 'cy2');
+    run('storage.setOutputMode(""); storage.setOutputMode(undefined); storage.setOutputMode("bogus");');
+    assert.strictEqual(run('storage.getOutputMode()'), 'cy2');
+  });
   check('文档与旧链接兼容：实例类型选项与后端约定一致', () => {
     const values = Array.from(w.document.querySelectorAll('#output-mode option')).map((o) => o.value);
-    assert.deepStrictEqual(values, ['cy1', 'cy2', 'ci', 'es']);
+    // 首位空值是「跟随实例配置」占位，其余四个值与后端 / 旧链接约定一致
+    assert.deepStrictEqual(values, ['', 'cy1', 'cy2', 'ci', 'es']);
   });
 
   w.close();

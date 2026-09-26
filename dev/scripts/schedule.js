@@ -67,6 +67,41 @@ const timetableTemplates = [
 function saveTimetableState(){ try{ localStorage.setItem(TIMETABLE_LOCAL_KEY, JSON.stringify(timetableState)); }catch{} }
 
 /*
+ * timetableState.schedules 是「按课表下标」保存的时间表选择结果。
+ * 新增 / 删除课表时必须同步搬移，否则：
+ *   - 新建的课表会继承上一张课表的时间表标签（列表里莫名出现「标准8节」）；
+ *   - 保存模板时会按错位的下标，把课时时间套用到从没选过该模板的课表上。
+ */
+function pruneTimetableState() {
+  try {
+    const st = timetableState.schedules || (timetableState.schedules = {});
+    const len = Array.isArray(currentData.schedules) ? currentData.schedules.length : 0;
+    Object.keys(st).forEach((k) => {
+      const i = parseInt(k, 10);
+      if (isNaN(i) || i < 0 || i >= len) delete st[i];
+    });
+  } catch (e) { console.warn('pruneTimetableState failed', e); }
+}
+function resetTimetableStateAt(index) {
+  try {
+    const st = timetableState.schedules || (timetableState.schedules = {});
+    st[index] = { templateName: '', modified: false };
+  } catch (e) { console.warn('resetTimetableStateAt failed', e); }
+}
+function removeTimetableStateAt(index) {
+  try {
+    const st = timetableState.schedules || {};
+    const next = {};
+    Object.keys(st).forEach((k) => {
+      const i = parseInt(k, 10);
+      if (isNaN(i) || i === index) return;
+      next[i > index ? i - 1 : i] = st[k];
+    });
+    timetableState.schedules = next;
+  } catch (e) { console.warn('removeTimetableStateAt failed', e); }
+}
+
+/*
  * 以「文档」（localStorage 里的 csesData）为准重建内存中的时间表模板。
  *
  * 这一步原来只写在 schedule.init() 里，而时间表编辑器页面（time.html）从不调用
@@ -236,6 +271,8 @@ const schedule = {
   init() {
     // 时间表模板以文档为准重建（含 time.html 等不调用 init 的编辑器页共用）
     try { syncTimetablesFromData(); } catch (e) { console.warn('sync timetables on init failed', e); }
+    // 丢掉已不存在课表留下的时间表选择（否则标签会串到别的课表上）
+    pruneTimetableState();
     const container = document.getElementById("schedule-list");
     if (!container) {
       try {
@@ -252,6 +289,8 @@ const schedule = {
     if (storage.getOutputMode() == "es") { } else {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
+      // 标记成「非课表项」：快捷键删除 / 下标换算都要跳过它
+      div.dataset.kind = 'table';
       div.innerHTML = `<i class="bi bi-table"></i> 表格视图`;
       div.addEventListener("click", () => {
         schedule.openTableView(true);
@@ -265,6 +304,8 @@ const schedule = {
     currentData.schedules.forEach((schedule2, index) => {
       const div = document.createElement("fluent-option");
       div.className = "explorer-item";
+      div.dataset.kind = 'schedule';
+      div.dataset.scheduleIndex = String(index);
       // 使用flex以便右侧显示标签
       div.style.display = 'flex';
       div.style.width = '100%';
@@ -289,17 +330,13 @@ const schedule = {
       div.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         const label = this.scheduleLabel(schedule2, index) || `无规则计划 ${index + 1}`;
-        confirm(
-          `确定要删除计划 ${label} 吗？`,
-          (result, idx) => {
-            if (result) {
-              currentData.schedules.splice(idx, 1);
-              storage.save();
-              schedule.init();
-            }
-          },
-          index
-        );
+        confirm(`确定要删除计划 ${label} 吗？`, (result) => {
+          if (!result) return;
+          // 按对象标识定位：回调参数缺失时直接用它有误删第一项的风险
+          const byIdentity = currentData.schedules.indexOf(schedule2);
+          const removeAt = byIdentity !== -1 ? byIdentity : index;
+          if (schedule.removeScheduleAt(removeAt)) schedule.init();
+        });
       });
       if (index === currentScheduleIndex) {
         div.classList.add("selected");
@@ -604,15 +641,40 @@ const schedule = {
     storage.save();
     this.refresh();
   },
+  // 删除课表：内存、时间表选择状态、当前下标一起搬移，避免下标错位
+  removeScheduleAt(index) {
+    if (!Array.isArray(currentData.schedules)) return false;
+    if (index < 0 || index >= currentData.schedules.length) return false;
+    currentData.schedules.splice(index, 1);
+    removeTimetableStateAt(index);
+    if (currentScheduleIndex === index) currentScheduleIndex = -1;
+    else if (currentScheduleIndex > index) currentScheduleIndex -= 1;
+    pruneTimetableState();
+    saveTimetableState();
+    storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
+    return true;
+  },
   add() {
+    const isES = storage.getOutputMode() === "es";
+    const today = new Date().toISOString().slice(0, 10);
     const newSchedule = {
       name: "无规则计划",
       classes: [],
       weeks: "all",
       enable_day: [1],
     };
-    if (storage.getCsesVersion() === 2) newSchedule.name = this.autoScheduleName([1], 'all');
+    if (isES) {
+      // ExamSchedule：一张课表对应一个考试日期，必须带日期
+      newSchedule.date = today;
+      newSchedule.name = today;
+    } else if (storage.getCsesVersion() === 2) {
+      newSchedule.name = this.autoScheduleName([1], 'all');
+    }
     currentData.schedules.push(newSchedule);
+    // 新位置不能沿用旧下标残留的时间表选择
+    resetTimetableStateAt(currentData.schedules.length - 1);
+    saveTimetableState();
     storage.save();
     this.init();
   },
@@ -800,17 +862,31 @@ const schedule = {
     this.updateTimetableLabel();
   },
   clone() {
-    const newSchedule = JSON.parse(
-      JSON.stringify(currentData.schedules[currentScheduleIndex])
-    );
-    newSchedule.name = "无规则计划";
+    const src = currentData.schedules[currentScheduleIndex];
+    if (!src) return;
+    const newSchedule = JSON.parse(JSON.stringify(src));
+    newSchedule.name = storage.getOutputMode() === "es" && newSchedule.date
+      ? newSchedule.date
+      : "无规则计划";
     newSchedule.enable_day = csesDays(newSchedule.enable_day);
     newSchedule.weeks = newSchedule.weeks || 'all';
     currentData.schedules.push(newSchedule);
+    resetTimetableStateAt(currentData.schedules.length - 1);
+    saveTimetableState();
     storage.save();
+    try { window.markUnsynced && window.markUnsynced(); } catch {}
     this.init();
   },
   fastFillUI() {
+    if (storage.getOutputMode() === "es") {
+      alert(
+        `<b>提示:</b> ExamSchedule 里一张课表对应一个考试日期，不能按周一~周日批量生成。<br>
+  请在「课程表」标签里逐张新建课表，并填写该场考试的日期（同一天的多场考试加在同一张课表里）。
+  `,
+        "快速填充课程表"
+      );
+      return;
+    }
     alert(
       `<b>提示:</b> 本功能将会自动填充当前课程表中的所有课程，您可以在下方选择填充的科目。
   <br>
@@ -820,6 +896,10 @@ const schedule = {
     );
   },
   fastFill() {
+    if (storage.getOutputMode() === "es") {
+      alert("ExamSchedule 模式不支持批量生成通用周课表，请按日期逐张新建");
+      return;
+    }
     const subjects = currentData.subjects;
     if (subjects.length === 0) {
       alert("请先添加科目");
@@ -838,7 +918,9 @@ const schedule = {
       };
 
       currentData.schedules.push(newSchedule);
+      resetTimetableStateAt(currentData.schedules.length - 1);
     });
+    saveTimetableState();
 
     storage.save();
     try { window.markUnsynced && window.markUnsynced(); } catch {}
@@ -908,6 +990,10 @@ const schedule = {
   loadTimetableOptions() {
     const sel = document.getElementById('timetable-mode');
     if (!sel) return;
+    const prev = sel.value;
+    // 时间表可能在另一个 iframe（时间表编辑器）里刚保存过，而本编辑器不会因此重载：
+    // 每次重建选项都先从文档重新同步一次，避免「刚保存的时间表不出现在下拉里」。
+    try { syncTimetablesFromData(); } catch (e) { console.warn('sync timetables for select failed', e); }
     sel.innerHTML = '';
     const noneOpt = document.createElement('fluent-option');
     noneOpt.value = '';
@@ -919,8 +1005,26 @@ const schedule = {
       opt.textContent = t.name;
       sel.appendChild(opt);
     });
+    // 优先显示当前课表选中的模板；重建时保留用户当前的选择
     const st = timetableState.schedules[currentScheduleIndex];
-    sel.value = st?.templateName || '';
+    const wanted = (st && st.templateName) ? st.templateName : prev;
+    const exists = wanted && Array.from(sel.children).some((o) => o.value === wanted);
+    sel.value = exists ? wanted : '';
+    this.bindTimetableSelectRefresh(sel);
+  },
+  /*
+   * 下拉框在编辑器 iframe 里是「打开时」才用到的；在真正展开之前再同步一次，
+   * 这样即便本 iframe 一直没重载，也能看到别处新保存 / 改名的时间表。
+   * 用 pointerenter（点击前）与 focus，避免在展开过程中重建选项。
+   */
+  bindTimetableSelectRefresh(sel) {
+    if (!sel || sel.__timetableRefreshBound) return;
+    sel.__timetableRefreshBound = true;
+    const refresh = () => { try { schedule.loadTimetableOptions(); } catch (e) { console.warn('refresh timetable options failed', e); } };
+    try {
+      sel.addEventListener('pointerenter', refresh);
+      sel.addEventListener('focus', refresh);
+    } catch (e) { console.warn('bind timetable select refresh failed', e); }
   },
   applyTimetableFromSelect(name) {
     if (!name) return; // 选择未选择则不应用
@@ -1050,27 +1154,27 @@ const schedule = {
   },
   toggleTimeEditor() {
     timeEditorCollapsed = !timeEditorCollapsed;
+    this.applyTimeEditorVisibility();
+  },
+  /*
+   * 「课时编辑器」= 起止时间输入框，可折叠。
+   * 「添加课时 / 删除当前」是课时列表操作，不属于课时编辑器，必须始终可见：
+   * 之前默认把它们一起隐藏，打开课表编辑看起来像没法加课。
+   */
+  applyTimeEditorVisibility() {
     document.querySelectorAll('.time-input').forEach((el) => {
       el.style.display = timeEditorCollapsed ? 'none' : 'inline-block';
     });
-    const addBtn = document.getElementById('add-class-btn');
-    const delBtn = document.getElementById('del-class-btn');
-    if (addBtn) addBtn.style.display = timeEditorCollapsed ? 'none' : 'inline-block';
-    if (delBtn) delBtn.style.display = timeEditorCollapsed ? 'none' : 'inline-block';
+    ['add-class-btn', 'del-class-btn'].forEach((id) => {
+      const btn = document.getElementById(id);
+      if (btn) btn.style.display = 'inline-block';
+    });
     const btn = document.getElementById('toggle-time-editor');
     if (btn) btn.textContent = timeEditorCollapsed ? '显示课时编辑器' : '收起课时编辑器';
   },
   ensureTimeEditorCollapsedDefault() {
     timeEditorCollapsed = true;
-    document.querySelectorAll('.time-input').forEach((el) => {
-      el.style.display = 'none';
-    });
-    const addBtn = document.getElementById('add-class-btn');
-    const delBtn = document.getElementById('del-class-btn');
-    if (addBtn) addBtn.style.display = 'none';
-    if (delBtn) delBtn.style.display = 'none';
-    const btn = document.getElementById('toggle-time-editor');
-    if (btn) btn.textContent = '显示课时编辑器';
+    this.applyTimeEditorVisibility();
   },
   // 根据输出模式与 CSES 版本切换卡片显示
   toggleOutputCards() {
@@ -1079,6 +1183,8 @@ const schedule = {
   renderTimetableList() {
     const panel = document.getElementById('timetable-list');
     if (!panel) return;
+    // 模板可能刚在时间表编辑器 iframe 里改过，列表以文档为准重建
+    try { syncTimetablesFromData(); } catch (e) { console.warn('sync timetables for list failed', e); }
     panel.innerHTML = '';
     if (customTimetables.length === 0) {
       const empty = document.createElement('fluent-option');
@@ -1431,6 +1537,9 @@ const schedule = {
       const st = stAll[k];
       if (!st || st.templateName !== name || st.modified) return;
       const sch = currentData.schedules[idx];
+      // 双保险：课表自己也要记着用的是这张模板。否则下标一旦错位，
+      // 会把课时时间套用到从没选过该模板的课表上（静默改掉别人的时间）。
+      if (sch && sch.timetable_name !== name) return;
       if (!sch) return;
       const tmplLen = times.length;
       const beforeLen = (sch.classes || []).length;
