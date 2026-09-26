@@ -1,23 +1,37 @@
 {
   "manifestTemplete": {
     "ServerKind": 0,
+    "CoreVersion": "2.0.0.0",
     "OrganizationName": "CSES Cloud ({eid})",
+    "ClassPlanSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=ClassPlans",
+      "Version": "{updateTime}"
+    },
+    "TimeLayoutSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=TimeLayouts",
+      "Version": "{updateTime}"
+    },
     "SubjectsSource": {
       "Value": "{host}?format=ci&id={eid}/{id}&key=Subjects",
       "Version": "{updateTime}"
     },
-    "ClassPlansSource": {
-      "Value": "{host}?format=ci&id={eid}/{id}&key=ClassPlans",
+    "DefaultSettingsSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=Settings",
       "Version": "{updateTime}"
     },
-    "TimeLayoutsSource": {
-      "Value": "{host}?format=ci&id={eid}/{id}&key=&key=TimeLayouts",
+    "PolicySource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=Policy",
+      "Version": "{updateTime}"
+    },
+    "CredentialSource": {
+      "Value": "{host}?format=ci&id={eid}/{id}&key=Credentials",
       "Version": "{updateTime}"
     }
   },
   "globalSettings": {
     "enableDirectoryScan": true,
     "defaultServerKind": 0,
+    "coreVersion": "2.0.0.0",
     "organizationNameTemplate": "CSES Cloud ({eid})"
   }
 }

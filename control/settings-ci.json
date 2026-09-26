@@ -13,7 +13,8 @@
         "extraKey.Policy.DisableSettingsEditing",
         "extraKey.Policy.DisableSplashCustomize",
         "extraKey.Policy.DisableDebugMenu",
-        "extraKey.Policy.AllowExitManagement"
+        "extraKey.Policy.AllowExitManagement",
+        "extraKey.Policy.DisableEasterEggs"
       ]
     },
         {
@@ -70,7 +71,6 @@
       "icon": "bi-cpu",
       "settings": [
         "extraKey.settings.HideMode",
-        "extraKey.settings.HiedRules",
         "extraKey.settings.HideOnFullscreen",
         "extraKey.settings.ExcludedFullscreenWindow"
       ]
@@ -265,10 +265,10 @@
       "name": "选择配置文件",
       "description": "选择当前使用的配置文件",
       "icon": "bi-file-earmark-text",
-      "default": "schedule.json",
+      "default": "Default.json",
       "options": [
         {
-          "value": "schedule.json",
+          "value": "Default.json",
           "label": "默认配置"
         }
       ]
@@ -331,21 +331,21 @@
       "type": "select",
       "keyPath": "extraKey.settings.Theme",
       "name": "主题",
-      "description": "选择应用的主题",
+      "description": "选择应用的主题（ClassIsland 2.0：跟随系统 / 浅色 / 深色）",
       "icon": "bi-palette",
       "default": 2,
       "options": [
         {
           "value": 0,
-          "label": "浅色主题"
+          "label": "跟随系统"
         },
         {
           "value": 1,
-          "label": "深色主题"
+          "label": "浅色主题"
         },
         {
           "value": 2,
-          "label": "系统默认"
+          "label": "深色主题"
         }
       ]
     },
@@ -353,9 +353,9 @@
       "type": "text",
       "keyPath": "extraKey.settings.MainWindowFont",
       "name": "主窗口字体",
-      "description": "设置主窗口的字体",
+      "description": "设置主窗口的字体（Avalonia 字体标识）",
       "icon": "bi-type-bold",
-      "default": "/ClassIsland;component/Assets/Fonts/#HarmonyOS Sans SC",
+      "default": "avares://ClassIsland/Assets/Fonts/#HarmonyOS Sans SC",
       "placeholder": "请输入字体路径"
     },
     {
@@ -526,6 +526,14 @@
       "description": "允许退出集控",
       "icon": "bi-door-open",
       "default": true
+    },
+    {
+      "type": "bool",
+      "keyPath": "extraKey.Policy.DisableEasterEggs",
+      "name": "禁用彩蛋",
+      "description": "禁用应用内的彩蛋功能（ClassIsland 2.0 新增）",
+      "icon": "bi-egg",
+      "default": false
     }
   ]
 }

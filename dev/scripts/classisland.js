@@ -6,6 +6,49 @@ function guid() {
   });
 }
 
+// 时间统一为 HH:MM:SS
+function ciNormTime(value) {
+  try { if (window.cses) return window.cses.normalizeTime(value); } catch {}
+  return (value === undefined || value === null) ? '' : String(value);
+}
+// 启用日统一为整数数组
+function ciNormDays(value) {
+  try { if (window.cses) return window.cses.normalizeEnableDay(value); } catch {}
+  const arr = Array.isArray(value) ? value : (value === undefined || value === null || value === '' ? [] : [value]);
+  return arr.map(function (x) { return parseInt(x, 10); }).filter(function (n) { return n >= 1 && n <= 7; });
+}
+
+// 时间统一为 HH:MM:SS（补零），ClassIsland 2.0 的时间点为 TimeSpan，必须是这个格式
+function ciSpanTime(value) {
+  const t = ciNormTime(value);
+  const m = typeof t === 'string' ? t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/) : null;
+  if (!m) return '';
+  return String(m[1]).padStart(2, '0') + ':' + m[2] + ':' + (m[3] || '00');
+}
+
+// 时间点字段。ClassIsland 2.0 使用 TimeSpan（StartTime/EndTime），
+// 同时输出旧版的 StartSecond/EndSecond（ISO 日期时间），以兼容 2.0 之前的客户端。
+function ciTimePointFields(start, end) {
+  return {
+    StartTime: start,
+    EndTime: end,
+    StartSecond: `2025-01-01T${start}`,
+    EndSecond: `2025-01-01T${end}`,
+  };
+}
+
+// 从 ClassIsland 时间点中取出 HH:MM:SS，兼容 2.0（TimeSpan）与旧版（ISO 日期时间）
+function ciTimeOfTimePoint(item, field) {
+  if (!item || typeof item !== 'object') return '';
+  const span = field === 'start' ? item.StartTime : item.EndTime;
+  const spanTime = ciSpanTime(span);
+  if (spanTime) return spanTime;
+  const legacy = field === 'start' ? item.StartSecond : item.EndSecond;
+  const m = typeof legacy === 'string' ? legacy.match(/T?(\d{2}):(\d{2})(?::(\d{2}))?/) : null;
+  if (!m) return '';
+  return m[1] + ':' + m[2] + ':' + (m[3] || '00');
+}
+
 // ClassIsland格式转CSES
 function CiToCsesFromat(target) {
   try {
@@ -33,6 +76,7 @@ function CiToCsesFromat(target) {
     for (const classPlanId in target.ClassPlans) {
       const classPlan = target.ClassPlans[classPlanId];
       const timeLayout = target.TimeLayouts[classPlan.TimeLayoutId];
+      if (!timeLayout) continue;
 
       const schedule = {
         uuid: classPlanId, // 添加ClassPlan的uuid
@@ -45,22 +89,16 @@ function CiToCsesFromat(target) {
       };
 
       // 处理课程时间布局
-      timeLayout.Layouts.forEach((layout) => {
+      (timeLayout.Layouts || []).forEach((layout) => {
         const subjectName = subjectMap[layout.DefaultClassId];
         if (subjectName && layout.TimeType === 0) {
-          // 处理时间格式并转换
-          const defaultTime = new Date('2025-01-01T00:00:00');
-          let startTime = new Date(layout.StartSecond || defaultTime);
-          let endTime = new Date(layout.EndSecond || defaultTime);
-          if (startTime == "Invalid Date") startTime = defaultTime;
-          if (endTime == "Invalid Date") endTime = defaultTime;
-          startTime.setHours(startTime.getHours() + 8);
-          endTime.setHours(endTime.getHours() + 8);
-
+          const startTime = ciTimeOfTimePoint(layout, 'start');
+          const endTime = ciTimeOfTimePoint(layout, 'end');
+          if (!startTime || !endTime) return;
           schedule.classes.push({
             subject: subjectName,
-            start_time: startTime.toISOString().split("T")[1].split(".")[0],
-            end_time: endTime.toISOString().split("T")[1].split(".")[0],
+            start_time: ciNormTime(startTime),
+            end_time: ciNormTime(endTime),
           });
         }
       });
@@ -86,7 +124,7 @@ function CsestoCiFromat(target) {
 
     // 处理Subjects，优先使用现有的uuid
     const subjectMap = {};
-    target.subjects.forEach((subject) => {
+    (target.subjects || []).forEach((subject) => {
       const subjectId = subject.uuid || guid(); // 复用现有uuid
       subjectMap[subject.name] = subjectId;
       outputJson.Subjects[subjectId] = {
@@ -97,10 +135,14 @@ function CsestoCiFromat(target) {
       };
     });
 
+    outputJson.extraKey = outputJson.extraKey || {};
+    outputJson.extraKey.TimetableMap = outputJson.extraKey.TimetableMap || {};
+
     // 处理Schedules，复用ClassPlan和TimeLayout的uuid
-    target.schedules.forEach((schedule) => {
+    (target.schedules || []).forEach((schedule) => {
       const timeLayoutId = schedule.time_layout_uuid || guid(); // 复用TimeLayout uuid
-      const classPlanId = schedule.uuid || guid(); // 复用ClassPlan uuid
+      const days = ciNormDays(schedule.enable_day);
+      const dayList = days.length ? days : [1];
 
       // 创建时间布局
       const timeLayout = {
@@ -112,55 +154,56 @@ function CsestoCiFromat(target) {
         timeLayout.TimetableName = schedule.timetable_name;
       }
 
-      // 创建课程计划
-      const classPlan = {
-        TimeLayoutId: timeLayoutId,
-        TimeRule: {
-          WeekDay: schedule.enable_day == 7 ? 0 : schedule.enable_day,
-          WeekCountDiv: schedule.weeks === "even" ? 2 :
-            schedule.weeks === "odd" ? 1 : 0,
-          WeekCountDivTotal: (schedule.weeks === "even" || schedule.weeks === "odd") ? 2 : 0,
-          IsActive: false,
-        },
-        Classes: [],
-        Name: schedule.name,
-        IsOverlay: false,
-        IsEnabled: true,
-      };
-      // 将所选时间表名称写入课程计划的额外键
-      if (schedule.timetable_name) {
-        classPlan.TimetableName = schedule.timetable_name;
-      }
-
-      // 处理课程时间段
+      // 处理课程时间段（时间统一 HH:MM:SS）
       let lastEnd = "";
-      schedule.classes.forEach((cls) => {
+      const classOrder = [];
+      (schedule.classes || []).forEach((cls) => {
+        const start = ciSpanTime(cls.start_time);
+        const end = ciSpanTime(cls.end_time);
+        if (!start || !end) return;
         const subjectId = subjectMap[cls.subject] || guid();
         if (lastEnd) {
-          timeLayout.Layouts.push({
-            StartSecond: lastEnd,
-            EndSecond: `2025-01-01T${cls.start_time}`,
+          timeLayout.Layouts.push(Object.assign(ciTimePointFields(lastEnd, start), {
             TimeType: 1,
             DefaultClassId: subjectId,
-          });
+          }));
         }
-        lastEnd = `2025-01-01T${cls.end_time}`;
-        timeLayout.Layouts.push({
-          StartSecond: `2025-01-01T${cls.start_time}`,
-          EndSecond: lastEnd,
+        lastEnd = end;
+        timeLayout.Layouts.push(Object.assign(ciTimePointFields(start, end), {
           TimeType: 0,
           DefaultClassId: subjectId,
-        });
-        classPlan.Classes.push({ SubjectId: subjectId });
+        }));
+        classOrder.push(subjectId);
       });
 
-      // 将生成的布局和计划添加到输出
+      // 将生成的布局添加到输出
       outputJson.TimeLayouts[timeLayoutId] = timeLayout;
-      outputJson.ClassPlans[classPlanId] = classPlan;
-      // 在 extraKey 中维护时间表名称映射（ClassPlanId -> TimetableName）
-      outputJson.extraKey = outputJson.extraKey || {};
-      outputJson.extraKey.TimetableMap = outputJson.extraKey.TimetableMap || {};
-      outputJson.extraKey.TimetableMap[classPlanId] = schedule.timetable_name || null;
+
+      // CSES v2 中一张课表可对应多个启用日，为每个启用日生成一个课程计划
+      dayList.forEach((day, dayIndex) => {
+        const classPlanId = (dayIndex === 0 && schedule.uuid) ? schedule.uuid : guid();
+        const classPlan = {
+          TimeLayoutId: timeLayoutId,
+          TimeRule: {
+            WeekDay: day == 7 ? 0 : day,
+            WeekCountDiv: schedule.weeks === "even" ? 2 :
+              schedule.weeks === "odd" ? 1 : 0,
+            WeekCountDivTotal: (schedule.weeks === "even" || schedule.weeks === "odd") ? 2 : 0,
+            IsActive: false,
+          },
+          Classes: classOrder.map((subjectId) => ({ SubjectId: subjectId })),
+          Name: dayList.length > 1 ? `${schedule.name} (${day})` : schedule.name,
+          IsOverlay: false,
+          IsEnabled: true,
+        };
+        // 将所选时间表名称写入课程计划的额外键
+        if (schedule.timetable_name) {
+          classPlan.TimetableName = schedule.timetable_name;
+        }
+        outputJson.ClassPlans[classPlanId] = classPlan;
+        // 在 extraKey 中维护时间表名称映射（ClassPlanId -> TimetableName）
+        outputJson.extraKey.TimetableMap[classPlanId] = schedule.timetable_name || null;
+      });
     });
 
     return outputJson;
@@ -185,8 +228,10 @@ function isCiFormat(obj) {
       if (!Array.isArray(timeLayout.Layouts)) return false;
       for (const layout of timeLayout.Layouts) {
         if (typeof layout !== "object" || layout === null) return false;
-        if (typeof layout.StartSecond !== "string") return false;
-        if (typeof layout.EndSecond !== "string") return false;
+        // 2.0 使用 TimeSpan（StartTime/EndTime），之前的版本使用 ISO 日期时间（StartSecond/EndSecond）
+        const hasTimeSpan = typeof layout.StartTime === "string" && typeof layout.EndTime === "string";
+        const hasLegacyTime = typeof layout.StartSecond === "string" && typeof layout.EndSecond === "string";
+        if (!hasTimeSpan && !hasLegacyTime) return false;
         if (typeof layout.TimeType !== "number") return false;
       }
     }

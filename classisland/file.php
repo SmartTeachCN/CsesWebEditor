@@ -1,67 +1,43 @@
 <?php
-// 检查是否有id参数
-if (!isset($_GET['id'])) {
-    die(json_encode(['error' => 'Missing ID parameter'], JSON_PRETTY_PRINT));
+/**
+ * 静态集控数据源（ClassIsland 集控数据）。
+ *
+ * URL 形如：`file.php?id=<实例组标识>/<实例标识>&key=<数据源>`
+ * 其中 `key` 取值：ClassPlans / TimeLayouts / Subjects / Policy / Credentials / Settings。
+ *
+ * 云端保存的是 CSES 文档，这里通过 convert.php 转换成 ClassIsland 需要的结构后输出。
+ */
+
+require_once __DIR__ . '/convert.php';
+
+$id = isset($_GET['id']) ? (string)$_GET['id'] : '';
+$key = isset($_GET['key']) ? (string)$_GET['key'] : '';
+
+if ($id === '') {
+    cses_ci_json(array('error' => '缺少实例参数（id）'), 400);
 }
 
-// 获取文件路径
-$filePath = "../user/" . $_GET['id'] . '.cses';
-
-// 检查文件是否存在
-if (!file_exists($filePath)) {
-    die(json_encode(['error' => 'File not found：'.$filePath], JSON_PRETTY_PRINT));
+$parts = explode('/', $id, 2);
+if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
+    cses_ci_json(array('error' => '实例参数格式应为「实例组标识/实例标识」'), 400);
 }
 
-// 获取文件内容
-$fileContent = file_get_contents($filePath);
+$directoryId = $parts[0];
+$instanceId = $parts[1];
 
-// 判断文件内容是否为JSON格式
-if (json_decode($fileContent) === null) {
-    die(json_encode(['error' => 'The file content is not valid JSON'], JSON_PRETTY_PRINT));
+$result = cses_ci_read_document($directoryId, $instanceId);
+if ($result['error'] !== null) {
+    cses_ci_json(array('error' => $result['error']), 404);
 }
 
-// 解析JSON内容
-$jsonData = json_decode($fileContent, true);
+$namespace = 'cses-cloud/' . $directoryId . '/' . $instanceId;
+$document = cses_ci_document($result['document'], $key, $namespace);
 
-// 获取GET参数控制的键值（Subjects/ClassPlans/TimeLayouts）
-$requestedKey = isset($_GET['key']) ? $_GET['key'] : null;
-
-// 检查请求的键是否有效
-$validKeys = ['Subjects', 'ClassPlans', 'TimeLayouts', 'Policy', 'Settings', 'Credentials'];
-if ($requestedKey && !in_array($requestedKey, $validKeys)) {
-    die(json_encode(['error' => 'Invalid key parameter. Valid keys are: Subjects, ClassPlans, TimeLayouts'], JSON_PRETTY_PRINT));
+if ($document === null) {
+    cses_ci_json(array(
+        'error' => '不支持的数据源：' . $key,
+        'validKeys' => array('ClassPlans', 'TimeLayouts', 'Subjects', 'Policy', 'Credentials', 'Settings'),
+    ), 400);
 }
 
-// 构建输出数据
-$output = ($requestedKey == "Policy" || $requestedKey == "Credentials" || $requestedKey == "Settings") ? new stdClass() : [
-    "Name" => "",
-    "TimeLayouts" => new stdClass(),
-    "ClassPlans" => new stdClass(),
-    "Subjects" => new stdClass()
-];
-
-// 如果请求了特定的键，仅保留该键
-if ($requestedKey) {
-    // 确保 $jsonData 是数组
-    if (!is_array($jsonData)) {
-        die(json_encode(['error' => "Invalid JSON data format"], JSON_PRETTY_PRINT));
-    }
-
-    // 尝试获取请求的键
-    if (isset($jsonData[$requestedKey])) {
-        $output[$requestedKey] = $jsonData[$requestedKey];
-    } elseif (isset($jsonData['extraKey']) && is_array($jsonData['extraKey'])) {
-        if (isset($jsonData['extraKey'][$requestedKey])) {
-            $output = $jsonData['extraKey'][$requestedKey];
-        }
-    } else {
-        // 返回错误信息而不是直接终止脚本
-        die(json_encode(['error' => "The requested key '$requestedKey' is not found in the JSON data"], JSON_PRETTY_PRINT));
-    }
-} else {
-    $output = $jsonData;
-}
-// 输出格式化的JSON
-header('Content-Type: application/json');
-echo json_encode($output, JSON_PRETTY_PRINT);
-?>
+cses_ci_json($document, 200);
