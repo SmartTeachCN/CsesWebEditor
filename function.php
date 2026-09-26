@@ -1,4 +1,4 @@
-<?php $debugMode = (file_exists(__DIR__ . '/debug.flag') || true);
+<?php $debugMode = file_exists(__DIR__ . '/debug.flag');
 $RUNDIR = __DIR__ . '/';
 // phpinfo();
 include_once 'config.php';
