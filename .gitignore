@@ -2,3 +2,12 @@ config.prod.php
 sync.config.json
 node_modules
 user/*
+
+# 仅存在于生产服务器、含凭据/密钥，绝不入库
+FileAdmin.php
+sync.php
+/users.php
+
+# 本地同步状态与日志
+.last_sync_timestamp
+sync-error.log
