@@ -1,0 +1,64 @@
+<!-- 主人面板：子用户管理对话框（由 pages/panel.php 引入；行内容由 cloud.js 的 ownerSub_render() 生成） -->
+<fluent-dialog id="owner-subuser-dialog" modal hidden data-skip-unsaved style="--dialog-width: min(780px, 94vw); --dialog-height: auto">
+  <div class="subuser-dialog">
+    <div class="subuser-dialog-head">
+      <div style="font-size:16px">管理子用户</div>
+      <fluent-button onclick="closeOwnerSubModal()" title="关闭"><i class="bi bi-x-lg"></i></fluent-button>
+    </div>
+    <div class="subuser-hint">
+      实例组标识：<span class="directoryId"></span> ·
+      子用户属于整个实例组，可在「可管理实例」中限定其能编辑哪些实例。
+    </div>
+    <div class="subuser-create-row">
+      <fluent-text-field id="owner-subuser-name" placeholder="子用户名" class="flex-input"></fluent-text-field>
+      <fluent-text-field id="owner-subuser-pass" placeholder="密钥（留空随机生成）" type="password" class="flex-input"></fluent-text-field>
+      <div id="owner-subuser-strength" class="subuser-strength"></div>
+      <fluent-button appearance="accent" onclick="ownerSub_add()" class="subuser-create-btn">创建子用户</fluent-button>
+    </div>
+    <div class="subuser-create-row" style="margin-top:-4px">
+      <label class="subuser-scope-label" onclick="ownerSub_labelToggle(event,'owner-subuser-only-current')" title="勾选后新子用户仅能管理当前实例">
+        <fluent-checkbox id="owner-subuser-only-current"></fluent-checkbox>
+        <span>仅授权当前实例</span>
+      </label>
+    </div>
+    <table class="subuser-table">
+      <thead>
+        <tr>
+          <th style="width:26%">用户名</th>
+          <th style="width:34%">可管理实例</th>
+          <th style="width:30%">密钥</th>
+          <th style="width:10%;text-align:right">操作</th>
+        </tr>
+      </thead>
+      <tbody id="owner-subuser-tbody"></tbody>
+    </table>
+    <div class="subuser-hint">
+      子用户在 <b>/subuser.php</b> 使用「实例组标识 + 子用户名 + 密钥」登录，
+      面板复用主界面的配置 / 档案 / 文件区块。
+    </div>
+  </div>
+</fluent-dialog>
+
+<fluent-dialog id="owner-subuser-scope-dialog" modal hidden data-skip-unsaved style="--dialog-width: min(460px, 94vw); --dialog-height: auto">
+  <div class="subuser-dialog subuser-login">
+    <div class="subuser-dialog-head">
+      <div style="font-size:16px">可管理实例 —— <span id="owner-subuser-scope-name"></span></div>
+      <fluent-button onclick="closeOwnerSubScope()" title="关闭"><i class="bi bi-x-lg"></i></fluent-button>
+    </div>
+    <div class="settings-card" style="margin-top:0">
+      <i class="bi bi-collection"></i>
+      <div class="left-section">
+        <div class="title">全部实例</div>
+        <div class="description">开启后该子用户可管理实例组内的所有实例（含之后新建的实例）</div>
+      </div>
+      <div class="right-section">
+        <fluent-switch id="owner-subuser-scope-all" onchange="ownerSub_scopeAllChanged()"></fluent-switch>
+      </div>
+    </div>
+    <div id="owner-subuser-scope-list" class="subuser-scope-list"></div>
+    <div class="subuser-login-actions">
+      <fluent-button onclick="closeOwnerSubScope()">取消</fluent-button>
+      <fluent-button appearance="accent" onclick="ownerSub_scopeSave()">保存</fluent-button>
+    </div>
+  </div>
+</fluent-dialog>

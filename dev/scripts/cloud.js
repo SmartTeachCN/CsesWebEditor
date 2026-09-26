@@ -353,37 +353,43 @@ function ownerSub_render() {
   tbody.innerHTML = '';
   users.forEach((u) => {
     const tr = document.createElement('tr');
+    // td 不能用 display:flex（会破坏表格布局），flex 放到内层 span 上
+    const cell = () => {
+      const td = document.createElement('td');
+      td.className = 'subuser-cell';
+      const inner = document.createElement('span');
+      inner.className = 'subuser-cell-inner';
+      td.appendChild(inner);
+      return { td: td, inner: inner };
+    };
 
     /* 用户名 */
-    const tdName = document.createElement('td');
-    tdName.className = 'subuser-cell';
+    const nameCell = cell();
     const nameSpan = document.createElement('span');
     nameSpan.className = 'ellipsis';
     nameSpan.title = u.username;
     nameSpan.textContent = u.username;
-    tdName.appendChild(nameSpan);
+    nameCell.inner.appendChild(nameSpan);
     const nameCopy = ownerSub_makeIcon('bi-clipboard', '复制用户名', () => copyText(u.username, nameCopy));
-    tdName.appendChild(nameCopy);
+    nameCell.inner.appendChild(nameCopy);
 
     /* 可管理实例 */
-    const tdScope = document.createElement('td');
-    tdScope.className = 'subuser-cell';
+    const scopeCell = cell();
     const scopeSpan = document.createElement('span');
     scopeSpan.className = 'ellipsis';
     scopeSpan.title = ownerSub_scopeText(u);
     scopeSpan.textContent = ownerSub_scopeText(u);
-    tdScope.appendChild(scopeSpan);
-    tdScope.appendChild(ownerSub_makeIcon('bi-pencil-square', '编辑可管理实例', () => ownerSub_openScope(u.username)));
+    scopeCell.inner.appendChild(scopeSpan);
+    scopeCell.inner.appendChild(ownerSub_makeIcon('bi-pencil-square', '编辑可管理实例', () => ownerSub_openScope(u.username)));
 
     /* 密钥（默认隐藏，按需向后端索取） */
     let secretText = '';
-    const tdSecret = document.createElement('td');
-    tdSecret.className = 'subuser-cell';
+    const secretCell = cell();
     const secSpan = document.createElement('span');
     secSpan.className = 'ellipsis';
     secSpan.textContent = '••••••••';
     secSpan.title = '点击右侧眼睛显示密钥';
-    tdSecret.appendChild(secSpan);
+    secretCell.inner.appendChild(secSpan);
     const eye = ownerSub_makeIcon('bi-eye', '显示/隐藏密钥', async () => {
       if (secSpan.textContent === '••••••••') {
         if (!secretText) {
@@ -402,8 +408,8 @@ function ownerSub_render() {
         eye.className = 'bi bi-eye icon-anim subuser-icon';
       }
     });
-    tdSecret.appendChild(eye);
-    tdSecret.appendChild(ownerSub_makeIcon('bi-clipboard', '复制密钥', async () => {
+    secretCell.inner.appendChild(eye);
+    secretCell.inner.appendChild(ownerSub_makeIcon('bi-clipboard', '复制密钥', async () => {
       if (!secretText) {
         try {
           const d = await ownerSubGet('getSubSecret', { terminalId: ownerSubState.terminalId, username: u.username });
@@ -423,9 +429,9 @@ function ownerSub_render() {
     del.addEventListener('click', () => ownerSub_delete(u.username));
     tdOps.appendChild(del);
 
-    tr.appendChild(tdName);
-    tr.appendChild(tdScope);
-    tr.appendChild(tdSecret);
+    tr.appendChild(nameCell.td);
+    tr.appendChild(scopeCell.td);
+    tr.appendChild(secretCell.td);
     tr.appendChild(tdOps);
     tbody.appendChild(tr);
   });

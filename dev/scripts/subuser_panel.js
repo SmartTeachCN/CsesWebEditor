@@ -133,6 +133,51 @@ function subCopyText(t, icon) {
   return false;
 }
 
+/* ---------- 凭据输入：独立登录窗口 ---------- */
+
+function subOpenLogin() {
+  try {
+    const dlg = subEl('subuser-login-dialog');
+    if (dlg && typeof dlg.show === 'function') dlg.show();
+    else if (dlg) dlg.hidden = false;
+  } catch { }
+  // 实例组标识优先复用已保存的 / URL 带入的，避免重复输入
+  try {
+    const dirEl = subEl('subuser-dir');
+    if (dirEl && !dirEl.value) dirEl.value = subAuth.dir || window.__SUBUSER_DIR || '';
+  } catch { }
+  setTimeout(() => {
+    try {
+      const keyEl = subEl('subuser-key');
+      const userEl = subEl('subuser-user');
+      if (keyEl && keyEl.value) keyEl.focus();
+      else if (userEl) userEl.focus();
+    } catch { }
+  }, 120);
+}
+
+function subCloseLogin() {
+  try {
+    const dlg = subEl('subuser-login-dialog');
+    if (dlg && typeof dlg.hide === 'function') dlg.hide();
+    else if (dlg) dlg.hidden = true;
+  } catch { }
+}
+
+/** 顶栏的登录状态 */
+function subUpdateSession() {
+  try {
+    const nameEl = subEl('subuser-session-name');
+    if (nameEl) nameEl.textContent = subAuth.username || '未登录';
+    const chip = subEl('subuser-session');
+    if (chip) {
+      chip.title = subAuth.username
+        ? ('实例组：' + (subAuth.dir || '') + ' · 可管理 ' + subAuth.terminals.length + ' 个实例')
+        : '未登录';
+    }
+  } catch { }
+}
+
 /* ===================== 子用户认证与数据 ===================== */
 
 const subAuth = {
@@ -167,10 +212,10 @@ const subAuth = {
 
     if (dir && user && secret) {
       this.login(terminal, true);
-    } else if (dir) {
-      subMsg('请补全子用户名与密钥后登录');
     } else {
-      subMsg('请填写实例组标识、子用户名与密钥');
+      // 未输入凭据进入页面：直接弹出独立登录窗口
+      subMsg(dir ? '已带入实例组标识，请补全子用户名与密钥' : '');
+      subOpenLogin();
     }
   },
 
@@ -207,9 +252,13 @@ const subAuth = {
       if (!this.remembered) subSetVal('subuser-key', '');
 
       this.renderInstances();
+      subMsg('');
+      subCloseLogin();
+      subUpdateSession();
 
       if (!this.terminals.length) {
         subMsg('认证成功，但该子用户当前没有被授权任何实例，请联系实例组主人');
+        subOpenLogin();
         subView.sync();
         return true;
       }
@@ -221,7 +270,7 @@ const subAuth = {
       } else if (this.terminals.length === 1) {
         await this.open(this.terminals[0], true);
       } else {
-        subMsg('认证成功（' + this.terminals.length + ' 个可管理实例），请在下方选择实例');
+        subMsg('认证成功（' + this.terminals.length + ' 个可管理实例），请在左侧选择要编辑的实例');
         subView.sync();
       }
       return true;
@@ -253,10 +302,14 @@ const subAuth = {
     subSetVal('subuser-key', '');
     const rem = subEl('subuser-remember');
     if (rem) rem.checked = false;
-    subMsg('已清除本标签页的凭据');
     this.renderInstances();
-    subView.showEditor(null);
+    subView.current = 'cloud';
+    subView.showEditor('cloud');
     subView.sync();
+    subUpdateSession();
+    // 退出凭据后（重新）显示登录子面板
+    subMsg('已清除本标签页的凭据，请重新登录');
+    subOpenLogin();
   },
 
   copyUrl(btn) {
@@ -425,15 +478,17 @@ const subView = {
     document.querySelectorAll('.activity-item').forEach((i) => {
       i.classList.toggle('selected', i.dataset.view === view);
     });
-    this.showEditor(view === 'cloud' ? null : view, null);
+    this.showEditor(view, null);
     this.sync();
   },
 
-  /* 切换 iframe 里加载的编辑器页面；view 为 null 表示回到「实例」面板 */
+  /* 切换 iframe 里加载的编辑器页面；四个视图都用主面板的编辑器页面 */
   showEditor(view, params) {
-    this.editorView = view;
+    this.editorView = view || null;
     this.params = params || null;
     if (!view) return;
+    // 还没选实例时不加载编辑器，避免 iframe 显示空白/旧数据
+    if (!subAuth.terminalId) return;
     loadEditor(view, params);
   },
 
@@ -454,28 +509,22 @@ const subView = {
     const refreshBtn = subEl('explorer-refresh-btn');
     if (refreshBtn) refreshBtn.style.display = '';
 
-    // 认证区块在子用户面板里常驻显示
-    const auth = subEl('subuser-auth');
-    if (auth) auth.style.display = '';
-
     const caption = subEl('subuser-instance-caption');
     if (caption) {
       caption.textContent = '可管理实例（' + subAuth.terminals.length + '）';
       caption.style.display = (view === 'cloud' && subAuth.terminals.length) ? 'block' : 'none';
     }
 
-    // 与主面板一致：列表只在「实例」视图显示
+    // 与主面板一致：实例列表只在「实例」视图显示
     const cloudList = subEl('cloud-list');
     if (cloudList) cloudList.style.display = view === 'cloud' ? 'block' : 'none';
 
-    const welcome = subEl('subuser-welcome');
-    if (welcome) welcome.style.display = hasInstance ? 'none' : 'block';
-
-    const pane = subEl('subuser-instance-pane');
-    if (pane) pane.style.display = (view === 'cloud' && hasInstance) ? 'block' : 'none';
+    // 未登录 / 未选择实例时显示占位，其余情况交给主面板同款编辑器页面
+    const placeholder = subEl('subuser-placeholder');
+    if (placeholder) placeholder.style.display = hasInstance ? 'none' : 'block';
 
     const frame = subEl('editor-frame');
-    if (frame) frame.style.display = (hasInstance && view !== 'cloud') ? 'block' : 'none';
+    if (frame) frame.style.display = hasInstance ? 'block' : 'none';
 
     const saveBtn = subEl('save-button');
     if (saveBtn) saveBtn.disabled = !hasInstance;
@@ -499,6 +548,7 @@ const subView = {
       const countEl = subEl('subuser-current-count');
       if (countEl) countEl.textContent = String(subAuth.terminals.length);
     } catch { }
+    subUpdateSession();
   },
 
   instanceUrl() {
@@ -512,14 +562,16 @@ const subView = {
 /* 与 main.js 保持一致：生产环境的编辑器页面位于 ./dev/pages/editor/ 下 */
 function subEditorUrl(view, params) {
   let u = `dev/pages/editor/${view}.html`;
+  const p = new URLSearchParams();
+  // 「实例」区块复用主面板的实例信息页，隐藏其中的主人专属子用户管理入口
+  if (view === 'cloud') p.set('subuser', '1');
   if (params && typeof params === 'object') {
-    const p = new URLSearchParams();
     Object.keys(params).forEach((k) => {
       if (params[k] !== undefined && params[k] !== null) p.set(k, String(params[k]));
     });
-    const q = p.toString();
-    if (q) u += `?${q}`;
   }
+  const q = p.toString();
+  if (q) u += `?${q}`;
   return u;
 }
 
@@ -549,7 +601,7 @@ function setEditorSrc(view, params) {
       document.querySelectorAll('.activity-item').forEach((i) => {
         i.classList.toggle('selected', i.dataset.view === view);
       });
-      subView.showEditor(view === 'cloud' ? null : view, params);
+      subView.showEditor(view, params);
       subView.sync();
       return;
     }

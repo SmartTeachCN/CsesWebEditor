@@ -2,11 +2,12 @@
 // 子用户面板
 // ---------------------------------------------------------------------------
 // 与主面板 (panel.php) 保持同样的骨架：功能栏 + 资源管理器 + 编辑器 iframe，
-// 其中「配置 / 档案 / 文件」区块直接复用主面板的 pages/editor/*.html，
-// 只有「实例」区块换成子用户自己的认证 + 可管理实例列表。
+// 「实例 / 配置 / 档案 / 文件」四个区块都直接复用主面板的 pages/editor/*.html
+// （「实例」区块用 ?subuser=1 隐藏主人专属的子用户管理入口），
+// 因此 editor-area 的样式与边距和主面板完全一致。
 //
 // 打开方式：/subuser.php?dir=<实例组标识>
-// 凭据（子用户名 / 密钥）不通过 URL 传递，由子用户在本页面输入，
+// 凭据（子用户名 / 密钥）不通过 URL 传递：由独立登录窗口输入，
 // 且只保存在本标签页的 sessionStorage 中。
 include('function.php');
 
@@ -34,13 +35,16 @@ $subTerminalJs = tool::validTerminalId($subTerminal) ? $subTerminal : '';
         <i class="bi bi-people" style="font-size: 20px; margin-right: 8px"></i>
         <h3 id="webTitle" style="display: flex">子用户面板&nbsp;</h3>
         <div class="topbarBtnGroup">
+          <button onclick="subOpenLogin()" id="subuser-login-toggle" title="登录 / 更换凭据">
+            <i class="bi bi-box-arrow-in-right"></i>
+          </button>
           <button onclick="toggleColorMode()" title="深色模式">
             <i class="bi bi-moon"></i>
           </button>
-          <button onclick="subAuth.forget()" title="清除本标签页凭据">
-            <i class="bi bi-box-arrow-right"></i>
-          </button>
         </div>
+        <span class="subuser-session" id="subuser-session">
+          <i class="bi bi-person"></i>&nbsp;子用户：<b id="subuser-session-name">未登录</b>
+        </span>
       </span>
       <span id="separator" style="flex: 1"></span>
     </span>
@@ -59,101 +63,22 @@ $subTerminalJs = tool::validTerminalId($subTerminal) ? $subTerminal : '';
   </div>
   <div class="container">
     <?php ui::renderSideBar(uiConfig::subuserLeftBar()) ?>
-    <?php // 资源管理器与主面板共用同一份定义（认证区块 + 档案区块 + 可管理实例列表） ?>
+    <?php // 资源管理器与主面板共用同一份定义（档案区块 + 可管理实例列表） ?>
     <?php include 'pages/explorer.html'; ?>
 
     <div class="editor-area">
-      <div id="subuser-welcome" class="subuser-welcome">
-        <h3>子用户面板</h3>
-        <div>1. 在左侧填写<b>实例组标识</b>、<b>子用户名</b>与<b>密钥</b>并登录；</div>
-        <div>2. 登录后会列出你<b>可管理的实例</b>，点击实例即可开始编辑；</div>
-        <div>3. 编辑界面与主面板一致，包含<b>配置 / 档案 / 文件</b>三个区块，保存时直接写回该实例。</div>
+      <!-- 未登录 / 未选择实例时的占位。边距与编辑器页面一致（同为 padding:0 12px 12px），
+           避免出现"内容贴边 / 排布异常"。 -->
+      <div id="subuser-placeholder" class="editor-page subuser-placeholder">
+        <p class="pageTitle pageTitle_main">子用户面板</p>
+        <h3>尚未选择实例</h3>
+        <ol>
+          <li>点击右上角的 <i class="bi bi-box-arrow-in-right"></i> 图标（或左侧「登录 / 更换凭据」）；</li>
+          <li>填写 <b>实例组标识</b>、<b>子用户名</b> 与 <b>密钥</b>；</li>
+          <li>登录后左侧会列出你 <b>可管理的实例</b>，点击实例即可开始编辑；</li>
+          <li>编辑区块与主面板完全一致：<b>配置 / 档案 / 文件</b>，保存时直接写回该实例。</li>
+        </ol>
       </div>
-
-      <!-- 「实例」区块：当前实例信息（结构对齐主面板的实例信息页，但去掉主人专属操作） -->
-      <div id="subuser-instance-pane" style="display: none">
-        <p class="pageTitle pageTitle_main">实例信息</p>
-        <p class="pageTitle" style="background-color: rgba(250, 0, 0, 0.1); padding: 10px; border-radius: 4px; height: auto;">
-          <i class="bi bi-info-circle"></i>&nbsp;<b>提示:</b>&nbsp;你正在以子用户身份编辑他人的实例，保存会直接覆盖该实例的云端配置
-        </p>
-        <h4>基本</h4>
-        <div class="settings-card">
-          <i class="bi bi-info-circle"></i>
-          <div class="left-section">
-            <div class="title">实例组标识</div>
-            <div class="description">在受支持的程序中选择实例组,此ID是唯一的</div>
-          </div>
-          <div class="right-section">
-            <span style="user-select: text" class="directoryId"></span>
-          </div>
-        </div>
-        <div class="settings-card">
-          <i class="bi bi-bookmark"></i>
-          <div class="left-section">
-            <div class="title">实例标识符</div>
-            <div class="description">当前正在编辑的实例</div>
-          </div>
-          <div class="right-section">
-            <span class="configId" style="user-select: text"></span>
-          </div>
-        </div>
-        <div class="settings-card">
-          <i class="bi bi-link-45deg"></i>
-          <div class="left-section">
-            <div class="title">源文件地址</div>
-            <div class="description">可以通过此链接访问此实例的完整配置</div>
-          </div>
-          <div class="right-section">
-            <fluent-button class="icon-btn" onclick="subAuth.copyUrl(this)"><i class="bi bi-clipboard icon-anim" style="font-size: 12px;"></i>复制</fluent-button>
-            <span style="user-select: text; display: none" id="subuser-url"></span>
-          </div>
-        </div>
-        <h4>配置</h4>
-        <div class="settings-card">
-          <i class="bi bi-code-slash"></i>
-          <div class="left-section">
-            <div class="title">实例类型</div>
-            <div class="description">选择该实例要使用的配置类型</div>
-          </div>
-          <div class="right-section">
-            <fluent-select id="output-mode" onchange="storage.outputSet()" title="选择导出格式">
-              <fluent-option value="cy1">通用CSES v1（YAML）</fluent-option>
-              <fluent-option value="cy2">通用CSES v2（YAML）</fluent-option>
-              <fluent-option value="ci">ClassIsland静态集控</fluent-option>
-              <fluent-option value="es">ExamSchedule</fluent-option>
-            </fluent-select>
-          </div>
-        </div>
-        <h4>子用户</h4>
-        <div class="settings-card" data-skip-unsaved>
-          <i class="bi bi-person-check"></i>
-          <div class="left-section">
-            <div class="title">当前登录</div>
-            <div class="description">
-              子用户名：<b id="subuser-current-user"></b> ·
-              可管理实例：<b id="subuser-current-count"></b> 个 ·
-              凭据只保存在本标签页
-            </div>
-          </div>
-          <div class="right-section">
-            <fluent-button onclick="subAuth.refresh()">刷新授权</fluent-button>
-            <fluent-button onclick="subAuth.forget()">退出登录</fluent-button>
-          </div>
-        </div>
-        <div class="settings-card">
-          <i class="bi bi-box-arrow-down"></i>
-          <div class="left-section">
-            <div class="title">部署实例</div>
-            <div class="description">下载集控配置/启用在线展示软件</div>
-          </div>
-          <div class="right-section">
-            <fluent-button id="config_preview" onclick="storage.preview()"><i class="bi bi-play-circle"
-                style="font-size: 12px;margin: 0;margin-right: 5px;"></i>
-              启用向导</fluent-button>
-          </div>
-        </div>
-      </div>
-
       <?php ui::renderEditors(uiConfig::subuserLeftBar()); ?>
       <?php include 'pages/problems.html'; ?>
     </div>
@@ -161,6 +86,31 @@ $subTerminalJs = tool::validTerminalId($subTerminal) ? $subTerminal : '';
   <div class="mobile-only-flex" id="mobile-bottomBar">
     <?php ui::renderSideBar(uiConfig::subuserLeftBar(), true) ?>
   </div>
+
+  <!-- 凭据输入区：独立窗口 -->
+  <fluent-dialog id="subuser-login-dialog" modal hidden data-skip-unsaved style="--dialog-width: min(440px, 94vw); --dialog-height: auto">
+    <div class="subuser-dialog subuser-login">
+      <div class="subuser-dialog-head">
+        <div style="font-size:16px">子用户登录</div>
+        <fluent-button onclick="subCloseLogin()" title="关闭"><i class="bi bi-x-lg"></i></fluent-button>
+      </div>
+      <div class="subuser-hint">
+        使用 <b>实例组标识</b>、<b>子用户名</b> 与 <b>密钥</b> 登录；认证通过后会列出你可管理的实例。
+      </div>
+      <fluent-text-field id="subuser-dir" placeholder="实例组标识"></fluent-text-field>
+      <fluent-text-field id="subuser-user" placeholder="子用户名"></fluent-text-field>
+      <fluent-text-field id="subuser-key" type="password" placeholder="密钥"></fluent-text-field>
+      <label class="subuser-scope-label" onclick="subToggleCheckbox(event,'subuser-remember')" title="仅保存在本标签页的 sessionStorage 中，关闭标签页即失效">
+        <fluent-checkbox id="subuser-remember"></fluent-checkbox>
+        <span>记住密钥（仅本标签页）</span>
+      </label>
+      <div id="subuser-auth-msg" class="subuser-hint"></div>
+      <div class="subuser-login-actions">
+        <fluent-button onclick="subAuth.forget()">清除凭据</fluent-button>
+        <fluent-button appearance="accent" id="subuser-login-btn" onclick="subAuth.login()">登录</fluent-button>
+      </div>
+    </div>
+  </fluent-dialog>
 
 </body>
 

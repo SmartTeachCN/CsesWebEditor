@@ -5,14 +5,21 @@
 .icon-anim { transition: transform 150ms ease, color 150ms ease; }
 .bi.bi-check { box-shadow: none !important; border: none !important; border-radius: 0 !important; outline: none !important; }
 
+/* ===== 通用：把面板里的非 iframe 内容按编辑器页面的边距排布 =====
+   主界面 editor-area 里放的是 iframe，编辑器页面自带 body{padding:0 12px 12px}；
+   子用户面板有非 iframe 的占位内容，这里用同一个边距，避免"没有留白/贴边"。 */
+.editor-page { padding: 0 12px 12px; box-sizing: border-box; }
+
 /* ===== 主人面板：管理子用户对话框 ===== */
-.subuser-dialog { padding: 16px; min-width: 560px; max-width: 760px; }
+/* 宽度由宿主 fluent-dialog 的 --dialog-width 决定（见 owner_subuser.html / subuser.php），
+   内容只负责填满并内缩，避免超出对话框导致内容溢出（曾出现按钮/操作列跑到框外）。 */
+.subuser-dialog { padding: 16px; width: 100%; box-sizing: border-box; }
 .subuser-dialog-head {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
 }
 .subuser-hint { color: #666; font-size: 12px; line-height: 1.6; margin: 6px 0; }
 .subuser-create-row {
-  display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: nowrap;
+  display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
 }
 .subuser-create-btn { align-self: center; flex: none; white-space: nowrap; }
 .subuser-scope-label {
@@ -23,9 +30,12 @@
   text-align: left; border-bottom: 1px solid #ddd; padding: 6px 4px; font-weight: 600; font-size: 13px;
 }
 .subuser-table td { padding: 6px 4px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-.subuser-cell { user-select: text; display: flex; align-items: center; gap: 6px; }
-.subuser-cell .ellipsis {
-  display: inline-block; max-width: calc(100% - 26px);
+/* 注意：td 上不能用 display:flex，会破坏表格布局（列宽/对齐全部失效）。
+   内容用内层 span 做 flex。 */
+.subuser-cell { user-select: text; }
+.subuser-cell-inner { display: flex; align-items: center; gap: 6px; min-width: 0; width: 100%; }
+.subuser-cell-inner .ellipsis {
+  flex: 1 1 auto; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .subuser-icon { cursor: pointer; font-size: 14px; color: #666; flex: none; }
@@ -45,10 +55,19 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text;
 }
 
-/* ===== 子用户面板：认证卡片与实例列表 ===== */
-.subuser-auth { padding: 4px 6px 8px 6px; display: flex; flex-direction: column; }
-.subuser-auth .subuser-hint { margin-bottom: 8px; }
-.subuser-auth .subuser-auth-actions { display: flex; gap: 6px; align-items: center; }
+/* ===== 子用户面板：登录窗口 ===== */
+.subuser-login { width: 100%; }
+.subuser-login fluent-text-field { margin-bottom: 10px; }
+.subuser-login-actions {
+  display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 12px;
+}
+.subuser-session {
+  display: inline-flex; align-items: center; gap: 6px; margin-left: 10px;
+  font-size: 12px; color: #666;
+}
+.subuser-session b { color: #333; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== 子用户面板：可管理实例列表 ===== */
 .subuser-instance-item {
   display: flex; align-items: center; gap: 6px;
 }
@@ -60,7 +79,10 @@
   font-size: 11px; padding: 1px 6px; border-radius: 8px;
   background: rgba(0, 120, 212, 0.12); color: #0078d4; margin-left: 4px; flex: none;
 }
-.subuser-welcome {
-  padding: 24px; color: #666; font-size: 13px; line-height: 1.8;
+
+/* ===== 子用户面板：未登录 / 未选择实例时的占位 ===== */
+.subuser-placeholder {
+  color: #666; font-size: 13px; line-height: 1.9;
 }
-.subuser-welcome h3 { color: #333; margin-top: 0; }
+.subuser-placeholder h3 { color: #333; margin-top: 0; }
+.subuser-placeholder ol { margin: 6px 0 0 0; padding-left: 20px; }
