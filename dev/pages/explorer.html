@@ -47,6 +47,14 @@
         <i class="bi bi-filetype-json"></i>&nbsp;导出JSON
       </fluent-button> -->
       <fluent-button
+        id="add-timetable-btn"
+        class="explorer-item"
+        onclick="schedule.addTimetableUI()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-plus-lg"></i>&nbsp;新建时间表
+      </fluent-button>
+      <fluent-button
         id="import-timetable-json-btn"
         class="explorer-item"
         onclick="schedule.importTimeTemplateJSONUI()"
@@ -62,6 +70,14 @@
         id="subject-list"
         style="margin-top: 5px"
       ></fluent-listbox>
+      <fluent-button
+        id="add-subject-btn"
+        class="explorer-item"
+        onclick="subjects.add()"
+        style="display: flex; margin-top: 5px"
+      >
+        <i class="bi bi-plus-lg"></i>&nbsp;新增科目
+      </fluent-button>
     </fluent-tab-panel>
   </fluent-tabs>
 

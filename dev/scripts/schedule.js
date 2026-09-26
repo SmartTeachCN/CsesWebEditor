@@ -65,6 +65,46 @@ const timetableTemplates = [
   ]},
 ];
 function saveTimetableState(){ try{ localStorage.setItem(TIMETABLE_LOCAL_KEY, JSON.stringify(timetableState)); }catch{} }
+
+/*
+ * 以「文档」（localStorage 里的 csesData）为准重建内存中的时间表模板。
+ *
+ * 这一步原来只写在 schedule.init() 里，而时间表编辑器页面（time.html）从不调用
+ * schedule.init()，只依赖模块初始化时读到的本地缓存：缓存缺失或过期时，打开一个
+ * 已有时间表会显示成空表，点保存就把模板清空（丢数据）。
+ *
+ * 同时去掉了反向同步（把本地缓存塞回文档）：导入一份不含时间表的文档后，
+ * 上一份文档的模板会因此残留进新文档。
+ */
+function syncTimetablesFromData() {
+  let doc = null;
+  try { doc = (typeof storage !== 'undefined' && storage.storedData) ? storage.storedData() : currentData; } catch { doc = currentData; }
+  const list = (doc && Array.isArray(doc.timetables)) ? doc.timetables
+    : (Array.isArray(currentData && currentData.timetables) ? currentData.timetables : []);
+  customTimetables = list.map((t) => {
+    // 导出结构里 times 是对象（starttime/endtime），编辑器内部用 [start, end]
+    const timesArr = Array.isArray(t && t.times) ? t.times.map((it) => {
+      if (Array.isArray(it)) return [csesTime(it[0]), csesTime(it[1])];
+      const s = (it && it.starttime) ? csesTime(it.starttime) : '';
+      const e = (it && it.endtime) ? csesTime(it.endtime) : '';
+      return [s, e];
+    }) : [];
+    return { key: (t && (t.key || t.name)) || '', name: (t && t.name) || '', times: timesArr };
+  }).filter((t) => t.name);
+  // 内存副本与文档对齐（这里不落盘，避免覆盖其它 iframe 刚写入的更新数据）
+  try {
+    currentData.timetables = customTimetables.map((t) => ({
+      name: t.name,
+      times: t.times.map(([s, e]) => ({ starttime: s, endtime: e })),
+    }));
+  } catch {}
+  try {
+    if (customTimetables.length > 0) localStorage.setItem(TIMETABLE_CUSTOM_KEY, JSON.stringify(customTimetables));
+    else localStorage.removeItem(TIMETABLE_CUSTOM_KEY);
+  } catch {}
+  return customTimetables;
+}
+
 const schedule = {
   weekMap: {
     odd: "单周",
@@ -194,29 +234,8 @@ const schedule = {
     try { if (typeof setEditorSrc === 'function') { setEditorSrc('control'); return; } } catch {}
   },
   init() {
-    // 同步时间表模板到 currentData 并从 currentData 载入
-    try {
-      if (Array.isArray(currentData?.timetables) && currentData.timetables.length > 0) {
-        // 从导出结构（对象形式的 times）恢复为编辑器内部使用的数组形式
-        customTimetables = currentData.timetables.map(t => {
-          const timesArr = Array.isArray(t.times) ? t.times.map(it => {
-            if (Array.isArray(it)) return [csesTime(it[0]), csesTime(it[1])];
-            const s = (it && it.starttime) ? csesTime(it.starttime) : '';
-            const e = (it && it.endtime) ? csesTime(it.endtime) : '';
-            return [s, e];
-          }) : [];
-          return { key: t.key || t.name, name: t.name, times: timesArr };
-        });
-        localStorage.setItem(TIMETABLE_CUSTOM_KEY, JSON.stringify(customTimetables));
-      } else if (Array.isArray(customTimetables) && customTimetables.length > 0) {
-        // 将编辑器内部数组形式转换为导出结构（对象形式的 times）
-        currentData.timetables = customTimetables.map(t => ({
-          name: t.name,
-          times: (t.times || []).map(([s,e]) => ({ starttime: s, endtime: e }))
-        }));
-        storage.save();
-      }
-    } catch (e) { console.warn('sync timetables on init failed', e); }
+    // 时间表模板以文档为准重建（含 time.html 等不调用 init 的编辑器页共用）
+    try { syncTimetablesFromData(); } catch (e) { console.warn('sync timetables on init failed', e); }
     const container = document.getElementById("schedule-list");
     if (!container) {
       try {
@@ -364,10 +383,30 @@ const schedule = {
     } catch {}
   },
   viewMode: "odd",
+  /*
+   * 表格视图每次重绘都会新建一个科目选择浮层，并挂一个 document 级 click
+   * 监听器。之前两者都不回收：反复切周型 / 重绘后 body 里会残留一串浮层，
+   * document 上的监听器也越积越多。这里在重绘前统一清理。
+   */
+  disposeSubjectSelector() {
+    try {
+      if (this._subjectSelectorDocClick) {
+        document.removeEventListener('click', this._subjectSelectorDocClick);
+        this._subjectSelectorDocClick = null;
+      }
+    } catch {}
+    try {
+      const old = this._subjectSelector;
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+    } catch {}
+    this._subjectSelector = null;
+  },
   view(viewMode = 'odd') {
     this.viewMode = viewMode;
+    this.disposeSubjectSelector();
     try { const sel = document.getElementById('table-week-select'); if (sel) sel.value = viewMode; } catch {}
     const viewtable = document.getElementById("change-table");
+    if (!viewtable) return;
     viewtable.innerHTML = "";
     const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const schedules = currentData.schedules;
@@ -433,6 +472,7 @@ const schedule = {
       z-index: 1000;
     `;
     document.body.appendChild(subjectSelector);
+    this._subjectSelector = subjectSelector; // 供 disposeSubjectSelector() 回收
 
     for (let classIndex = 0; classIndex < maxClassesPerDay; classIndex++) {
       const row = document.createElement("tr");
@@ -503,7 +543,8 @@ const schedule = {
       tbody.appendChild(row);
     }
 
-    document.addEventListener('click', (e) => {
+    // 只挂一个 document 级监听器，并记录下来以便下次重绘时移除
+    this._subjectSelectorDocClick = (e) => {
       if (!subjectSelector.contains(e.target) && !e.target.closest('td')) {
         subjectSelector.style.display = 'none';
         document.querySelectorAll('#selected-cell').forEach(cell => {
@@ -513,13 +554,15 @@ const schedule = {
           }
         });
       }
-    });
+    };
+    document.addEventListener('click', this._subjectSelectorDocClick);
 
     table.appendChild(tbody);
     viewtable.appendChild(table);
   },
   quickPanel() {
     const grid = document.querySelector(".subject-grid");
+    if (!grid) return; // 表格视图 / 时间表编辑器页没有快速添加面板
     grid.innerHTML = "";
 
     currentData.subjects.forEach((s) => {
@@ -539,7 +582,6 @@ const schedule = {
     const sch = currentData.schedules[currentScheduleIndex];
     if (!sch) return;
     if (storage.getOutputMode() == "es") {
-      console.log(ParticularDate);
       sch.date = ParticularDate;
     } else if (storage.getCsesVersion() === 2) {
       // CSES v2：enable_day 为数组，无 weeks 字段
@@ -638,33 +680,54 @@ const schedule = {
     this.applyVersionUI();
     this.refresh();
     const select = document.getElementById("current-subject");
-    select.innerHTML = "";
-    currentData.subjects.forEach((s) => {
-      const option = document.createElement("fluent-option");
-      option.value = s.name;
-      option.textContent = s.name;
-      select.appendChild(option);
-    });
+    if (select) {
+      select.innerHTML = "";
+      currentData.subjects.forEach((s) => {
+        const option = document.createElement("fluent-option");
+        option.value = s.name;
+        option.textContent = s.name;
+        select.appendChild(option);
+      });
+    }
+    // 快速添加课程的光标：优先补第一个还没有科目的课时，没有则从末尾追加
+    this._quickAddTarget = this.firstEmptyClassIndex(schedule);
     this.ensureTimeEditorCollapsedDefault();
     this.loadTimetableOptions();
     this.updateTimetableLabel();
     this.quickPanel();
   },
+  // 「快速添加课程」应从哪一节开始填：跳过已有科目的课时
+  firstEmptyClassIndex(sch) {
+    const classes = (sch && Array.isArray(sch.classes)) ? sch.classes : [];
+    for (let i = 0; i < classes.length; i++) {
+      const subject = classes[i] && classes[i].subject;
+      if (!subject || subject === '-') return i;
+    }
+    return classes.length;
+  },
   refresh() {
+    // 表格视图 / 时间表编辑器页没有 #class-list，这里必须容错，
+    // 否则 schedule.load() 会在这些页面里抛异常并跳过后续初始化。
     const listbox = document.getElementById("class-list");
+    if (!listbox) return;
+    const sch = currentData.schedules[currentScheduleIndex];
+    if (!sch || !Array.isArray(sch.classes)) { listbox.innerHTML = "<fluent-option>暂无课程，点击下方添加</fluent-option>"; return; }
     listbox.innerHTML = "";
 
-    currentData.schedules[currentScheduleIndex].classes.forEach((cls, index) => {
+    sch.classes.forEach((cls, index) => {
       const item = document.createElement("fluent-option");
       item.value = index;
       item.addEventListener("click", () => {
         currentClassIndex = parseInt(index);
-        const currentClass =
-          currentData.schedules[currentScheduleIndex].classes[currentClassIndex];
-        console.log(index);
-        document.getElementById("current-subject").value = currentClass.subject;
-        document.querySelectorAll(".time-input")[0].value = csesTime(currentClass.start_time);
-        document.querySelectorAll(".time-input")[1].value = csesTime(currentClass.end_time);
+        // 「快速添加课程」从刚选中的这一节开始填（与原行为一致）
+        schedule._quickAddTarget = currentClassIndex;
+        const currentClass = sch.classes[currentClassIndex];
+        if (!currentClass) return;
+        const sel = document.getElementById("current-subject");
+        if (sel) sel.value = currentClass.subject;
+        const inputs = document.querySelectorAll(".time-input");
+        if (inputs[0]) inputs[0].value = csesTime(currentClass.start_time);
+        if (inputs[1]) inputs[1].value = csesTime(currentClass.end_time);
       });
       item.textContent = `${cls.subject} (${csesTime(cls.start_time)}-${csesTime(cls.end_time)})`;
       listbox.appendChild(item);
@@ -675,24 +738,37 @@ const schedule = {
       listbox.value = currentClassIndex;
     }
 
-    if (currentData.schedules[currentScheduleIndex].classes.length === 0) {
+    if (sch.classes.length === 0) {
       listbox.innerHTML = "<fluent-option>暂无课程，点击下方添加</fluent-option>";
     }
   },
-  addClass() {
+  // 新增课时时的默认时间：接上一节结束时间，默认一节 45 分钟
+  nextClassTimes(sch) {
+    const classes = (sch && Array.isArray(sch.classes)) ? sch.classes : [];
+    const prev = classes.length ? classes[classes.length - 1] : null;
+    const start = (prev && csesTime(prev.end_time)) || '08:00:00';
+    const end = csesMinutesToTime((csesTimeToMinutes(start) || 480) + 45);
+    return [start, end];
+  },
+  addClass(subjectOverride) {
     const sch = currentData.schedules[currentScheduleIndex];
+    if (!sch) return;
+    if (!Array.isArray(sch.classes)) sch.classes = [];
     const inputs = document.querySelectorAll('.time-input');
     // 时间统一 HH:MM:SS；输入控件没有给出有效值时按上一节课推算，避免写入空时间
-    const prev = (sch.classes && sch.classes.length) ? sch.classes[sch.classes.length - 1] : null;
-    const fallbackStart = (prev && csesTime(prev.end_time)) || '08:00:00';
+    const fallbackStart = this.nextClassTimes(sch)[0];
     const start = csesTime(inputs[0] && inputs[0].value) || fallbackStart;
     const end = csesTime(inputs[1] && inputs[1].value) || csesMinutesToTime((csesTimeToMinutes(start) || 480) + 45);
+    const subjectSel = document.querySelector('#current-subject');
     sch.classes.push({
-      subject: document.querySelector('#current-subject').value ?? "",
+      subject: (subjectOverride !== undefined && subjectOverride !== null)
+        ? subjectOverride
+        : (subjectSel ? (subjectSel.value ?? "") : ""),
       start_time: start,
       end_time: end,
     });
     currentClassIndex = sch.classes.length - 1;
+    this._quickAddTarget = sch.classes.length;
     try {
       if (inputs[0]) inputs[0].value = start;
       if (inputs[1]) inputs[1].value = end;
@@ -770,20 +846,41 @@ const schedule = {
     alert("快速创建周一~周日通用周成功");
   },
   setSubject(subject, autoAdd) {
-    if (currentClassIndex === -1) return;
-    currentData.schedules[currentScheduleIndex].classes[
-      currentClassIndex
-    ].subject = subject;
+    const sch = currentData.schedules[currentScheduleIndex];
+    if (!sch) return;
+    if (!Array.isArray(sch.classes)) sch.classes = [];
+
+    if (autoAdd) {
+      // 「快速添加课程」：点一个科目填一格，填满后自动续一节。
+      // 原来是「赋值后把下标 +1 并钳在最后一节」，既导致空课表上点了没反应，
+      // 也导致填满之后只会反复覆盖最后一节，无法真正添加课程。
+      let target = (typeof this._quickAddTarget === 'number') ? this._quickAddTarget : currentClassIndex + 1;
+      if (!isFinite(target) || target < 0) target = 0;
+      if (target > sch.classes.length) target = sch.classes.length;
+      if (target === sch.classes.length) {
+        const [start, end] = this.nextClassTimes(sch);
+        sch.classes.push({ subject, start_time: start, end_time: end });
+        currentClassIndex = sch.classes.length - 1;
+        this._quickAddTarget = sch.classes.length;
+      } else {
+        sch.classes[target].subject = subject;
+        currentClassIndex = target;
+        this._quickAddTarget = target + 1;
+      }
+    } else {
+      if (currentClassIndex === -1 || !sch.classes[currentClassIndex]) return;
+      sch.classes[currentClassIndex].subject = subject;
+      // 下拉框作用于当前选中的课时，快速添加的光标同步回到这一节
+      this._quickAddTarget = currentClassIndex;
+    }
+
     storage.save();
     try { window.markUnsynced && window.markUnsynced(); } catch {}
     schedule.refresh();
-    if (autoAdd) {
-      const maxIndex =
-        currentData.schedules[currentScheduleIndex].classes.length - 1;
-      currentClassIndex = Math.min(currentClassIndex + 1, maxIndex);
-    }
-    document.getElementById("class-list").value = currentClassIndex;
-    document.getElementById("current-subject").value = subject;
+    const list = document.getElementById("class-list");
+    if (list) list.value = currentClassIndex;
+    const sel = document.getElementById("current-subject");
+    if (sel) sel.value = subject;
   },
   setTime() {
     if (currentClassIndex === -1) return;
@@ -1071,7 +1168,15 @@ const schedule = {
         return;
       }
     } catch {}
+    // 编辑器页（time.html）不会调用 schedule.init()，这里必须自己把模板
+    // 从文档同步过来：否则打开一个已有时间表会显示为空表，保存即清空模板。
+    try { syncTimetablesFromData(); } catch (e) { console.warn('sync timetables on showTimeEditor failed', e); }
     const t = customTimetables.find(x => x.name === name);
+    if (!t && name) {
+      // 名字来自 URL / 列表但模板已不存在：明确告知，避免用户以为看到了空模板
+      console.warn('timetable not found', name);
+      alert(`未找到时间表「${name}」，它可能已被删除。`);
+    }
     this.currentTimetableName = name;
     document.getElementById('change-editor')?.style && (document.getElementById('change-editor').style.display = 'none');
     document.getElementById('schedule-editor')?.style && (document.getElementById('schedule-editor').style.display = 'none');

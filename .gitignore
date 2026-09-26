@@ -11,3 +11,6 @@ sync.php
 # 本地同步状态与日志
 .last_sync_timestamp
 sync-error.log
+
+# 构建产物（由 build.js 生成，不入库）
+bundles
